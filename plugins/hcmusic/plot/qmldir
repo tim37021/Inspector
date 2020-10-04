@@ -1,0 +1,11 @@
+module hcmusic.plot
+
+SignalEntity 1.0 SignalEntity.qml
+SignalPlotControl 1.0 SignalPlotControl.qml
+SignalPlotOpenGL 1.0 SignalPlotOpenGL.qml
+SignalStyle 1.0 SignalStyle.qml
+SignalPlotUI 1.0 SignalPlotUI.qml
+ValueAxis 1.0 ValueAxis.qml
+LineSeries 1.0 LineSeries.qml
+
+singleton SignalShader 1.0 SignalShader.qml

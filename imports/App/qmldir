@@ -1,0 +1,8 @@
+module imports
+
+singleton Constants 1.0 Constants.qml
+Kalman 1.0 KalmanJS.js
+SubWindow 1.0 SubWindow.qml
+Windowing 1.0 Windowing.qml
+SideBar 1.0 SideBar.qml
+BurgerMenu 1.0 BurgerMenu.qml

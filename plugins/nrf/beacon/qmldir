@@ -1,0 +1,8 @@
+module nrf.beacon
+
+plugin BeaconPlugin
+
+DeviceManager 1.0 DeviceManager.qml
+TrackedDeviceModel 1.0 TrackedDeviceModel.qml
+
+typeinfo BeaconPlugin.qmltypes
