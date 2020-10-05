@@ -63,7 +63,7 @@ Rectangle {
     property bool __internalClosed: state == "Closed"
 
     color: Qt.rgba(0.1434, 0.1758, 0.2405)
-    opacity: ma.drag.active? 0.5196: 0.7
+    opacity: ma.drag.active? 0.5196: 0.9
 
     Behavior on opacity {
         NumberAnimation { duration: 100 }
