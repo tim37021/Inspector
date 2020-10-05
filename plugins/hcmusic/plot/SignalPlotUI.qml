@@ -7,7 +7,9 @@ Item {
     id: plotUI
     property ValueAxis xAxis
     property ValueAxis yAxis
-    property ListModel model
+
+    property ListModel pointModel           ///< point model in format {px: number, py: number}
+    property ListModel rectangleModel       ///< rectangle model in format {x1: number, y1: number, x2: number, y2: number}
 
     property bool drawGrid: true
 
@@ -51,12 +53,11 @@ Item {
 
     Repeater {
         anchors.fill: parent
-        model: plotUI.model
+        model: plotUI.pointModel
 
-        delegate: Point {
+        delegate: PointPlot {
             px: model.px
             py: model.py
         }
-
     }
 }
