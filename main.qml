@@ -66,13 +66,20 @@ ApplicationWindow {
         }
     }
 
-
-/*
-    */
+    /**
+     * createPlotWindow
+     * @param title Title of the new window
+     * @param mdl Instance of TrackedDeviceModel
+     */
     function createPlotWindow(title, mdl) {
         return windowing.createWindow(plotWindowComp, {open: true, title: title, target: mdl});
     }
 
+    /**
+     * createQuickPlotWindow
+     * @param title Title of the new window
+     * @param source Signal source. Can be raw array
+     */
     function createQuickPlotWindow(title, source) {
         return windowing.createWindow(quickPlotWindowComp, {open: true, title: title, signalSource: source});
     }

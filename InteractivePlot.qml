@@ -12,6 +12,10 @@ SignalPlotOpenGL {
     property ValueAxis xAxis: ValueAxis {} ///< X axis of the plot
     property ValueAxis yAxis: ValueAxis {} ///< Y axis of the plot
 
+    property alias mouseCoordX: ctl.mouseCoordX
+    property alias mouseCoordY: ctl.mouseCoordY
+    property alias mouseAnchor: mouseAnchor_
+
     SignalPlotControl {
         id: ctl
         anchors.fill: parent
@@ -22,7 +26,6 @@ SignalPlotOpenGL {
 
     ListModel {
         id: ui
-        ListElement { px: 100; py: 100}
     }
 
     SignalPlotUI {
@@ -31,8 +34,13 @@ SignalPlotOpenGL {
         yAxis: plot.yAxis
 
         model: ui
-        
-        drawGrid: ctl.dragging
+
+        Point {
+            id: mouseAnchor_
+            visible: true
+            px: 0
+            py: 0
+        }
     }
 
     Text {
@@ -44,6 +52,7 @@ SignalPlotOpenGL {
 
         Behavior on opacity { NumberAnimation { duration: 100 } }
     }
+
     Text {
         text: plot.yAxis.max.toFixed(1)
         anchors.right: parent.right

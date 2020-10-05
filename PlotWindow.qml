@@ -32,10 +32,11 @@ SubWindow {
                 ls2.append(reading)
 
                 algo.feed(freading)
-
-                // move mouse cursor
-                //if(ctl.mouseCoordX >= 0 && ctl.mouseCoordX < ls.length)
-                //    ui.set(0, {px: ctl.mouseCoordX, py: ls.array[Math.ceil(ctl.mouseCoordX)]})
+            }
+            // move mouse cursor
+            if(plot.mouseCoordX >= 0 && plot.mouseCoordX < ls.length) {
+                plot.mouseAnchor.px = plot.mouseCoordX
+                plot.mouseAnchor.py = ls.array[Math.ceil(plot.mouseCoordX)]
             }
         }
     }
@@ -55,6 +56,7 @@ SubWindow {
     }
 
     InteractivePlot {
+        id: plot
         y: 24
         width: parent.width * 0.8
         height: parent.height * 0.8
@@ -98,9 +100,19 @@ SubWindow {
         }
 
         Keys.onPressed: {
-            app.createQuickPlotWindow('plot', null)
+            let buf = buf_comp.createObject(null)
+            buf.set(new Array(1024).fill(0))
+
+            app.createQuickPlotWindow('plot', ls)
         }
 
+    }
+
+    Component {
+        id: buf_comp
+        Buffer {
+
+        }
     }
 
     ListView {

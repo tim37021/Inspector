@@ -6,8 +6,16 @@ SubWindow {
 
     property var signalSource
 
+    onSignalSourceChanged: {
+        if(signalSource && signalSource.array)
+            ls.set(signalSource.array)
+        if(signalSource && Array.isArray(signalSource))
+            ls.set(signalSource)
+        
+    }
+
     Connections {
-        target: signalSource
+        target: signalSource instanceof QtObject? signalSource: null
 
         function onUpdate(array) {
             ls.set(array)
@@ -32,6 +40,7 @@ SubWindow {
         width: parent.width * 0.8
         height: parent.height * 0.8
         anchors.centerIn: parent
+        mouseAnchor.visible: false
 
         xAxis: ValueAxis {
             id: xAxis_

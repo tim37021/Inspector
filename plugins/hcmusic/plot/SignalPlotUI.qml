@@ -22,8 +22,8 @@ Item {
         }
         Repeater {
             id: repy
-            model: 11
-            property real stride: (yAxis.max - yAxis.min) / (count - 1)
+            model: Math.ceil((yAxis.max - yAxis.min) / stride) + 1
+            property real stride: 20
             property real startY: Math.floor(yAxis.min / stride) * stride
             delegate: Rectangle {
                 y: plotUI.height - (repy.startY+model.index*repy.stride - yAxis.min) / (yAxis.max - yAxis.min) * plotUI.height
@@ -36,8 +36,8 @@ Item {
         Repeater {
             id: repx
 
-            model: 11
-            property real stride: (xAxis.max - xAxis.min) / (count - 1)
+            model: Math.ceil((xAxis.max - xAxis.min) / stride) + 1
+            property real stride: 200
             property real startX: Math.floor(xAxis.min / stride) * stride
             delegate: Rectangle {
                 
@@ -50,43 +50,12 @@ Item {
     }
 
     Repeater {
+        anchors.fill: parent
         model: plotUI.model
 
-        delegate: Item {
-            id: item
-            property alias radius: childRect.radius
-            property alias color: childRect.color
-            x: (model.px-xAxis.min) / (xAxis.max - xAxis.min) * plotUI.width
-            y: plotUI.height - (model.py - yAxis.min) / (yAxis.max - yAxis.min) * plotUI.height
-            Rectangle {
-                id: childRect
-                radius: 3
-                x: -radius
-                y: -radius
-                width: radius*2
-                height: radius*2
-                color: "black"
-                    
-                ToolTipHelper {
-                    delay: 500
-                    onShow: plotUI.toolTip(item, model)
-                    onHide: plotUI.hideToolTip()
-                }
-            }
-
-            Text {
-                id: hint
-                y: radius*2
-                text: model.px.toFixed(1) + "," + model.py.toFixed(1)
-            }
-            Timer {
-                id: tim
-                onTriggered: hint.opacity = 0
-            }
-            onXChanged: {hint.opacity=1; tim.restart()}
-            onYChanged: {hint.opacity=1; tim.restart()}
-            
-
+        delegate: Point {
+            px: model.px
+            py: model.py
         }
 
     }
