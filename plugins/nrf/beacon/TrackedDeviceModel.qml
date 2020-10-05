@@ -2,14 +2,12 @@ import QtQuick 2.12
 
 ListModel {
     id: root
-    property real timeout: 0 
+    property real timeout: 1000
 
     readonly property QtObject priv: QtObject {
         property var data: ({});
         property var index: [];
     }
-
-
 
     property Timer tim: Timer {
         interval: timeout
@@ -17,17 +15,11 @@ ListModel {
         running: timeout != 0
         onTriggered: {
             let now = Date.now();
-            let rem = [];
-            let rm = 0;
             for(let i=0; i<priv.index.length; i++) {
                 if(now - priv.data[priv.index[i]].timestamp > timeout) {
-                    root.remove(i-rm);
-                    rm++
-                } else {
-                    rem.push(priv.index[i]);
+                    root.set(i, {active: false});
                 }
             }
-            priv.index = rem;
         }
     }
 
@@ -39,12 +31,12 @@ ListModel {
             v.timestamp = Date.now()
 
             let idx = priv.index.indexOf(addr);
-            root.set(idx, {rssi: rssi});
+            root.set(idx, {rssi: rssi, active: true});
         } else {
             v = priv.data[addr] = {rssi: rssi, timestamp: Date.now()};
             priv.index.push(addr);
 
-            root.append({addr: addr, rssi: rssi});
+            root.append({addr: addr, rssi: rssi, active: true});
         }
 
 
