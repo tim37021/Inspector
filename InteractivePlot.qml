@@ -33,13 +33,22 @@ SignalPlotOpenGL {
         xAxis: plot.xAxis
         yAxis: plot.yAxis
 
-        model: ui
+        pointModel: ui
 
-        Point {
+        PointPlot {
             id: mouseAnchor_
             visible: true
             px: 0
             py: 0
+        }
+
+        RectanglePlot {
+            x1: mouseAnchor_.px
+            y1: mouseAnchor_.py
+
+            x2: mouseAnchor_.px+100
+            y2: mouseAnchor_.py+100
+
         }
     }
 

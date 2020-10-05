@@ -8,6 +8,7 @@ SignalPlotUI 1.0 SignalPlotUI.qml
 ValueAxis 1.0 ValueAxis.qml
 LineSeries 1.0 LineSeries.qml
 
-Point 1.0 Point.qml
+PointPlot 1.0 PointPlot.qml
+RectanglePlot 1.0 RectanglePlot.qml
 
 singleton SignalShader 1.0 SignalShader.qml
