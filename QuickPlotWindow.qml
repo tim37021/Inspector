@@ -24,8 +24,8 @@ SubWindow {
 
     Rectangle {
         y: 24
-        width: parent.width * 0.8 + 16
-        height: parent.height * 0.8 + 16
+        width: plot.width + 16
+        height: plot.height + 16
         anchors.centerIn: parent
         color: "transparent"
 
@@ -36,8 +36,9 @@ SubWindow {
     }
 
     InteractivePlot {
+        id: plot
         y: 24
-        width: parent.width * 0.8
+        width: parent.width * 0.9
         height: parent.height * 0.8
         anchors.centerIn: parent
         mouseAnchor.visible: false
