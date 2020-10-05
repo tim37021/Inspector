@@ -5,8 +5,8 @@ import App 1.0
 
 ApplicationWindow {
     id: app
-    width: 800
-    height: 600
+    width: Constants.width
+    height: Constants.height
     visible: true
     color: Constants.background
 
