@@ -41,15 +41,6 @@ SignalPlotOpenGL {
             px: 0
             py: 0
         }
-
-        RectanglePlot {
-            x1: mouseAnchor_.px
-            y1: mouseAnchor_.py
-
-            x2: mouseAnchor_.px+100
-            y2: mouseAnchor_.py+100
-
-        }
     }
 
     Text {

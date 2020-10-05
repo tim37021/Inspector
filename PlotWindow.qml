@@ -9,7 +9,6 @@ import nrf.beacon 1.0
 SubWindow {
     id: root
     //color: "#212c70"
-
     property TrackedDeviceModel target
 
     Timer {

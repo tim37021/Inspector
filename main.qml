@@ -19,6 +19,7 @@ ApplicationWindow {
         color: Constants.foreground1
         content: ListView {
             model: app.deviceMgr.enumModel
+            spacing: 16
 
             anchors.fill: parent
             delegate: DeviceButton {
@@ -46,6 +47,7 @@ ApplicationWindow {
         
     }
 
+    ///> Windowing system for this app
     Windowing {
         id: windowing
     }
@@ -53,16 +55,16 @@ ApplicationWindow {
     Component {
         id: plotWindowComp
         PlotWindow {
-            width: 500
-            height: 500
+            width: app.width * 0.8
+            height: app.height * 0.8
         }
     }
 
     Component {
         id: quickPlotWindowComp
         QuickPlotWindow {
-            width: 500
-            height: 500
+            width: app.width * 0.8
+            height: app.height * 0.8
         }
     }
 

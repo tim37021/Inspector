@@ -4,7 +4,7 @@ import hcmusic.plot 1.0
 
 SubWindow {
 
-    property var signalSource
+    property var signalSource       ///< raw jsarray or buffered signal source
 
     onSignalSourceChanged: {
         if(signalSource && signalSource.array)
