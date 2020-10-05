@@ -37,6 +37,7 @@ ApplicationWindow {
                     function onStateChanged(v) {
                         if(target.state == BeaconScanner.Scanning && deviceBtn.window == null) {
                             deviceBtn.window = app.createPlotWindow(display, scanner.model)
+                            app.createRaceWindow(display, scanner.model)
                         }
 
                     }
@@ -68,6 +69,14 @@ ApplicationWindow {
         }
     }
 
+    Component {
+        id: raceWindowComp
+        RaceWindow {
+            width: app.width * 0.8
+            height: app.height * 0.8
+        }
+    }
+
     /**
      * createPlotWindow
      * @param title Title of the new window
@@ -84,6 +93,15 @@ ApplicationWindow {
      */
     function createQuickPlotWindow(title, source) {
         return windowing.createWindow(quickPlotWindowComp, {open: true, title: title, signalSource: source});
+    }
+
+    /**
+     * createRaceWindow
+     * @param title Title of the new window
+     * @param mdl Instance of TrackedDeviceModel
+     */
+    function createRaceWindow(title, mdl) {
+        return windowing.createWindow(raceWindowComp, {open: true, title: title, target: mdl});
     }
 
     function moveToTop(window) {

@@ -16,27 +16,21 @@ SubWindow {
         interval: 50
         repeat: true
 
-        property Algorithm algo: Algorithm {
-            onIncomming: {
-                console.log(target.get(lv.currentIndex).addr)
-            }
-        }
-
 
         onTriggered: {
-            if(lv.currentIndex >= 0) {
+            
+            if(lv.currentIndex >= 0 && target) {
                 let reading = target.get(lv.currentIndex).rssi                
                 let freading = ls.filter.f(reading)
                 ls.append(freading)
                 ls2.append(reading)
-
-                algo.feed(freading)
             }
             // move mouse cursor
             if(plot.mouseCoordX >= 0 && plot.mouseCoordX < ls.length) {
                 plot.mouseAnchor.px = plot.mouseCoordX
                 plot.mouseAnchor.py = ls.array[Math.ceil(plot.mouseCoordX)]
             }
+            
         }
     }
    
@@ -139,9 +133,12 @@ SubWindow {
                     height: 16
                     anchors.verticalCenter: parent.verticalCenter
                     color: {
+                        
                         if(lv.currentIndex === model.index) {
                             return "green"
-                        } else
+                        } else if(!model.active)
+                            return "black"
+                        else
                             return "gray"
                     }
                 }

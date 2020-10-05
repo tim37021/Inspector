@@ -16,7 +16,6 @@ QtObject {
     function feed(val) {
         if(priv.lastValue < priv.checkpoint && val >= priv.checkpoint) {
             priv.stage++
-            console.log(priv.stage)
             tim.stop()
         }
         priv.lastValue = val
@@ -30,8 +29,12 @@ QtObject {
     property Timer tim: Timer {
         interval: 500
         onTriggered: {
-            priv.stage = 0
-            console.log('reset!')
+            init()
         }
     }
+
+    function init() {
+        priv.stage = 0
+    }
+    
 }

@@ -8,7 +8,10 @@ Item {
     function createWindow(template, data) {
         if(data == undefined)
             data = {}
-        return template.createObject(this, data)
+        let newwin = template.createObject(this, data)
+        moveToTop(newwin)
+        return newwin
+
     }
 
     function moveToTop(window) {
