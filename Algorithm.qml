@@ -3,6 +3,7 @@ import QtQuick 2.12
 QtObject {
     id: root
     signal incomming()
+    signal reset()
     property QtObject priv: QtObject {
         property real lastValue
         property real stage: 0
@@ -16,7 +17,7 @@ QtObject {
     function feed(val) {
         if(priv.lastValue < priv.checkpoint && val >= priv.checkpoint) {
             priv.stage++
-            tim.stop()
+            tim.restart()
         }
         priv.lastValue = val
 
@@ -27,7 +28,7 @@ QtObject {
     }
 
     property Timer tim: Timer {
-        interval: 500
+        interval: 2000
         onTriggered: {
             init()
         }
@@ -35,6 +36,7 @@ QtObject {
 
     function init() {
         priv.stage = 0
+        root.reset()
     }
     
 }

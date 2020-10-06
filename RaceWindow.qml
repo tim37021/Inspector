@@ -26,9 +26,11 @@ SubWindow {
             property bool passed: false
             property Algorithm algo: Algorithm {
                 onIncomming: {
-                    console.log(model.addr)
+                    app.passBy(model.addr)
                     passed = true
                 }
+
+                onReset: passed = false
             }
             property real lastUpdate: -1
 

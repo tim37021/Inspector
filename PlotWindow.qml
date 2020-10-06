@@ -19,7 +19,7 @@ SubWindow {
 
         onTriggered: {
             
-            if(lv.currentIndex >= 0 && target) {
+            if(target && target.count) {
                 let reading = target.get(lv.currentIndex).rssi                
                 let freading = ls.filter.f(reading)
                 ls.append(freading)
@@ -76,6 +76,7 @@ SubWindow {
             color: Qt.rgba(247/255, 193/255, 121/255, 1.0)
 
             lineWidth: 2
+            visible: lv.currentIndex !== -1
             
             length: 4096
         }
@@ -88,6 +89,7 @@ SubWindow {
             color: "green"
 
             lineWidth: 2
+            visible: lv.currentIndex !== -1
             
             length: 4096
         }
@@ -157,7 +159,8 @@ SubWindow {
         onCurrentIndexChanged: {
             ls.init()
             ls2.init()
-            ls.filter.init() 
+            ls.filter.init()
         }
     }
+
 }

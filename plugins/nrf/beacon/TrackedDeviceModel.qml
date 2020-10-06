@@ -3,6 +3,7 @@ import QtQuick 2.12
 ListModel {
     id: root
     property real timeout: 1000
+    property real removeTimeout: 5000
 
     readonly property QtObject priv: QtObject {
         property var data: ({});
@@ -14,12 +15,24 @@ ListModel {
         repeat: true
         running: timeout != 0
         onTriggered: {
-            let now = Date.now();
+            let now = Date.now()
+            let rm = 0
+            let rem = []
+
+
             for(let i=0; i<priv.index.length; i++) {
-                if(now - priv.data[priv.index[i]].timestamp > timeout) {
+                let elapsedTime = now - priv.data[priv.index[i]].timestamp
+                if(elapsedTime >= timeout) {
                     root.set(i, {active: false});
                 }
+                if(elapsedTime >= removeTimeout) {
+                    root.remove(i-rm)
+                    rm++;
+                } else
+                    rem.push(priv.index[i])
             }
+
+            priv.index = rem
         }
     }
 

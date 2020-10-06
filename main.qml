@@ -3,6 +3,8 @@ import QtQuick.Controls 2.12
 import nrf.beacon 1.0
 import App 1.0
 
+import QtWebSockets 1.12
+
 ApplicationWindow {
     id: app
     width: Constants.width
@@ -106,6 +108,16 @@ ApplicationWindow {
 
     function moveToTop(window) {
         windowing.moveToTop(window)
+    }
+
+    WebSocket {
+        id: ws
+        active: true
+        url: 'ws://172.94.78.42:9002/checkpoint1/publish'
+    }
+
+    function passBy(addr) {
+        ws.sendTextMessage(JSON.stringify({runner_id: addr}))
     }
 }
 
