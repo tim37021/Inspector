@@ -17,7 +17,7 @@ QtObject {
     function feed(val) {
         if(priv.lastValue < priv.checkpoint && val >= priv.checkpoint) {
             priv.stage++
-            tim.restart()
+            tim.stop()
         }
         priv.lastValue = val
 

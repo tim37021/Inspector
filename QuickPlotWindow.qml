@@ -1,18 +1,49 @@
 import QtQuick 2.12
 import App 1.0
 import hcmusic.plot 1.0
+import Algo 1.0
 
 SubWindow {
 
     property var signalSource       ///< raw jsarray or buffered signal source
+    property SubWindow plotWindow
+    property SubWindow stftWindow
 
     onSignalSourceChanged: {
-        if(signalSource && signalSource.array)
-            ls.set(signalSource.array)
-        if(signalSource && Array.isArray(signalSource))
-            ls.set(signalSource)
-        
+        let arr=getArray()
+        ls.set(arr)
+        fit(arr)
     }
+
+    Timer {
+        running: true
+        interval: 100
+        repeat: true
+
+        onTriggered: {
+            let arr;
+            if(signalSource && signalSource.array)
+                arr = signalSource.array
+            if(signalSource && Array.isArray(signalSource))
+                arr = signalSource
+            
+            // move mouse cursor
+            if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
+                // nearest mode
+                plot.mouseAnchor.px = Math.round(plot.mouseCoordX)
+                plot.mouseAnchor.py = arr[plot.mouseAnchor.px]
+                
+                
+                // interpolate mode
+                // plot.mouseAnchor.px = plot.mouseCoordX
+                // let t = plot.mouseCoordX - Math.floor(plot.mouseCoordX);
+                // plot.mouseAnchor.py = (1-t)*arr[Math.floor(plot.mouseCoordX)]+t*arr[Math.ceil(plot.mouseCoordX)]
+                
+            }
+            
+        }
+    }
+   
 
     Connections {
         target: signalSource instanceof QtObject? signalSource: null
@@ -41,7 +72,10 @@ SubWindow {
         width: parent.width * 0.9
         height: parent.height * 0.8
         anchors.centerIn: parent
-        mouseAnchor.visible: false
+        mouseAnchor.visible: true
+        gridSizeX: ls.length / 20
+        gridSizeY: 500000
+
 
         xAxis: ValueAxis {
             id: xAxis_
@@ -51,8 +85,8 @@ SubWindow {
 
         yAxis: ValueAxis {
             id: yAxis_
-            min: -80
-            max: 80
+            min: -1000000
+            max: 1000000
         }
 
         LineSeries {
@@ -60,8 +94,136 @@ SubWindow {
             xAxis: xAxis_
             yAxis: yAxis_
             color: Qt.rgba(247/255, 193/255, 121/255, 1.0)
-            length: 2
+            length: 1
+            lineWidth: 2
         }
 
+        Keys.onPressed: {
+            // key binding....
+            if(event.key == 65) {
+                let arr = getArray()
+                if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
+                    let startX = Math.floor(plot.mouseCoordX)
+                    let x = algo.autocorrelation(getArray().slice(startX, startX+1024).buffer)
+                    if(plotWindow==null)
+                        plotWindow = app.createQuickPlotWindow('autocorrelation', new Array(32).fill(0).concat(x))
+                    else {
+                        plotWindow.signalSource = new Array(32).fill(0).concat(x)
+                    }
+                }
+                
+            }
+
+            if(event.key == 66) {
+                let arr = getArray()
+                if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
+                    let startX = Math.floor(plot.mouseCoordX)
+                    let x = algo.stft(getArray().slice(startX, startX+4096).buffer, 32000, 1024, 512)
+                    if(stftWindow==null)
+                        stftWindow = app.createImageWindow('stft', x)
+                    else {
+                        stftWindow.signalSource = x
+                    }
+                }
+                
+            }
+
+            if(event.key == 67) {
+                let arr = getArray()
+                if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
+                    let startX = Math.floor(plot.mouseCoordX)
+                    let x = algo.fft(getArray().slice(startX, startX+1024).buffer)
+                    if(plotWindow==null)
+                        plotWindow = app.createQuickPlotWindow('fft', x)
+                    else {
+                        plotWindow.signalSource = x
+                    }
+                }
+                
+            }
+
+            if(event.key == 68) {
+                let arr = getArray()
+                if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
+                    let startX = Math.floor(plot.mouseCoordX)
+                    let x = algo.hybridMethod(getArray().slice(startX, startX+1024).buffer)
+                    app.notify(x)
+                }
+                
+            }
+        }
+    }
+
+    ListView {
+        id: lv
+        anchors.bottom: parent.bottom
+        anchors.left: plot.left
+        
+        width: plot.width
+        height: parent.height * 0.1
+        orientation: ListView.Horizontal
+
+        // If siganlSource has channels
+        model: signalSource.channels? signalSource.channels: 0
+
+        delegate: Item {
+            width: 128
+            height: lv.height
+            clip: true
+
+            Row {
+                spacing: 10
+                anchors.fill: parent
+                Rectangle {
+                    radius: 8
+                    width: 16
+                    height: 16
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: {
+                        
+                        if(lv.currentIndex === index)
+                            return "green"
+                        else
+                            return "gray"
+                    }
+                }
+                Text {
+                    text: `Channel ${modelData}`
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: lv.currentIndex = index
+            } 
+
+        }
+
+        onCurrentIndexChanged: {
+            signalSource.channel = lv.currentIndex
+        }
+    }
+
+    function fit(arr) {
+        plot.xAxis.min = 0
+        plot.xAxis.max = arr.length
+
+        plot.yAxis.min = Math.min(...arr)
+        plot.yAxis.max = Math.max(...arr)
+
+        plot.gridSizeY = (plot.yAxis.max - plot.yAxis.min) / 20
+    }
+
+    AlgorithmPool {
+        id: algo
+    }
+
+    function getArray() {
+        let arr;
+        if(signalSource && signalSource.array)
+            arr = signalSource.array
+        if(signalSource && Array.isArray(signalSource))
+            arr = signalSource
+        return arr
     }
 }

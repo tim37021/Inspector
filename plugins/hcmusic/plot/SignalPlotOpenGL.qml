@@ -1,9 +1,9 @@
 import QtQuick 2.12 as QQ2
-import QtQuick.Scene3D 2.12
-import Qt3D.Core 2.0
-import Qt3D.Render 2.0
-import Qt3D.Input 2.0
-import Qt3D.Extras 2.0
+import QtQuick.Scene3D 2.15
+import Qt3D.Core 2.15
+import Qt3D.Render 2.15
+import Qt3D.Input 2.15
+import Qt3D.Extras 2.15
 
 QQ2.Item {
     id: root
@@ -12,8 +12,6 @@ QQ2.Item {
     clip: true
 
     Scene3D {
-        id: scene
-
         anchors.fill: parent
         Entity {
             id: sceneRoot
@@ -24,15 +22,13 @@ QQ2.Item {
                     activeFrameGraph: ForwardRenderer {
                         clearColor: root.clearColor
                     }
-                    renderPolicy: RenderSettings.Always
+                    renderPolicy: RenderSettings.OnDemand
 
                 },
                 // Event Source will be set by the Qt3DQuickWindow
                 InputSettings { }
             ]
-
         }
-
     }
 
     QQ2.Component {
@@ -52,7 +48,7 @@ QQ2.Item {
 
         // TODO better declarative API, reduce manual binding
         x.update.connect(function (b) {
-            if(x.length !== obj.count) {
+            if(b.length != obj.count) {
                 obj.count = b.length
                 obj.buffer.data = new Float32Array(b)
             } else {

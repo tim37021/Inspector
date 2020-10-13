@@ -6,3 +6,5 @@ SubWindow 1.0 SubWindow.qml
 Windowing 1.0 Windowing.qml
 SideBar 1.0 SideBar.qml
 BurgerMenu 1.0 BurgerMenu.qml
+SideButton 1.0 SideButton.qml
+Notification 1.0 Notification.qml

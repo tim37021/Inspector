@@ -52,18 +52,30 @@
 import QtQuick 2.8
 import QtQuick.Timeline 1.0
 import QtQuick.Controls 2.3
+import QtGraphicalEffects 1.15
 
 Rectangle {
     id: root
-    width: 937
-    height: 582
     property bool open: false
 
     property bool __internalOpen: state == "Open"
     property bool __internalClosed: state == "Closed"
 
+    onStateChanged: {
+        if(state == "Closed")
+            root.visible = false
+    }
+
     color: Qt.rgba(0.1434, 0.1758, 0.2405)
     opacity: ma.drag.active? 0.5196: 0.9
+
+    layer.enabled: true
+    layer.effect: DropShadow {
+        color: Qt.rgba(0, 0, 0, 0.6)
+        transparentBorder: true
+        horizontalOffset: 4
+        verticalOffset: 4
+    }
 
     Behavior on opacity {
         NumberAnimation { duration: 100 }
@@ -74,11 +86,14 @@ Rectangle {
     property string title
 
     Text {
-        x: 8
-        y: 8
+        y: parent.height * 0.05 - height / 2
         text: title
+        anchors.horizontalCenter: parent.horizontalCenter
         color: Qt.rgba(63/255, 169/255, 245/255, 1)
+        font.pointSize: 12
+        font.family: Constants.mySystemFont.name
     }
+
 
     MouseArea {
         id: ma
@@ -90,6 +105,21 @@ Rectangle {
         }
     }
 
+    Rectangle {
+        x: parent.width - 32
+        y: 16
+
+        width: 16
+        height: 16
+        radius: 8
+
+        color: "red"
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root.open = false
+        }
+    }
 
     Item {
         width: 16

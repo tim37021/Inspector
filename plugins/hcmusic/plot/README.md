@@ -15,7 +15,10 @@ If you are using QtCharts and this module in the same component, please assign o
 import hcmusic.plot 1.0 as hcplot
 ```
 
-## Example 1
+## Examples
+Here we provide some basic usage of this module.
+
+### Example 1
 The basic usage is similar to QtCharts except that LineSeries is an array of y values.
 ```qml
 SignalPlotOpenGL {
@@ -44,7 +47,7 @@ SignalPlotOpenGL {
 }
 ```
 
-## Example 2
+### Example 2
 Adding controls by simply provides xAxis_ and yAxis_ to SignalPlotControl object
 ```qml
 SignalPlotOpenGL {
@@ -81,3 +84,8 @@ SignalPlotUI {
     
 }
 ```
+
+## TODO
+- Configurable keybinding
+- Renaming and reorganizing
+- Support more primitives for drawing

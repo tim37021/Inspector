@@ -1,2 +1,4 @@
 .vscode
 update.bat
+__pycache__
+*.npz

@@ -5,6 +5,7 @@ import QtQuick.Controls 2.12
 import App 1.0
 import hcmusic.plot 1.0
 import nrf.beacon 1.0
+import Buffer 1.0
 
 SubWindow {
     id: root
@@ -93,22 +94,8 @@ SubWindow {
             
             length: 4096
         }
-
-        Keys.onPressed: {
-            let buf = buf_comp.createObject(null)
-            buf.set(new Array(1024).fill(0))
-
-            app.createQuickPlotWindow('plot', ls)
-        }
-
     }
 
-    Component {
-        id: buf_comp
-        Buffer {
-
-        }
-    }
 
     ListView {
         id: lv

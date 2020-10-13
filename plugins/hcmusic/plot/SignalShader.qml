@@ -1,6 +1,6 @@
 pragma Singleton
 import QtQuick 2.12
-import Qt3D.Render 2.12
+import Qt3D.Render 2.15
 
 QtObject {
     id: shader

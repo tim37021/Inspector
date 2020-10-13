@@ -11,7 +11,6 @@ Item {
         let newwin = template.createObject(this, data)
         moveToTop(newwin)
         return newwin
-
     }
 
     function moveToTop(window) {

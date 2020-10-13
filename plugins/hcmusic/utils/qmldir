@@ -2,3 +2,4 @@ module hcmusic.utils
 
 plugin hcmusic-utils
 
+TimeoutModel 1.0 TimeoutModel.qml

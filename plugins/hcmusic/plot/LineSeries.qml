@@ -23,6 +23,11 @@ Item {
     onLengthChanged: array = new Array(length).fill(0)
 
     function append(b) {
+        // TODO: typecheck sould be done somewhere else!!!!
+        if(!Array.isArray(array)) {
+            console.log('array property currently is not an javascript array')
+            return
+        }
         array = array.slice(1)
         array.push(b)
 
@@ -37,6 +42,6 @@ Item {
     function set(arr) {
         length = arr.length
         array = arr
-        this.update(array)
+        this.update(arr)
     }
 }

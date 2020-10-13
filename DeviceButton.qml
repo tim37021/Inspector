@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import nrf.beacon 1.0
+import QtGraphicalEffects 1.15
 
 Rectangle {
     property string port 
@@ -8,6 +9,14 @@ Rectangle {
 
     color: ma.containsMouse? Qt.rgba(77/255, 81/255, 87/255, 1.0): Qt.rgba(55/255, 61/255, 69/255, 1.0)
     
+    layer.enabled: true
+    layer.effect: DropShadow {
+        color: Qt.rgba(0, 0, 0, 0.1)
+        transparentBorder: true
+        horizontalOffset: 8
+        verticalOffset: 8
+    }
+
     Rectangle {
         id: statusLight
         x: 16

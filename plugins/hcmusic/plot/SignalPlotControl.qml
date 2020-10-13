@@ -1,6 +1,9 @@
 import QtQuick 2.12
 
 Item {
+    id: plotControl
+    signal pressed(var mouse)
+
     property ValueAxis xAxis: ValueAxis {}
     property ValueAxis yAxis: ValueAxis {}
 
@@ -13,6 +16,8 @@ Item {
 
     property alias hoverEnabled: ma.hoverEnabled
 
+    property bool lockView: false
+
     QtObject {
         id: priv
         property real dragStartX
@@ -23,7 +28,7 @@ Item {
     MouseArea {
         id: ma
         anchors.fill: parent
-        cursorShape: containsPress? Qt.OpenHandCursor: Qt.ArrowCursor
+        cursorShape: containsPress && !lockView? Qt.OpenHandCursor: Qt.ArrowCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         Keys.forwardTo: [parent]
@@ -33,10 +38,13 @@ Item {
             priv.dragStartY = mouse.y
 
             focus = true
+
+            // forward this signal
+            plotControl.pressed(mouse)
         }
 
         onPositionChanged: {
-            if(pressed) {
+            if(pressed && !lockView) {
                 // map from screen coordinate to signal coordinate
                 let xy1 = map_coord(priv.dragStartX, priv.dragStartY)
                 priv.dragStartX = mouse.x; priv.dragStartY = mouse.y;
