@@ -8,3 +8,5 @@ SideBar 1.0 SideBar.qml
 BurgerMenu 1.0 BurgerMenu.qml
 SideButton 1.0 SideButton.qml
 Notification 1.0 Notification.qml
+SideToolbar 1.0 SideToolbar.qml
+InteractiveView 1.0 InteractiveView.qml

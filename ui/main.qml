@@ -3,10 +3,10 @@ import QtQuick.Controls 2.12
 import nrf.beacon 1.0
 import App 1.0
 
-import QtQuick.Dialogs 1.3
+import QtQuick.Dialogs 1.1
 import Buffer 1.0
 import hcmusic.utils 1.0
-
+import QtWebSockets 1.8
 
 ApplicationWindow {
     id: app
@@ -14,6 +14,8 @@ ApplicationWindow {
     height: Constants.height
     visible: true
     color: Constants.background
+    title: 'Inspector'
+
 
     Component {
         id: buf_comp
@@ -41,6 +43,14 @@ ApplicationWindow {
         onDeviceUnplugged: {
             tm.message(`${port} is unplugged`)
         }
+    }
+
+    SideToolbar {
+        x: parent.width - width - 16
+        anchors.verticalCenter: parent.verticalCenter
+        width: 50
+        height: 200
+
     }
 
     SideBar {
@@ -100,38 +110,8 @@ ApplicationWindow {
         id: windowing
     }
 
-    Component {
-        id: plotWindowComp
-        PlotWindow {
-            width: app.width * 0.8
-            height: app.height * 0.8
-        }
-    }
-
-    Component {
-        id: quickPlotWindowComp
-        QuickPlotWindow {
-            width: app.width * 0.8
-            height: app.height * 0.8
-        }
-    }
-
-    Component {
-        id: raceWindowComp
-        RaceWindow {
-            x: app.width - width - 16
-            y: app.height - height - 16
-            width: app.width * 0.4
-            height: app.height * 0.3
-        }
-    }
-
-    Component {
-        id: imageWindowComp
-        ImageWindow {
-            width: app.width * 0.8
-            height: app.height * 0.8
-        }
+    WindowFactory {
+        id: wf
     }
 
     /**
@@ -140,7 +120,7 @@ ApplicationWindow {
      * @param mdl Instance of TrackedDeviceModel
      */
     function createPlotWindow(title, mdl) {
-        return windowing.createWindow(plotWindowComp, {open: true, title: title, target: mdl});
+        return windowing.createWindow(wf.fetch('plot'), {open: true, title: title, target: mdl});
     }
 
     /**
@@ -149,7 +129,7 @@ ApplicationWindow {
      * @param source Signal source. Can be raw array
      */
     function createQuickPlotWindow(title, source) {
-        return windowing.createWindow(quickPlotWindowComp, {open: true, title: title, signalSource: source});
+        return windowing.createWindow(wf.fetch('quickplot'), {open: true, title: title, signalSource: source});
     }
 
     /**
@@ -158,7 +138,7 @@ ApplicationWindow {
      * @param raw image ArrayBuffer(BGR888)
      */
     function createImageWindow(title, source) {
-        return windowing.createWindow(imageWindowComp, {open: true, title: title, signalSource: source});
+        return windowing.createWindow(wf.fetch('image'), {open: true, title: title, signalSource: source});
     }
 
     /**
@@ -167,7 +147,7 @@ ApplicationWindow {
      * @param mdl Instance of TrackedDeviceModel
      */
     function createRaceWindow(title, mdl) {
-        return windowing.createWindow(raceWindowComp, {open: true, title: title, target: mdl});
+        return windowing.createWindow(wf.fetch('race'), {open: true, title: title, target: mdl});
     }
 
     function moveToTop(window) {
@@ -204,8 +184,6 @@ ApplicationWindow {
 
     Component.onCompleted: {
         console.log('tim: Don\'t worry, these warnings are QT\'s bugs')
-        
     }
-
 }
 

@@ -8,21 +8,50 @@ SubWindow {
     id: raceWindow
     property TrackedDeviceModel target
 
-    TextInput {
-        id: route
-        text: 'checkpoint1'
 
-        property string result
+    Column {
+        TextInput {
+            id: route
+            text: 'checkpoint1'
 
-        onAccepted: result = text
-        Component.onCompleted: result = text
-        
+            property string result
+
+            onAccepted: result = text
+            Component.onCompleted: result = text
+        }
+        TextInput {
+            id: thresholdText
+            text: '6'
+
+            property int result
+
+            onAccepted: {result = text; console.log(result)}
+            Component.onCompleted: result = text
+        }
+        TextInput {
+            id: stepsText
+            text: '3'
+
+            property real result
+
+            onAccepted: result = text
+            Component.onCompleted: result = text
+        }
+        TextInput {
+            id: startText
+            text: '-70'
+
+            property real result
+
+            onAccepted: result = text
+            Component.onCompleted: result = text
+        }
     }
 
     WebSocket {
         id: ws
         active: true
-        url: 'ws://localhost:9002/'+route.result+'/publish'
+        url: 'ws://172.94.78.42:9002/'+route.result+'/publish'
     }
 
     function passBy(addr) {
@@ -79,6 +108,9 @@ SubWindow {
             property real active: model.active
             property bool passed: false
             property Algorithm algo: Algorithm {
+                startValue: startText.result
+                stepValue: stepsText.result
+                threshold: thresholdText.result
                 onIncomming: {
                     raceWindow.passBy(model.addr)
                     passed = true

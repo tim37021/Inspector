@@ -3,6 +3,7 @@ import QtQuick 2.12
 Item {
     id: plotControl
     signal pressed(var mouse)
+    signal released(var mouse)
 
     property ValueAxis xAxis: ValueAxis {}
     property ValueAxis yAxis: ValueAxis {}
@@ -32,8 +33,9 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         Keys.forwardTo: [parent]
-        
+
         onPressed: {
+            lockView = (mouse.modifiers & Qt.ShiftModifier)
             priv.dragStartX = mouse.x
             priv.dragStartY = mouse.y
 
@@ -41,6 +43,15 @@ Item {
 
             // forward this signal
             plotControl.pressed(mouse)
+        }
+
+        onReleased: {
+            // forward this signal
+            plotControl.released(mouse)
+        }
+
+        onWheel: {
+            // passed
         }
 
         onPositionChanged: {

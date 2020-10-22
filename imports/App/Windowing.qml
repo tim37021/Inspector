@@ -2,7 +2,7 @@ import QtQuick 2.12
 
 Item {
     property SubWindow focusedWindow: null
-    
+
     anchors.fill: parent
 
     function createWindow(template, data) {

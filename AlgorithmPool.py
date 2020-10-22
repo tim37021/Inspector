@@ -1,4 +1,5 @@
 import numpy as np
+
 from PySide2.QtCore import * 
 from PySide2.QtWidgets import *
 from PySide2.QtQml import *
@@ -31,17 +32,20 @@ def plot_stft(arr, fs, nfft, noverlap):
     arr2D, freqs, bins = specgram(arr, Fs=fs, NFFT=nfft, noverlap=noverlap, window=window_hanning)
     
     # comment this line
-    plt.axis('off')
+    #plt.axis('off')
     axes = plt.gca()
 
     # change this line for y axis control
-    axes.set_ylim([5000, 0])
+    axes.set_ylim([1000, 0])
 
     extent = (bins[0],bins[-1]*1024,freqs[-1],freqs[0])
     im = plt.imshow(arr2D,aspect='auto',extent = extent,interpolation="none")
     plt.gca().invert_yaxis()
+
     # comment this line
-    plt.tight_layout(pad=0)
+    #plt.tight_layout(pad=0)
+    # comment this line
+    plt.colorbar()
 
     # flush draw commands
     fig.canvas.draw()
@@ -54,6 +58,42 @@ def plot_stft(arr, fs, nfft, noverlap):
 
     # transpose to BGR
     return data[..., ::-1]
+
+def autocorrelation(data, min_lag, max_lag, window_size):
+    """
+        Auto correlation
+        auto correlation with pure numpy approach
+    """
+    assert len(data) >= window_size, 'window size cannot be larger than input size'
+    
+    min_lag = min(len(data) - window_size, min_lag)
+    max_lag = min(len(data) - window_size, max_lag)
+
+    corr = np.zeros(max_lag - min_lag + 1, dtype=np.float32)
+    for x in range(min_lag, max_lag+1):
+        corr[x-min_lag] = np.sum(np.abs(data[-window_size:] - data[-window_size-x: -x]) / window_size)
+    return corr
+
+class Result(object):
+    def __init__(self):
+        self._rectangles = []
+
+    def rect(self, x1, y1, x2, y2, text=''):
+        self._rectangles.append({
+            'x1': float(x1),
+            'y1': float(y1),
+            'x2': float(x2),
+            'y2': float(y2),
+            'text': str(text)
+        })
+
+    def serialize(self):
+        return {
+            'points': [],
+            'rectangles': self._rectangles
+        }
+
+
 
 """
 QML API proposal
@@ -78,18 +118,12 @@ class AlgorithmPool(QObject):
     @Slot(QByteArray, result='QVariantList')
     @Slot(QByteArray, int, int, int, result='QVariantList')
     def autocorrelation(self, data, min_lag=32, max_lag=500, window_size=500):
-        #import licapdsp
         data = np.frombuffer(data, dtype=np.float32)
-        corr = np.zeros(max_lag - min_lag + 1, dtype=np.float32)
-        for x in range(min_lag, max_lag+1):
-            corr[x-min_lag] = np.sum(np.abs(data[-window_size:] - data[-window_size-x: -x]) / window_size)
-        return corr.tolist()
+        return autocorrelation(data, min_lag, max_lag, window_size).tolist()
 
     @Slot(QByteArray, int, int, int, result=QByteArray)
     def stft(self, data, fs, nfft, noverlap):
         data = np.frombuffer(data, dtype=np.float32)
-        
-
         data = plot_stft(data, fs, nfft, noverlap)
         return data.tobytes()
 
@@ -108,3 +142,26 @@ class AlgorithmPool(QObject):
         arr2D, freqs, bins = specgram(data, Fs=32000, NFFT=1024, noverlap=512)
 
         return float(np.argmax(arr2D[1:, 0])+1) * 32000/1024
+
+    @Slot(QByteArray, result=QJsonValue)
+    def launch(self, data):
+        data = np.frombuffer(data, dtype=np.float32)
+        res = Result()
+        
+        buf = np.zeros(1024, dtype=np.float32)
+
+        i = 0
+
+        ac = np.zeros(501, dtype=np.float32)
+        while i < 256*20:
+            inp = data[i: i+256]
+            buf[:-len(inp)] = buf[len(inp):]
+            buf[-len(inp):] = inp
+
+            ac[32:] = autocorrelation(buf, 32, 500, 256)
+            res = autocorrelation(ac, 32, 500, 256)
+            print(32+np.argmin(res))
+
+            i += 256
+
+        return res.serialize()

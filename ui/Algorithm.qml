@@ -4,12 +4,21 @@ QtObject {
     id: root
     signal incomming()
     signal reset()
+
+    property real startValue: -70
+    property real stepValue: 3
+    property int threshold: 6
     property QtObject priv: QtObject {
         property real lastValue
-        property real stage: 0
-        readonly property real checkpoint: -70 + 5 * stage
+        property int stage: 0
+        readonly property real checkpoint: startValue + stepValue * stage
 
-        onStageChanged: if(stage == 4) root.incomming()
+        onStageChanged: {
+            if(stage == threshold)
+                root.incomming()
+            
+            console.log([stage, threshold, startValue])
+        }
 
     }
 
@@ -21,14 +30,15 @@ QtObject {
         }
         priv.lastValue = val
 
-        if(priv.lastValue < -70) {
+        if(priv.lastValue < startValue) {
             tim.start()
-        }
+        } else
+            tim.stop()
         
     }
 
     property Timer tim: Timer {
-        interval: 2000
+        interval: 500
         onTriggered: {
             init()
         }

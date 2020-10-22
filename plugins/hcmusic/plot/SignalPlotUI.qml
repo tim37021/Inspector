@@ -40,6 +40,21 @@ Item {
         }
     }
 
+    Repeater {
+        anchors.fill: parent
+        model: plotUI.rectangleModel
+
+        delegate: RectanglePlot {
+            x1: model.x1
+            y1: model.y1
+
+            x2: model.x2
+            y2: model.y2
+
+            text: model.text
+        }
+    }
+
     Component {
         id: gridComp
         Item {

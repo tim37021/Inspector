@@ -10,9 +10,8 @@ Rectangle {
     property real py    /*!< y in signal coordinate */
 
     // TODO: xAxis and yAxis binding
-    x: (px-xAxis.min) / (xAxis.max - xAxis.min) * parent.width
-    y: parent.height - (py - yAxis.min) / (yAxis.max - yAxis.min) * parent.height
-
+    x: (px-parent.xAxis.min) / (parent.xAxis.max - parent.xAxis.min) * parent.width
+    y: parent.height - (py - parent.yAxis.min) / (parent.yAxis.max - parent.yAxis.min) * parent.height
 
     radius: 3
     width: radius*2
@@ -20,7 +19,7 @@ Rectangle {
     color: "black"
 
     transform: Translate { x: -radius; y: -radius }
-        
+    
     ToolTipHelper {
         delay: 200
         onShow: hint.opacity = 1
@@ -39,6 +38,4 @@ Rectangle {
     }
     onPxChanged: {hint.opacity=1; tim.restart()}
     onPyChanged: {hint.opacity=1; tim.restart()}
-    
-
 }

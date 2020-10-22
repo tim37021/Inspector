@@ -1,5 +1,6 @@
 import numpy as np
-from PySide2.QtCore import * 
+
+from PySide2.QtCore import *
 from PySide2.QtWidgets import *
 from PySide2.QtQml import *
 from PySide2.QtGui import *
@@ -28,7 +29,6 @@ class NumpyBuffer(QObject):
     def filename(self):
         return self._filename
 
-
     @filename.setter
     def setFilename(self, val):
         if self._filename == val:
@@ -36,21 +36,14 @@ class NumpyBuffer(QObject):
 
         self._filename = val
 
-        try:
-            arr = np.load(self._filename.toLocalFile())
-            self._arr = arr['arr_0'].astype(np.float32).transpose()
-            
-            
-            #self._arrs = [QByteArray(self._arr[..., x].tobytes()) for x in range(self.cols)]
-            self._arrs = QByteArray(self._arr.tobytes())
-            
-            self.rowsChanged.emit()
-            self.colsChanged.emit()
-            self.update.emit()
-        except:
-            print('failed')
-            pass
-        
+        arr = np.load(self._filename.toLocalFile())
+        self._arr = arr['arr_0'].astype(np.float32).transpose()
+
+        self._arrs = QByteArray(self._arr.tobytes())
+
+        self.rowsChanged.emit()
+        self.colsChanged.emit()
+        self.update.emit()
 
 
     @Property(QByteArray, notify=update)

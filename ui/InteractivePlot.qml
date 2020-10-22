@@ -16,10 +16,14 @@ SignalPlotOpenGL {
     property alias mouseCoordX: ctl.mouseCoordX
     property alias mouseCoordY: ctl.mouseCoordY
     property alias mouseAnchor: mouseAnchor_
-    //property alias recAnchor: recAnchor_
+    property alias recAnchor: recAnchor_
     property alias drawGrid: plotUI.drawGrid
     property alias gridSizeX: plotUI.gridSizeX
     property alias gridSizeY: plotUI.gridSizeY
+
+    property alias rectangleModel: rectangleModel_
+
+    signal selectChanged()
 
     SignalPlotControl {
         id: ctl
@@ -27,17 +31,28 @@ SignalPlotOpenGL {
         hoverEnabled: true
         xAxis: plot.xAxis
         yAxis: plot.yAxis
-        lockView: false
+        lockView: true
 
         onPressed: {
-            //recAnchor.x1 = mouseCoordX
-            //recAnchor.y1 = mouseCoordY
+            if(lockView) {
+                recAnchor_.x1 = mouseCoordX
+                recAnchor_.y1 = mouseCoordY
+            }
         }
 
+        onReleased: {
+            if(lockView) {
+                plot.selectChanged()
+            }
+        }
     }
 
     ListModel {
-        id: ui
+        id: pointModel_
+    }
+
+    ListModel {
+        id: rectangleModel_
     }
 
     SignalPlotUI {
@@ -46,21 +61,20 @@ SignalPlotOpenGL {
         xAxis: plot.xAxis
         yAxis: plot.yAxis
 
-        pointModel: ui
+        pointModel: pointModel_
+        rectangleModel: rectangleModel_
 
         PointPlot {
             id: mouseAnchor_
-            visible: true
+            visible: !ctl.dragging
             px: 0
             py: 0
         }
-        /*
-
+        
         RectanglePlot {
             id: recAnchor_
             color: "orange"
             opacity: 0.5
-            visible: ctl.lockView
 
             Binding on x2 {
                 when: ctl.dragging && ctl.lockView
@@ -75,7 +89,7 @@ SignalPlotOpenGL {
             }
 
         }
-        */
+        
     }
 
     Text {

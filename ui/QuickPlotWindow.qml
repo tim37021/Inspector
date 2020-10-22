@@ -72,7 +72,6 @@ SubWindow {
         width: parent.width * 0.9
         height: parent.height * 0.8
         anchors.centerIn: parent
-        mouseAnchor.visible: true
         gridSizeX: ls.length / 20
         gridSizeY: 500000
 
@@ -98,17 +97,34 @@ SubWindow {
             lineWidth: 2
         }
 
+        function argMin(array) {
+            return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] < r[0] ? a : r))[1];
+        }
+
+        onSelectChanged: {
+            let startX = Math.floor(Math.min(recAnchor.x1, recAnchor.x2))
+            let endX = Math.floor(Math.max(recAnchor.x1, recAnchor.x2))
+            let min = Math.min(...getArray().slice(startX, endX))
+            let max = Math.max(...getArray().slice(startX, endX))
+
+            recAnchor.y1 = min
+            recAnchor.y2 = max
+        }
+
         Keys.onPressed: {
             // key binding....
             if(event.key == 65) {
                 let arr = getArray()
                 if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
                     let startX = Math.floor(plot.mouseCoordX)
-                    let x = algo.autocorrelation(getArray().slice(startX, startX+1024).buffer)
+                    let x = algo.autocorrelation(getArray().slice(startX, startX+1024).buffer, 32, 500, 256)
+                    x = new Array(32).fill(0).concat(x)
+                    let min = argMin(x.slice(32))+32
+                    app.notify(32000/min)
                     if(plotWindow==null)
-                        plotWindow = app.createQuickPlotWindow('autocorrelation', new Array(32).fill(0).concat(x))
+                        plotWindow = app.createQuickPlotWindow('autocorrelation', x)
                     else {
-                        plotWindow.signalSource = new Array(32).fill(0).concat(x)
+                        plotWindow.signalSource = x
                     }
                 }
                 
@@ -148,6 +164,15 @@ SubWindow {
                     let startX = Math.floor(plot.mouseCoordX)
                     let x = algo.hybridMethod(getArray().slice(startX, startX+1024).buffer)
                     app.notify(x)
+                }
+                
+            }
+            if(event.key == 69) {
+                let arr = getArray().slice(0)
+                let x = algo.launch(arr.buffer)
+                plot.rectangleModel.clear()
+                for(let i=0; i<x.rectangles.length; i++) {
+                    plot.rectangleModel.append(x.rectangles[i])
                 }
                 
             }
@@ -223,7 +248,8 @@ SubWindow {
         if(signalSource && signalSource.array)
             arr = signalSource.array
         if(signalSource && Array.isArray(signalSource))
-            arr = signalSource
+            // TODO: allow using Float32Array for signalSource for low overhead calc
+            arr = new Float32Array(signalSource)
         return arr
     }
 }

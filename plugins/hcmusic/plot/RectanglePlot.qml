@@ -3,7 +3,7 @@ import QtQuick 2.12
 /*! \brief Rectangle in SignalPlotUI
   *        The object should be placed inside SignalPlotUI
   */
-Rectangle {
+Item {
 
     property real x1    /*!< x1 in signal coordinate */
     property real y1    /*!< y1 in signal coordinate */
@@ -12,6 +12,7 @@ Rectangle {
     property real y2    /*!< y2 in signal coordinate */
 
     property alias text: hint.text
+    property alias color: rec.color
 
     // TODO: xAxis and yAxis binding
     x: (Math.min(x1, x2)-xAxis.min) / (xAxis.max - xAxis.min) * parent.width
@@ -20,16 +21,14 @@ Rectangle {
     width: Math.abs(x1 - x2) / (xAxis.max - xAxis.min) * parent.width
     height: Math.abs(y1 - y2) / (yAxis.max - yAxis.min) * parent.height
 
+    Rectangle {
+        id: rec
+        anchors.fill: parent
+        opacity: 0.5
+    }
+
     Text {
         id: hint
         anchors.centerIn: parent
     }
-    Timer {
-        id: tim
-        onTriggered: hint.opacity = 0
-    }
-    onX1Changed: {hint.opacity=1; tim.restart()}
-    onY1Changed: {hint.opacity=1; tim.restart()}
-    
-
 }

@@ -9,6 +9,9 @@ from PySide2.QtQuick import *
 
 import numpy as np
 from NumpyBuffer import NumpyBuffer
+"""
+from SineSignal import *
+"""
 from AlgorithmPool import AlgorithmPool
 
 class MyCanvas(QQuickPaintedItem):
@@ -62,13 +65,14 @@ if __name__ == '__main__':
 
     qmlRegisterType(MyCanvas, 'MyCanvas', 1, 0, 'MyCanvas')
     qmlRegisterType(NumpyBuffer, 'Buffer', 1, 0, 'NumpyBuffer')
+    #qmlRegisterType(SineSignal, 'Buffer', 1, 0, 'SineSignal')
     qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
 
     engine.addImportPath('plugins')
     engine.addImportPath('imports')
 
     # Load the qml file into the engine
-    engine.load('main.qml')
+    engine.load('ui/main.qml')
 
     # Qml file error handling
     if not engine.rootObjects():
