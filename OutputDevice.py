@@ -74,6 +74,7 @@ class OutputDevice(QObject):
                         stream_callback=self.callback
         )
         self._stream.start_stream()
+        print('oh')
 
     @Slot(QByteArray)
     @Slot(QByteArray, int)
@@ -81,15 +82,23 @@ class OutputDevice(QObject):
         if rate:
             self.setRate(rate)
         
-        data = np.frombuffer(data, dtype=np.float32).astype(np.int16)
+        data = np.frombuffer(data, dtype=np.float32)
+        if (np.abs(data) > 16384).any():
+            data /= data.max()
+            data *= 16384
+        data = data.astype(np.int16)
         i = 0
         while i < len(data):
-            self._q.put(data[i:i+1024])
+            b = data[i:i+1024]
+            self._q.put(np.pad(b, (0, 1024-len(b))))
             i += 1024
+        self._stream.start_stream()
 
     def callback(self, in_data, frame_count, time_info, status):
+        
         if not self._q.empty():
             data = self._q.get_nowait()
+            
             if data is not None:
                 return (data, pyaudio.paContinue)
         else:

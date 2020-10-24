@@ -123,7 +123,7 @@ ApplicationWindow {
                     MenuItem {
                         text: "From Microphone"
                         onClicked: {
-                            let buf = buf_comp2.createObject(null, {filename: fileUrl})
+                            let buf = buf_comp2.createObject(null)
                             app.createQuickPlotWindow('plot', buf)
                         }
                     }

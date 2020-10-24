@@ -192,7 +192,7 @@ SubWindow {
 
             if(event.key == 80) {
                 let arr = getArray().slice(0)
-                app.playBuffer(arr.buffer)
+                app.playBuffer(arr.buffer, signalSource.rate)
                 
             }
 
