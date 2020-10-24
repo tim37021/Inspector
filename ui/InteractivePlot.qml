@@ -21,6 +21,7 @@ SignalPlotOpenGL {
     property alias gridSizeX: plotUI.gridSizeX
     property alias gridSizeY: plotUI.gridSizeY
 
+    property alias pointModel: pointModel_
     property alias rectangleModel: rectangleModel_
 
     signal selectChanged()

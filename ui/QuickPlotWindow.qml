@@ -112,6 +112,12 @@ SubWindow {
         }
 
         Keys.onPressed: {
+            if(event.key == 43) {
+                plot.gridSizeY *= 2;
+            }
+            if(event.key == 45) {
+                plot.gridSizeY /= 2;
+            }
             // key binding....
             if(event.key == 65) {
                 let arr = getArray()
@@ -174,7 +180,11 @@ SubWindow {
                 for(let i=0; i<x.rectangles.length; i++) {
                     plot.rectangleModel.append(x.rectangles[i])
                 }
-                
+
+                plot.pointModel.clear()
+                for(let i=0; i<x.points.length; i++) {
+                    plot.pointModel.append(x.points[i])
+                }
             }
         }
     }

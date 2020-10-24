@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.insert(0, 'plugins')
 
 from PySide2.QtCore import * 
 from PySide2.QtWidgets import *

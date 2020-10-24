@@ -7,10 +7,12 @@ from PySide2.QtGui import *
 from PySide2.QtQuick import *
 
 import json
+import inspector
+from Algorithm.PeakValleyFinder import PeakValleyFinder
 
 def plot_stft(arr, fs, nfft, noverlap):
     """Plot specgram of raw signal into numpy array
-    
+
     Parameters:
     arr (Array-like): raw signal
     fs (int): frequency of the signal
@@ -24,13 +26,13 @@ def plot_stft(arr, fs, nfft, noverlap):
     import matplotlib
     matplotlib.use('agg')
     from matplotlib.mlab import window_hanning, specgram
-    
+
     import matplotlib.pyplot as plt
-    
+
     fig = plt.figure()
-    
+
     arr2D, freqs, bins = specgram(arr, Fs=fs, NFFT=nfft, noverlap=noverlap, window=window_hanning)
-    
+
     # comment this line
     #plt.axis('off')
     axes = plt.gca()
@@ -59,24 +61,10 @@ def plot_stft(arr, fs, nfft, noverlap):
     # transpose to BGR
     return data[..., ::-1]
 
-def autocorrelation(data, min_lag, max_lag, window_size):
-    """
-        Auto correlation
-        auto correlation with pure numpy approach
-    """
-    assert len(data) >= window_size, 'window size cannot be larger than input size'
-    
-    min_lag = min(len(data) - window_size, min_lag)
-    max_lag = min(len(data) - window_size, max_lag)
-
-    corr = np.zeros(max_lag - min_lag + 1, dtype=np.float32)
-    for x in range(min_lag, max_lag+1):
-        corr[x-min_lag] = np.sum(np.abs(data[-window_size:] - data[-window_size-x: -x]) / window_size)
-    return corr
-
 class Result(object):
-    def __init__(self):
-        self._rectangles = []
+    def __init__(self, points=[], rectangles=[]):
+        self._points = points
+        self._rectangles = rectangles    
 
     def rect(self, x1, y1, x2, y2, text=''):
         self._rectangles.append({
@@ -89,11 +77,12 @@ class Result(object):
 
     def serialize(self):
         return {
-            'points': [],
+            'points': self._points,
             'rectangles': self._rectangles
         }
 
-
+    def __add__(self, op):
+        return Result(self._points+op._points, self._rectangles + op._rectangles)
 
 """
 QML API proposal
@@ -119,7 +108,8 @@ class AlgorithmPool(QObject):
     @Slot(QByteArray, int, int, int, result='QVariantList')
     def autocorrelation(self, data, min_lag=32, max_lag=500, window_size=500):
         data = np.frombuffer(data, dtype=np.float32)
-        return autocorrelation(data, min_lag, max_lag, window_size).tolist()
+        print(inspector.auto_correlation)
+        return inspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
 
     @Slot(QByteArray, int, int, int, result=QByteArray)
     def stft(self, data, fs, nfft, noverlap):
@@ -131,14 +121,14 @@ class AlgorithmPool(QObject):
     def fft(self, data):
         data = np.frombuffer(data, dtype=np.float32)
         data = np.abs(np.fft.fft(data))
-        
+
         return data.tolist()
 
     @Slot(QByteArray, result=float)
     def hybridMethod(self, data):
         from matplotlib.mlab import specgram
         data = np.frombuffer(data, dtype=np.float32)
-        
+
         arr2D, freqs, bins = specgram(data, Fs=32000, NFFT=1024, noverlap=512)
 
         return float(np.argmax(arr2D[1:, 0])+1) * 32000/1024
@@ -146,22 +136,7 @@ class AlgorithmPool(QObject):
     @Slot(QByteArray, result=QJsonValue)
     def launch(self, data):
         data = np.frombuffer(data, dtype=np.float32)
-        res = Result()
-        
-        buf = np.zeros(1024, dtype=np.float32)
+        finder = PeakValleyFinder()
+        finder(data[:1024])
 
-        i = 0
-
-        ac = np.zeros(501, dtype=np.float32)
-        while i < 256*20:
-            inp = data[i: i+256]
-            buf[:-len(inp)] = buf[len(inp):]
-            buf[-len(inp):] = inp
-
-            ac[32:] = autocorrelation(buf, 32, 500, 256)
-            res = autocorrelation(ac, 32, 500, 256)
-            print(32+np.argmin(res))
-
-            i += 256
-
-        return res.serialize()
+        return finder.result.serialize()
