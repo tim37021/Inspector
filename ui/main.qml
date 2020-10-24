@@ -18,7 +18,6 @@ ApplicationWindow {
 
     OutputDevice {
         id: od
-        deviceIndex: 6
         rate: 44100
     }
 
@@ -36,7 +35,6 @@ ApplicationWindow {
         id: buf_comp2
         RawBufferView {
             sourceBuffer: InputDevice {
-                deviceIndex: 1
                 recording: true
             }
         }

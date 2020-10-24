@@ -30,8 +30,7 @@ class InputDevice(QObject):
         
         self._arrs = QByteArray(self._buf.tobytes())
 
-    
-        self._deviceIndex = -1
+        self._deviceIndex = p.get_default_input_device_info()['index']
         self._recording = False
 
         QApplication.instance().aboutToQuit.connect(lambda: self.stop())
@@ -74,8 +73,10 @@ class InputDevice(QObject):
     def setRecording(self, val):
         if self._recording != val:
             if val:
-                if self._stream is not None:
-                    self.start()
+                if self._stream is None:
+                    self.reopen()
+                self.start()
+
             else:
                 if self._stream is not None:
                     self.stop()
@@ -96,10 +97,11 @@ class InputDevice(QObject):
                         input_device_index=self._deviceIndex,
                         stream_callback=self.callback
         )
-
+        
         self._stream.start_stream()
 
     def callback(self, in_data, frame_count, time_info, status):
+        print('hoho')
         buf = np.frombuffer(in_data, dtype=np.int16).astype(np.float32).reshape(1, -1)
         l = buf.shape[1]
 

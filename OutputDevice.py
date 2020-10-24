@@ -19,7 +19,8 @@ class OutputDevice(QObject):
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
         self._rate = 44100
-        self._deviceIndex = -1
+        
+        self._deviceIndex = p.get_default_output_device_info()['index']
         self._stream = None
         self._q = queue.Queue()
 
@@ -27,8 +28,6 @@ class OutputDevice(QObject):
 
     def start(self, data):
         self._stream.write(data)
-        print('yoyo')
-
 
     def stop(self):
         if self._stream is not None:
@@ -74,13 +73,15 @@ class OutputDevice(QObject):
                         stream_callback=self.callback
         )
         self._stream.start_stream()
-        print('oh')
 
     @Slot(QByteArray)
     @Slot(QByteArray, int)
     def play(self, data, rate=None):
         if rate:
             self.setRate(rate)
+
+        if self._stream is None:
+            self.reopen()
         
         data = np.frombuffer(data, dtype=np.float32)
         if (np.abs(data) > 16384).any():
