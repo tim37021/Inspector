@@ -108,7 +108,6 @@ class AlgorithmPool(QObject):
     @Slot(QByteArray, int, int, int, result='QVariantList')
     def autocorrelation(self, data, min_lag=32, max_lag=500, window_size=500):
         data = np.frombuffer(data, dtype=np.float32)
-        print(inspector.auto_correlation)
         return inspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
 
     @Slot(QByteArray, int, int, int, result=QByteArray)
