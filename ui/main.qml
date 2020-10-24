@@ -46,7 +46,7 @@ ApplicationWindow {
         id: ofd
         nameFilters: [ "npz files (*.npz)" ]
         onAccepted: {
-            let buf = buf_comp2.createObject(null, {filename: fileUrl})
+            let buf = buf_comp.createObject(null, {filename: fileUrl})
             app.createQuickPlotWindow('plot', buf)
         }
     }
@@ -110,7 +110,25 @@ ApplicationWindow {
                 width: parent.width * 0.8
                 height: 48
                 text: '+'
-                onClicked: ofd.open()
+                onClicked: contextMenu.open()
+                
+                Menu {
+                    id: contextMenu
+                    x: parent.width / 2
+                    y: parent.height
+                    MenuItem {
+                        text: "Open Files (*.npz)"
+                        onClicked: ofd.open()
+                    }
+                    MenuItem {
+                        text: "From Microphone"
+                        onClicked: {
+                            let buf = buf_comp2.createObject(null, {filename: fileUrl})
+                            app.createQuickPlotWindow('plot', buf)
+                        }
+                    }
+                    
+                }
             }
 
             
@@ -182,7 +200,7 @@ ApplicationWindow {
      * @param buffer to play
      */
     function playBuffer(buffer, rate) {
-        od.play(buffer)
+        od.play(buffer, rate)
     }
 
     ListView {
