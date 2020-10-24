@@ -11,11 +11,16 @@ class NumpyBuffer(QObject):
     filenameChanged = Signal()
     rowsChanged = Signal()
     colsChanged = Signal()
+    rateChanged = Signal()
 
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
         self._filename = ''
         self._arr = np.asarray([[]], dtype=np.float32)
+
+    @Property(int, notify=rateChanged)
+    def rate(self):
+        return 32000
 
     @Property(int, notify=colsChanged)
     def channels(self):

@@ -10,6 +10,8 @@ from PySide2.QtQuick import *
 
 import numpy as np
 from NumpyBuffer import NumpyBuffer
+from InputDevice import InputDevice
+from OutputDevice import OutputDevice
 """
 from SineSignal import *
 """
@@ -63,7 +65,8 @@ if __name__ == '__main__':
 
     qmlRegisterType(MyCanvas, 'MyCanvas', 1, 0, 'MyCanvas')
     qmlRegisterType(NumpyBuffer, 'Buffer', 1, 0, 'NumpyBuffer')
-    #qmlRegisterType(SineSignal, 'Buffer', 1, 0, 'SineSignal')
+    qmlRegisterType(InputDevice, 'Buffer', 1, 0, 'InputDevice')
+    qmlRegisterType(OutputDevice, 'Buffer', 1, 0, 'OutputDevice')
     qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
 
     engine.addImportPath('plugins')

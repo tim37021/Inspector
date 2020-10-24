@@ -1,4 +1,12 @@
-* Schedule [0%]
-** TODO Python Template for Adding New Signal Source
+* Schedule [16%]
+** DONE Python Template for Adding New Signal Source
 ** TODO Refactor modules
-
+** TODO Save Buffer
+   This is a hard one currently
+** TODO Reduce copy from python to SignalPlot
+   Currently the draw path is too long
+** TODO Eliminate Warnings [1/1]
+   - [X] FileDialog
+     The warnings is actually Qt's bug
+   - [ ] Array out of bound when mouse move
+** TODO Key-binding Manage System

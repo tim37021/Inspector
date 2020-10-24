@@ -16,6 +16,11 @@ ApplicationWindow {
     color: Constants.background
     title: 'Inspector'
 
+    OutputDevice {
+        id: od
+        deviceIndex: 6
+        rate: 44100
+    }
 
     Component {
         id: buf_comp
@@ -27,11 +32,21 @@ ApplicationWindow {
         }
     }
 
+    Component {
+        id: buf_comp2
+        RawBufferView {
+            sourceBuffer: InputDevice {
+                deviceIndex: 1
+                recording: true
+            }
+        }
+    }
+
     FileDialog {
         id: ofd
         nameFilters: [ "npz files (*.npz)" ]
         onAccepted: {
-            let buf = buf_comp.createObject(null, {filename: fileUrl})
+            let buf = buf_comp2.createObject(null, {filename: fileUrl})
             app.createQuickPlotWindow('plot', buf)
         }
     }
@@ -154,8 +169,20 @@ ApplicationWindow {
         windowing.moveToTop(window)
     }
 
+    /**
+     * notify
+     * @param msg Notification
+     */
     function notify(msg) {
         tm.message(msg)
+    }
+
+    /**
+     * playBuffer
+     * @param buffer to play
+     */
+    function playBuffer(buffer, rate) {
+        od.play(buffer)
     }
 
     ListView {

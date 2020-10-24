@@ -4,7 +4,6 @@ import hcmusic.plot 1.0
 import Algo 1.0
 
 SubWindow {
-
     property var signalSource       ///< raw jsarray or buffered signal source
     property SubWindow plotWindow
     property SubWindow stftWindow
@@ -112,6 +111,10 @@ SubWindow {
         }
 
         Keys.onPressed: {
+            if(event.key == 32) {
+                signalSource.recording = !signalSource.recording
+            }
+
             if(event.key == 43) {
                 plot.gridSizeY *= 2;
             }
@@ -126,7 +129,7 @@ SubWindow {
                     let x = algo.autocorrelation(getArray().slice(startX, startX+1024).buffer, 32, 500, 256)
                     x = new Array(32).fill(0).concat(x)
                     let min = argMin(x.slice(32))+32
-                    app.notify(32000/min)
+                    app.notify(signalSource.rate/min)
                     if(plotWindow==null)
                         plotWindow = app.createQuickPlotWindow('autocorrelation', x)
                     else {
@@ -140,7 +143,7 @@ SubWindow {
                 let arr = getArray()
                 if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
                     let startX = Math.floor(plot.mouseCoordX)
-                    let x = algo.stft(getArray().slice(startX, startX+4096).buffer, 32000, 1024, 512)
+                    let x = algo.stft(getArray().slice(startX, startX+4096).buffer, signalSource.rate, 1024, 512)
                     if(stftWindow==null)
                         stftWindow = app.createImageWindow('stft', x)
                     else {
@@ -186,6 +189,14 @@ SubWindow {
                     plot.pointModel.append(x.points[i])
                 }
             }
+
+            if(event.key == 80) {
+                let arr = getArray().slice(0)
+                app.playBuffer(arr.buffer)
+                
+            }
+
+            
         }
     }
 
@@ -243,8 +254,8 @@ SubWindow {
         plot.xAxis.min = 0
         plot.xAxis.max = arr.length
 
-        plot.yAxis.min = Math.min(...arr)
-        plot.yAxis.max = Math.max(...arr)
+        plot.yAxis.min = Math.min(...arr) - 10
+        plot.yAxis.max = Math.max(...arr) + 10
 
         plot.gridSizeY = (plot.yAxis.max - plot.yAxis.min) / 20
     }
