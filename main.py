@@ -10,11 +10,7 @@ from PySide2.QtQuick import *
 
 import numpy as np
 from NumpyBuffer import NumpyBuffer
-from InputDevice import InputDevice
-from OutputDevice import OutputDevice
-"""
-from SineSignal import *
-"""
+from SoundDevice import InputDevice, OutputDevice
 from AlgorithmPool import AlgorithmPool
 
 class MyCanvas(QQuickPaintedItem):
