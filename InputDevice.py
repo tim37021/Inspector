@@ -101,7 +101,6 @@ class InputDevice(QObject):
         self._stream.start_stream()
 
     def callback(self, in_data, frame_count, time_info, status):
-        print('hoho')
         buf = np.frombuffer(in_data, dtype=np.int16).astype(np.float32).reshape(1, -1)
         l = buf.shape[1]
 
