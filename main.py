@@ -31,7 +31,6 @@ class MyCanvas(QQuickPaintedItem):
         if self._buffer == buf:
             return
 
-        
         self._buffer = buf
         self.bufferChanged.emit()
 
@@ -42,9 +41,7 @@ class MyCanvas(QQuickPaintedItem):
             qimage = QImage(self._buffer, 640, 480,
                             QImage.Format_BGR888 )
             qimage = qimage.smoothScaled(int(self.width()), int(self.height()))
-            
             painter.drawImage(0, 0, qimage)
-    
 
 
 if __name__ == '__main__':
