@@ -1,3 +1,4 @@
 * Schedule [0%]
-** TODO Refactor modules
 ** TODO Python Template for Adding New Signal Source
+** TODO Refactor modules
+
