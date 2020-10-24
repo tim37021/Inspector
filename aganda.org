@@ -10,3 +10,4 @@
      The warnings is actually Qt's bug
    - [ ] Array out of bound when mouse move
 ** TODO Key-binding Manage System
+** TODO SignalPlotControl Refactor
