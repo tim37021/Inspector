@@ -41,7 +41,16 @@ class Buffer(QObject):
 ## Directory Definitions
 
 ### Plugin Directory
-Plugin directory includes highly reusable QML extension modules or libraries. It's recommand to make plugin if your modules has potential to be used in other project. Usually, plugins have no other dependency.
+Plugin directory includes highly reusable QML and Python extension modules or libraries. It's recommand to make plugin if your modules has potential to be used in other project. Usually, plugins have no other dependency.
+
+#### How to Write a Python Plugin
+For example plugin project, see hcmusic.audio. A valid python plugin must contains ```__init__.py```. If you wish to export extension module for QML, you must declare qmlexports variable, and it will be directly forwarded to qmlRegisterType.
+
+```python
+qmlexports = [
+    {'class': AudioInputDevice, 'exportName': 'AudioInputDevice', 'uri': 'hcmusic.audio', 'major': 1, 'minor' : 0}
+]
+```
 
 ### App Directory
 Contains highly reusable module for this project.
