@@ -10,8 +10,8 @@ from PySide2.QtQuick import *
 
 import numpy as np
 from NumpyBuffer import NumpyBuffer
-from SoundDevice import InputDevice, OutputDevice
 from AlgorithmPool import AlgorithmPool
+import PluginLoader
 
 class MyCanvas(QQuickPaintedItem):
     bufferChanged = Signal()
@@ -59,10 +59,14 @@ if __name__ == '__main__':
     # Create QML engine
     engine = QQmlApplicationEngine()
 
+    plugins = PluginLoader.scan_plugins('plugins')
+    # install all
+    for p in plugins:
+        p.install()
+        print('Plugin %s loaded'%p.uri)
+
     qmlRegisterType(MyCanvas, 'MyCanvas', 1, 0, 'MyCanvas')
     qmlRegisterType(NumpyBuffer, 'Buffer', 1, 0, 'NumpyBuffer')
-    qmlRegisterType(InputDevice, 'Buffer', 1, 0, 'InputDevice')
-    qmlRegisterType(OutputDevice, 'Buffer', 1, 0, 'OutputDevice')
     qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
 
     engine.addImportPath('plugins')

@@ -7,7 +7,7 @@ There are three main components in this module.
 
 - SignalPlotOpenGL - optimized for signal plot. The APIs is very similar to QtCharts modules. It used OpenGL 2.1/3.3 for rendering.
 - SignalPlotUI - provides handy plot functionalities for drawing stuff/UIs in signal space
-- SignalPlotControl - provides mouse control to axises and keyboard responses.
+- SignalPlotControl - provides UX logic like mouse control to axises and keyboard responses, etc.
 
 If you are using QtCharts and this module in the same component, please assign one of them a namespace.
 

@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+AudioDevice plugin is an example plugin, it provides audio functionalities for Inspector
+
+"""
+
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
@@ -9,7 +15,18 @@ import queue
 
 p = pyaudio.PyAudio()
 
-class InputDevice(QObject):
+class AudioInputDevice(QObject):
+    """AudioInputDevice
+
+    Args:
+        parent (QObject): Parent node
+
+    Attributes:
+        rate (int): Sample rate
+        deviceIndex (int): index of the input device
+        recording (bool): toggle for recording on/off
+    """
+
     update = Signal()
     rowsChanged = Signal()
     colsChanged = Signal()
@@ -112,7 +129,18 @@ class InputDevice(QObject):
     def array(self):
         return self._arrs
 
-class OutputDevice(QObject):
+class AudioOutputDevice(QObject):
+    """AudioOutputDevice
+    
+    Args:
+        parent (QObject): Parent node
+
+    Attributes:
+        rate (int): Sample rate
+        deviceIndex (int): index of the output device
+        recording (bool): toggle for recording on/off
+    """
+
     rateChanged = Signal()
     deviceIndexChanged = Signal()
     

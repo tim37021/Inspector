@@ -4,8 +4,9 @@ import nrf.beacon 1.0
 import App 1.0
 
 import QtQuick.Dialogs 1.1
-import Buffer 1.0
+import hcmusic.audio 1.0
 import hcmusic.utils 1.0
+import Buffer 1.0
 import QtWebSockets 1.8
 
 ApplicationWindow {
@@ -16,7 +17,7 @@ ApplicationWindow {
     color: Constants.background
     title: 'Inspector'
 
-    OutputDevice {
+    AudioOutputDevice {
         id: od
         rate: 44100
     }
@@ -34,7 +35,7 @@ ApplicationWindow {
     Component {
         id: buf_comp2
         RawBufferView {
-            sourceBuffer: InputDevice {
+            sourceBuffer: AudioInputDevice {
                 recording: true
             }
         }
