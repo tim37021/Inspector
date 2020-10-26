@@ -1,18 +1,21 @@
-class QMLPluginLoader(object):
+class PluginLoader(object):
     def __init__(self, path):
         self._path = path
 
     def install(self):
         pass
-            
+
     @property
     def uri(self):
         return self._path
 
-
-class PythonPluginLoader(object):
+class QMLPluginLoader(PluginLoader):
     def __init__(self, path):
-        self._path = path
+        PluginLoader.__init__(self, path)
+
+class PythonPluginLoader(PluginLoader):
+    def __init__(self, path):
+        PluginLoader.__init__(self, path)
 
     def install(self):
         from PySide2.QtQml import qmlRegisterType
@@ -27,10 +30,6 @@ class PythonPluginLoader(object):
                 export['minor'],
                 export['exportName']
             )
-            
-    @property
-    def uri(self):
-        return self._path
 
 def scan_plugins(folder, prefix=''):
     import os
