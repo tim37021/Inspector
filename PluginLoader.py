@@ -18,18 +18,15 @@ class PythonPluginLoader(object):
         from PySide2.QtQml import qmlRegisterType
         import importlib
 
-        try:
-            pkg = importlib.import_module(self._path)
-            for export in pkg.qmlexports:
-                qmlRegisterType(
-                    export['class'],
-                    export['uri'],
-                    export['major'],
-                    export['minor'],
-                    export['exportName']
-                )
-        except:
-            pass
+        pkg = importlib.import_module(self._path)
+        for export in pkg.qmlexports:
+            qmlRegisterType(
+                export['class'],
+                export['uri'],
+                export['major'],
+                export['minor'],
+                export['exportName']
+            )
             
     @property
     def uri(self):
