@@ -5,6 +5,7 @@ from PySide2.QtWidgets import *
 import pyaudio
 import numpy as np
 import threading
+import queue
 
 p = pyaudio.PyAudio()
 
@@ -110,20 +111,6 @@ class InputDevice(QObject):
     @Property(QByteArray, notify=update)
     def array(self):
         return self._arrs
-
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
-
-import pyaudio
-import numpy as np
-import threading
-import queue
-
-CHUNK = 1024
-
-# instantiate PyAudio (1)
-p = pyaudio.PyAudio()
 
 class OutputDevice(QObject):
     rateChanged = Signal()
