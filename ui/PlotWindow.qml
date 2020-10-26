@@ -5,7 +5,6 @@ import QtQuick.Controls 2.12
 import App 1.0
 import hcmusic.plot 1.0
 import nrf.beacon 1.0
-import Buffer 1.0
 
 SubWindow {
     id: root

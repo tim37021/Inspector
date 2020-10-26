@@ -6,7 +6,7 @@ import App 1.0
 import QtQuick.Dialogs 1.1
 import hcmusic.audio 1.0
 import hcmusic.utils 1.0
-import Buffer 1.0
+import hcmusic.licap 1.0
 import QtWebSockets 1.8
 
 ApplicationWindow {
@@ -26,7 +26,7 @@ ApplicationWindow {
         id: buf_comp
         RawBufferView {
             property alias filename: nb.filename
-            sourceBuffer: NumpyBuffer {
+            sourceBuffer: LiCAPNpzFile {
                 id: nb
             }
         }

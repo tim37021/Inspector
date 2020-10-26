@@ -9,7 +9,6 @@ from PySide2.QtGui import *
 from PySide2.QtQuick import *
 
 import numpy as np
-from NumpyBuffer import NumpyBuffer
 from AlgorithmPool import AlgorithmPool
 import PluginLoader
 
@@ -63,7 +62,6 @@ class App(object):
             print('Plugin %s loaded'%p.uri)
 
         qmlRegisterType(MyCanvas, 'MyCanvas', 1, 0, 'MyCanvas')
-        qmlRegisterType(NumpyBuffer, 'Buffer', 1, 0, 'NumpyBuffer')
         qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
 
         engine.addImportPath('plugins')
