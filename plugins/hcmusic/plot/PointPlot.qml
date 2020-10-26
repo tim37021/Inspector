@@ -16,7 +16,7 @@ Rectangle {
     radius: 3
     width: radius*2
     height: radius*2
-    color: "white"
+    color: "black"
 
     transform: Translate { x: -radius; y: -radius }
     
