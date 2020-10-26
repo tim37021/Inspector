@@ -1,30 +1,19 @@
 import numpy as np
 
 from PySide2.QtCore import *
+from Buffer import BufferedSource
 
-class NumpyBuffer(QObject):
-    update = Signal()
+class NumpyBuffer(BufferedSource):
     filenameChanged = Signal()
-    rowsChanged = Signal()
-    colsChanged = Signal()
     rateChanged = Signal()
 
     def __init__(self, parent=None):
-        QObject.__init__(self, parent)
+        BufferedSource.__init__(self, 1, 1, True, parent)
         self._filename = ''
-        self._arr = np.asarray([[]], dtype=np.float32)
 
     @Property(int, notify=rateChanged)
     def rate(self):
         return 32000
-
-    @Property(int, notify=colsChanged)
-    def channels(self):
-        return self._arr.shape[0]
-
-    @Property(int, notify=rowsChanged)
-    def length(self):
-        return self._arr.shape[1]
 
     @Property(QUrl, notify=filenameChanged)
     def filename(self):
@@ -38,14 +27,6 @@ class NumpyBuffer(QObject):
         self._filename = val
 
         arr = np.load(self._filename.toLocalFile())
-        self._arr = arr['arr_0'].astype(np.float32).transpose()
+        arr = arr['arr_0'].astype(np.float32).transpose()
 
-        self._arrs = QByteArray(self._arr.tobytes())
-
-        self.rowsChanged.emit()
-        self.colsChanged.emit()
-        self.update.emit()
-
-    @Property(QByteArray, notify=update)
-    def array(self):
-        return self._arrs
+        self.copy_from(arr)
