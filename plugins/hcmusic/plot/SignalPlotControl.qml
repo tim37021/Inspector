@@ -49,6 +49,12 @@ Item {
         }
 
         onWheel: {
+            let dir = wheel.angleDelta.y>0? -1: 1
+            let scale = (1+dir*0.1)
+            xAxis.min = (xAxis.min - mouseCoordX) * scale + mouseCoordX
+            xAxis.max = (xAxis.max - mouseCoordX) * scale + mouseCoordX
+            yAxis.min = (yAxis.min - mouseCoordY) * scale + mouseCoordY
+            yAxis.max = (yAxis.max - mouseCoordY) * scale + mouseCoordY
         }
 
         onPositionChanged: {
