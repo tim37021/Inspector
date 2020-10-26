@@ -41,47 +41,43 @@ class MyCanvas(QQuickPaintedItem):
             qimage = qimage.smoothScaled(int(self.width()), int(self.height()))
             painter.drawImage(0, 0, qimage)
 
+class App(object):
+    def __init__(self, argv):
+        os.environ['QT_SCALE_FACTOR'] = '0'
+        QApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+        QApplication.setOrganizationName('hcmusic')
+        self._argv = argv
+    def run(self):
+        # Create an instance of the application
+        # QApplication MUST be declared in global scope to avoid segmentation fault
+        app = QApplication(self._argv)
+
+        # Create QML engine
+        engine = QQmlApplicationEngine()
+
+        plugins = PluginLoader.scan_plugins('plugins')
+        # install all
+        for p in plugins:
+            p.install()
+            print('Plugin %s loaded'%p.uri)
+
+        qmlRegisterType(MyCanvas, 'MyCanvas', 1, 0, 'MyCanvas')
+        qmlRegisterType(NumpyBuffer, 'Buffer', 1, 0, 'NumpyBuffer')
+        qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
+
+        engine.addImportPath('plugins')
+        engine.addImportPath('imports')
+
+        # Load the qml file into the engine
+        engine.load('ui/main.qml')
+
+        # Qml file error handling
+        if not engine.rootObjects():
+            sys.exit(-1)
+
+        return app.exec_()
 
 if __name__ == '__main__':
-    # Set the QtQuick Style
-    # Acceptable values: Default, Fusion, Imagine, Material, Universal.
-    """
-    os.environ['QT_QUICK_CONTROLS_STYLE'] = (sys.argv[1]
-                                         if len(sys.argv) > 1 else "Default")
-    """
-    os.environ['QT_SCALE_FACTOR'] = '0'
-    QApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
-    QApplication.setOrganizationName('hcmusic')
-    # Create an instance of the application
-    # QApplication MUST be declared in global scope to avoid segmentation fault
-    app = QApplication(sys.argv)
+    app = App(sys.argv)
 
-    # Create QML engine
-    engine = QQmlApplicationEngine()
-
-    plugins = PluginLoader.scan_plugins('plugins')
-    # install all
-    for p in plugins:
-        p.install()
-        print('Plugin %s loaded'%p.uri)
-
-    qmlRegisterType(MyCanvas, 'MyCanvas', 1, 0, 'MyCanvas')
-    qmlRegisterType(NumpyBuffer, 'Buffer', 1, 0, 'NumpyBuffer')
-    qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
-
-    engine.addImportPath('plugins')
-    engine.addImportPath('imports')
-
-    # Load the qml file into the engine
-    engine.load('ui/main.qml')
-
-    # Qml file error handling
-    if not engine.rootObjects():
-        sys.exit(-1)
-
-
-    # engine.quit.connect(app.quit)
-    # Unnecessary,
-    # since QQmlEngine.quit has already connect to QCoreApplication.quit
-
-    sys.exit(app.exec_())
+    sys.exit(app.run())
