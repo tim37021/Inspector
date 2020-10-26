@@ -30,6 +30,7 @@ Rectangle {
     Text {
         id: hint
         y: radius*2
+        color: "white"
         text: px.toFixed(1) + "," + py.toFixed(1)
     }
     Timer {
