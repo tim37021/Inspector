@@ -38,12 +38,15 @@ SignalPlotOpenGL {
             if(lockView) {
                 recAnchor_.x1 = mouseCoordX
                 recAnchor_.y1 = mouseCoordY
+                recAnchor_.visible = true
             }
         }
 
         onReleased: {
-            if(lockView) {
+            if(ctl.state == 'selecting') {
                 plot.selectChanged()
+            } else {
+                recAnchor_.visible = false
             }
         }
     }
@@ -78,13 +81,13 @@ SignalPlotOpenGL {
             opacity: 0.5
 
             Binding on x2 {
-                when: ctl.dragging && ctl.lockView
+                when: ctl.state == 'selecting'
                 value: ctl.mouseCoordX
                 restoreMode: Binding.RestoreNone
             }
 
             Binding on y2 {
-                when: ctl.dragging && ctl.lockView
+                when: ctl.state == 'selecting'
                 value: ctl.mouseCoordY
                 restoreMode: Binding.RestoreNone
             }

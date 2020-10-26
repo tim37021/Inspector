@@ -23,13 +23,11 @@ Item {
         id: priv
         property real dragStartX
         property real dragStartY
-
     }
 
     MouseArea {
         id: ma
         anchors.fill: parent
-        cursorShape: containsPress && !lockView? Qt.OpenHandCursor: Qt.ArrowCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         Keys.forwardTo: [parent]
@@ -51,7 +49,6 @@ Item {
         }
 
         onWheel: {
-            // passed
         }
 
         onPositionChanged: {
@@ -84,4 +81,22 @@ Item {
 
         return [x, y]
     }
+
+    states: [
+        State {
+            name: ''
+            when: !dragging
+            PropertyChanges { target: ma; cursorShape: Qt.ArrowCursor }
+        },
+        State {
+            name: 'dragging'
+            when: dragging && !lockView
+            PropertyChanges { target: ma; cursorShape: Qt.OpenHandCursor }
+        },
+        State {
+            name: 'selecting'
+            when: dragging && lockView
+            PropertyChanges { target: ma; cursorShape: Qt.CrossCursor }
+        }
+    ]
 }
