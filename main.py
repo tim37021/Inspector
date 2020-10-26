@@ -47,6 +47,7 @@ class App(object):
         QApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
         QApplication.setOrganizationName('hcmusic')
         self._argv = argv
+        
     def run(self):
         # Create an instance of the application
         # QApplication MUST be declared in global scope to avoid segmentation fault
