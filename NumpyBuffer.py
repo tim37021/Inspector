@@ -50,7 +50,6 @@ class NumpyBuffer(QObject):
         self.colsChanged.emit()
         self.update.emit()
 
-
     @Property(QByteArray, notify=update)
     def array(self):
         return self._arrs
