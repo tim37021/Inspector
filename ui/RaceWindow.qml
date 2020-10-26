@@ -51,7 +51,7 @@ SubWindow {
     WebSocket {
         id: ws
         active: true
-        url: 'ws://172.94.78.42:9002/'+route.result+'/publish'
+        url: 'ws://'+Constants.server+'/'+route.result+'/publish'
     }
 
     function passBy(addr) {
@@ -74,7 +74,7 @@ SubWindow {
         orientation: ListView.Horizontal
         delegate: Image {
             id: test
-            source: './pic/runner.svg'
+            source: '../pic/runner.svg'
             width: 64
             height: 72
             

@@ -23,7 +23,7 @@ ListModel {
             for(let i=0; i<priv.index.length; i++) {
                 let elapsedTime = now - priv.data[priv.index[i]].timestamp
                 if(elapsedTime >= timeout) {
-                    root.set(i, {active: false});
+                    root.set(i-rm, {active: false});
                 }
                 if(elapsedTime >= removeTimeout) {
                     root.remove(i-rm)
