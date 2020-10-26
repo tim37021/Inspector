@@ -3,7 +3,7 @@ import numpy as np
 from PySide2.QtCore import *
 from Buffer import BufferedSource
 
-class LiCAPNpzFile(BufferedSource):
+class NpzFile(BufferedSource):
     filenameChanged = Signal()
     rateChanged = Signal()
 
