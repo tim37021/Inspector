@@ -1,5 +1,6 @@
 Inspector v0.1
 ===
+![alt text](pic/screenshot.png "Inspector")
 
 ## Note
 ### Tips for Passing Array from Python to QML
