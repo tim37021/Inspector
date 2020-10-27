@@ -48,11 +48,12 @@ QQ2.Item {
 
         // TODO better declarative API, reduce manual binding
         x.update.connect(function (b) {
+            b = b instanceof Float32Array? b: new Float32Array(b)
             if(b.length != obj.count) {
                 obj.count = b.length
-                obj.buffer.data = new Float32Array(b)
+                obj.buffer.data = b
             } else {
-                obj.buffer.updateData(0, new Float32Array(b))
+                obj.buffer.updateData(0, b)
             }
         })
 
