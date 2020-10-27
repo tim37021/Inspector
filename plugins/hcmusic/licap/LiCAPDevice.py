@@ -1,4 +1,7 @@
 import threading
+import serial
+import numpy as np
+import time
 
 class LiCAPv1(object):
     def __init__(self, port, callback):
@@ -8,6 +11,7 @@ class LiCAPv1(object):
         self._last_timestamp = None
         self._bytes_rate = 0
         self._t = None
+        self._stopped = False
 
     def run(self):
         self._ser = serial.Serial(self._port)
@@ -40,13 +44,15 @@ class LiCAPv1(object):
 
 
     def start(self):
-        self._t = threading.Thread(target=self.run, arg=())
+        self._stopped = False
+        self._t = threading.Thread(target=self.run, args=())
         self._t.start()
 
     def stop(self):
         self._stopped = True
         if self._t is not None:
             self._t.join()
+            self._t = None
 
     @property
     def bytes_rate(self):

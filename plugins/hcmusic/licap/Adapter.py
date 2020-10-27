@@ -7,6 +7,7 @@ class LiCAPDevice(BufferedSource):
     portChanged = Signal()
     deviceTypeChanged = Signal()
     recordingChanged = Signal()
+    rateChanged = Signal()
     
     @QEnum
     class Variant(Enum):
@@ -18,6 +19,11 @@ class LiCAPDevice(BufferedSource):
         self._inst = None
         self._deviceType = 0
         self._recording = False
+
+
+    @Property(int, notify=rateChanged)
+    def rate(self):
+        return 32000
 
     @Property(str, notify=portChanged)
     def port(self):
@@ -31,7 +37,7 @@ class LiCAPDevice(BufferedSource):
 
             self.portChanged.emit()
 
-    @Property(str, notify=deviceTypeChanged)
+    @Property(int, notify=deviceTypeChanged)
     def deviceType(self):
         return self._deviceType
 
@@ -44,14 +50,14 @@ class LiCAPDevice(BufferedSource):
             self.deviceTypeChanged.emit()
 
 
-    @Property(str, notify=recordingChanged)
+    @Property(bool, notify=recordingChanged)
     def recording(self):
-        return self._recroding
+        return self._recording
     
     @recording.setter
     def setRecording(self, val):
-        if self._recroding != val:
-            self._recroding = val
+        if self._recording != val:
+            self._recording = val
             
             if self._inst is not None:
                 if self._recording:
@@ -62,17 +68,19 @@ class LiCAPDevice(BufferedSource):
             self.recordingChanged.emit()
 
     def reopen(self):
+
         if self._inst is not None:
             self._inst.stop()
-            if self._deviceType == 0:
-                self._inst = LiCAPv1(self._port, self.callback)
-                self.init(16384, 6)
-            elif self._deviceType == 1:
-                self._inst = LiCAP_R_EVT(self._port, self.callback)
-                self.init(16384, 8)
 
-            if self._recording:
-                self._inst.start()
+        if self._deviceType == 0:
+            self._inst = LiCAPv1(self._port, self.callback)
+            self.init(44100, 6)
+        elif self._deviceType == 1:
+            self._inst = LiCAP_R_EVT(self._port, self.callback)
+            self.init(44100, 8)
+
+        if self._recording:
+            self._inst.start()
 
     def callback(self, buf):
         # to [channel, length]

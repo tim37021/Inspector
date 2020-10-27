@@ -50,6 +50,8 @@ class BufferedSource(QObject):
     def consume(self, buf):
         # channels must match
         assert buf.shape[0] == self._arr.shape[0]
+        if buf.dtype != np.float32:
+            buf = buf.astype(np.float32)
 
         l = buf.shape[1]
         self._arr[..., :-l] = self._arr[..., l:]
