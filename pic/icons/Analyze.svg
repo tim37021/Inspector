@@ -1,0 +1,27 @@
+<svg id="Analyze" xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
+  <g id="Rectangle_46" data-name="Rectangle 46" fill="none" stroke="#fff" stroke-width="2">
+    <rect width="50" height="50" rx="5" stroke="none"/>
+    <rect x="1" y="1" width="48" height="48" rx="4" fill="none"/>
+  </g>
+  <g id="Group_18" data-name="Group 18" transform="translate(4.737 14.636)">
+    <line id="Line_12" data-name="Line 12" x2="41" transform="translate(0 26)" fill="none" stroke="#fff" stroke-width="2"/>
+    <g id="Rectangle_47" data-name="Rectangle 47" transform="translate(0 8)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2">
+      <path d="M1,0H7A1,1,0,0,1,8,1V19a0,0,0,0,1,0,0H0a0,0,0,0,1,0,0V1A1,1,0,0,1,1,0Z" stroke="none"/>
+      <path d="M1,1H7A0,0,0,0,1,7,1V17a1,1,0,0,1-1,1H2a1,1,0,0,1-1-1V1A0,0,0,0,1,1,1Z" fill="none"/>
+    </g>
+    <g id="Rectangle_48" data-name="Rectangle 48" transform="translate(11 4)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2">
+      <path d="M1,0H7A1,1,0,0,1,8,1V23a0,0,0,0,1,0,0H0a0,0,0,0,1,0,0V1A1,1,0,0,1,1,0Z" stroke="none"/>
+      <path d="M1,1H7A0,0,0,0,1,7,1V21a1,1,0,0,1-1,1H2a1,1,0,0,1-1-1V1A0,0,0,0,1,1,1Z" fill="none"/>
+    </g>
+    <g id="Rectangle_49" data-name="Rectangle 49" transform="translate(22)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2">
+      <path d="M1,0H7A1,1,0,0,1,8,1V27a0,0,0,0,1,0,0H0a0,0,0,0,1,0,0V1A1,1,0,0,1,1,0Z" stroke="none"/>
+      <path d="M1,1H7A0,0,0,0,1,7,1V25a1,1,0,0,1-1,1H2a1,1,0,0,1-1-1V1A0,0,0,0,1,1,1Z" fill="none"/>
+    </g>
+    <g id="Rectangle_50" data-name="Rectangle 50" transform="translate(33 8)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2">
+      <path d="M1,0H7A1,1,0,0,1,8,1V19a0,0,0,0,1,0,0H0a0,0,0,0,1,0,0V1A1,1,0,0,1,1,0Z" stroke="none"/>
+      <path d="M1,1H7A0,0,0,0,1,7,1V17a1,1,0,0,1-1,1H2a1,1,0,0,1-1-1V1A0,0,0,0,1,1,1Z" fill="none"/>
+    </g>
+  </g>
+  <line id="Line_13" data-name="Line 13" x2="15" transform="translate(5.5 8.5)" fill="none" stroke="#fff" stroke-width="2"/>
+  <line id="Line_14" data-name="Line 14" x2="11" transform="translate(5.5 13.75)" fill="none" stroke="#fff" stroke-width="2"/>
+</svg>
