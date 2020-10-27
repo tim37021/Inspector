@@ -11,19 +11,6 @@ Material {
     property ValueAxis xAxis: ValueAxis {min: -100; max: 100}
     property ValueAxis yAxis: ValueAxis {min: -100; max: 100}
 
-    /*
-    // Rebinding
-    onXAxisChanged: {
-        leftRange.value = Qt.binding(() => { return xAxis.min; })
-        rightRange.value = Qt.binding(() => { return xAxis.max; })
-    }
-
-    onYAxisChanged: {
-        bottomRange.value = Qt.binding(() => { return yAxis.min; })
-        topRange.value = Qt.binding(() => { return yAxis.max; })
-    }
-    */
-
     parameters: [
         Parameter {
             name: "mainColor"
