@@ -27,10 +27,11 @@ SubWindow {
                 arr = signalSource
             
             // move mouse cursor
-            if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
+            let cursorX = Math.round(plot.mouseCoordX)
+            if(cursorX >= 0 && cursorX < arr.length) {
                 // nearest mode
-                plot.mouseAnchor.px = Math.round(plot.mouseCoordX)
-                plot.mouseAnchor.py = arr[plot.mouseAnchor.px]
+                plot.mouseAnchor.px = cursorX
+                plot.mouseAnchor.py = arr[cursorX]
                 
                 
                 // interpolate mode

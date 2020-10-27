@@ -26,9 +26,10 @@ SubWindow {
                 ls2.append(reading)
             }
             // move mouse cursor
-            if(plot.mouseCoordX >= 0 && plot.mouseCoordX < ls.length) {
-                plot.mouseAnchor.px = plot.mouseCoordX
-                plot.mouseAnchor.py = ls.array[Math.ceil(plot.mouseCoordX)]
+            let cursorX = Math.round(plot.mouseCoordX)
+            if(cursorX >= 0 && cursorX < ls.length) {
+                plot.mouseAnchor.px = cursorX
+                plot.mouseAnchor.py = ls.array[cursorX]
             }
             
         }
