@@ -190,7 +190,7 @@ ApplicationWindow {
      * @param msg Notification
      */
     function notify(msg) {
-        tm.message(msg)
+        tm.message(String(msg))
     }
 
     /**
