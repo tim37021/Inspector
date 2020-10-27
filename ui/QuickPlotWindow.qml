@@ -4,9 +4,12 @@ import hcmusic.plot 1.0
 import Algo 1.0
 
 SubWindow {
+    id: window
     property var signalSource       ///< raw jsarray or buffered signal source
     property SubWindow plotWindow
     property SubWindow stftWindow
+
+    property bool recording: false
 
     onSignalSourceChanged: {
         let arr=getArray()
@@ -52,6 +55,27 @@ SubWindow {
             ls.set(array)
         }
     }
+
+    Rectangle {
+        id: recordingIcon
+        x: 32
+        y: 32
+        radius: 8
+        width: radius * 2
+        height: radius * 2
+        color: "red"
+        visible: recording
+
+        transform: [Translate {x: -radius; y: -radius } ]
+
+        SequentialAnimation {
+            running: recording
+            loops: Animation.Infinite
+            NumberAnimation { target: recordingIcon; property: "opacity"; from: 0; to: 1; duration: 500 }
+            NumberAnimation { target: recordingIcon; property: "opacity"; from: 1; to: 0; duration: 500 }
+        }
+    }
+
 
     Rectangle {
         y: 24
@@ -195,6 +219,11 @@ SubWindow {
                 let arr = getArray().slice(0)
                 app.playBuffer(arr.buffer, signalSource.rate)
                 
+            }
+
+            if(event.key == 82) {
+                // record!!!
+                window.recording = !window.recording
             }
 
             

@@ -5,8 +5,11 @@ import App 1.0
 
 import QtQuick.Dialogs 1.1
 import hcmusic.audio 1.0
+import hcmusic.pyutils 1.0
 import hcmusic.utils 1.0
 import QtWebSockets 1.8
+
+import hcmusic.licap 1.0
 
 ApplicationWindow {
     id: app
@@ -15,6 +18,21 @@ ApplicationWindow {
     visible: true
     color: Constants.background
     title: 'Inspector'
+
+    VCPEnumModel {
+        id: vcpScanner
+        running: true
+        idFilter: /0483:.*/
+        property string result
+        onCompleted: {
+            result = list[0]
+            running = false
+        }
+    }
+
+    LiCAPDevice {
+        id: licap
+    }
 
     AudioOutputDevice {
         id: od
@@ -35,6 +53,16 @@ ApplicationWindow {
         id: buf_comp2
         RawBufferView {
             sourceBuffer: AudioInputDevice {
+                recording: true
+            }
+        }
+    }
+
+    Component {
+        id: buf_comp3
+        RawBufferView {
+            sourceBuffer: LiCAPDevice {
+                port: vcpScanner.result
                 recording: true
             }
         }
@@ -122,6 +150,13 @@ ApplicationWindow {
                         text: "From Microphone"
                         onClicked: {
                             let buf = buf_comp2.createObject(null)
+                            app.createQuickPlotWindow('plot', buf)
+                        }
+                    }
+                    MenuItem {
+                        text: "From LiCAP"
+                        onClicked: {
+                            let buf = buf_comp3.createObject(null)
                             app.createQuickPlotWindow('plot', buf)
                         }
                     }
