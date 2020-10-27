@@ -54,3 +54,5 @@ class BufferedSource(QObject):
         l = buf.shape[1]
         self._arr[..., :-l] = self._arr[..., l:]
         self._arr[..., -l:] = buf
+
+        self.update.emit()
