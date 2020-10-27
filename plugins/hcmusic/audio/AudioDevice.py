@@ -25,6 +25,9 @@ class AudioInputDevice(QObject):
         rate (int): Sample rate
         deviceIndex (int): index of the input device
         recording (bool): toggle for recording on/off
+
+    todos:
+        Inherits from BufferedSource
     """
 
     update = Signal()
