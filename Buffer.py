@@ -58,3 +58,9 @@ class BufferedSource(QObject):
         self._arr[..., -l:] = buf
 
         self.update.emit()
+
+    @Slot(QUrl)
+    def saveToFile(self, url):
+        fn = url.toLocalFile()
+        arr = self._arr.copy().transpose()
+        np.savez_compressed(fn, arr)

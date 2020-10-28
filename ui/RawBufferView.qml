@@ -19,6 +19,10 @@ QtObject {
         }
     }
 
+    function saveToFile(fileUrl) {
+        sourceBuffer.saveToFile(fileUrl)
+    }
+
     onRecordingChanged: {
         // propagate back to source(IMPORTANT)
         // other wrapped buffer is still changing

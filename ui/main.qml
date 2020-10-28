@@ -25,8 +25,8 @@ ApplicationWindow {
         idFilter: /0483:.*/
         property string result
         onCompleted: {
-            result = list[0]
             running = false
+            result = list[0]
         }
     }
 
@@ -76,6 +76,17 @@ ApplicationWindow {
             app.createQuickPlotWindow('plot', buf)
         }
     }
+
+    FileDialog {
+        id: sfd
+        nameFilters: [ "npz files (*.npz)" ]
+        selectExisting: false
+        onAccepted: {
+            windowing.focusedWindow.signalSource.saveToFile(fileUrl)
+        }
+    }
+
+    
 
     property DeviceManager deviceMgr: DeviceManager {
         onDevicePlugged: {

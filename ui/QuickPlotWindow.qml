@@ -223,8 +223,11 @@ SubWindow {
 
             if(event.key == 82) {
                 // record!!!
-                window.recording = !window.recording
+                // window.recording = !window.recording
+
+                sfd.open()
             }
+
 
             
         }
