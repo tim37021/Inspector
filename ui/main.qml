@@ -25,8 +25,10 @@ ApplicationWindow {
         idFilter: /0483:.*/
         property string result
         onCompleted: {
-            running = false
-            result = list[0]
+            if(list.length > 0) {
+                result = list[0]
+                running = false
+            }
         }
     }
 
