@@ -20,6 +20,8 @@ class LiCAPDevice(BufferedSource):
         self._deviceType = 0
         self._recording = False
 
+        QApplication.instance().aboutToQuit.connect(lambda: self.stop())
+
 
     @Property(int, notify=rateChanged)
     def rate(self):
