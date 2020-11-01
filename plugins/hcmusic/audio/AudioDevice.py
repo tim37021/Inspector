@@ -12,10 +12,11 @@ import pyaudio
 import numpy as np
 import threading
 import queue
+from Buffer import BufferedSource
 
 p = pyaudio.PyAudio()
 
-class AudioInputDevice(QObject):
+class AudioInputDevice(BufferedSource):
     """AudioInputDevice
 
     Args:
@@ -29,23 +30,15 @@ class AudioInputDevice(QObject):
     todos:
         Inherits from BufferedSource
     """
-
-    update = Signal()
-    rowsChanged = Signal()
-    colsChanged = Signal()
     deviceIndexChanged = Signal()
     recordingChanged = Signal()
     rateChanged = Signal()
     
     def __init__(self, parent=None):
-        QObject.__init__(self, parent)
+        BufferedSource.__init__(self, 44100*5, 1, True, parent)
         self._recording = False
         self._t = None
         self._stream = None
-        self._buf = np.zeros((1, 44100*5), dtype=np.float32)
-        
-        self._arrs = QByteArray(self._buf.tobytes())
-
         self._deviceIndex = p.get_default_input_device_info()['index']
         self._recording = False
 
@@ -54,14 +47,6 @@ class AudioInputDevice(QObject):
     @Property(int, notify=rateChanged)
     def rate(self):
         return 44100
-            
-    @Property(int, notify=colsChanged)
-    def channels(self):
-        return self._buf.shape[0]
-
-    @Property(int, notify=rowsChanged)
-    def length(self):
-        return self._buf.shape[1]
 
     def start(self):
         self._stream.start_stream()
@@ -118,19 +103,10 @@ class AudioInputDevice(QObject):
 
     def callback(self, in_data, frame_count, time_info, status):
         buf = np.frombuffer(in_data, dtype=np.int16).astype(np.float32).reshape(1, -1)
-        l = buf.shape[1]
 
-        self._buf[..., :-l] = self._buf[..., l:]
-        self._buf[..., -l:] = buf
-
-        self._arrs = QByteArray(self._buf.tobytes())
-        self.update.emit()
+        self.consume(buf)
 
         return (np.zeros(1024, dtype=np.int16), pyaudio.paContinue)
-
-    @Property(QByteArray, notify=update)
-    def array(self):
-        return self._arrs
 
 class AudioOutputDevice(QObject):
     """AudioOutputDevice
