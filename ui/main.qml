@@ -87,9 +87,7 @@ ApplicationWindow {
             windowing.focusedWindow.signalSource.saveToFile(fileUrl)
         }
     }
-
     
-
     property DeviceManager deviceMgr: DeviceManager {
         onDevicePlugged: {
             tm.message(`New device found: ${port}`)

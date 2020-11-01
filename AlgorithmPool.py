@@ -7,7 +7,7 @@ from PySide2.QtGui import *
 from PySide2.QtQuick import *
 
 import json
-import inspector
+import cInspector
 from Algorithm.PeakValleyFinder import PeakValleyFinder
 
 def plot_stft(arr, fs, nfft, noverlap):
@@ -108,7 +108,7 @@ class AlgorithmPool(QObject):
     @Slot(QByteArray, int, int, int, result='QVariantList')
     def autocorrelation(self, data, min_lag=32, max_lag=500, window_size=500):
         data = np.frombuffer(data, dtype=np.float32)
-        return inspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
+        return cInspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
 
     @Slot(QByteArray, int, int, int, result=QByteArray)
     def stft(self, data, fs, nfft, noverlap):
@@ -133,9 +133,18 @@ class AlgorithmPool(QObject):
         return float(np.argmax(arr2D[1:, 0])+1) * 32000/1024
 
     @Slot(QByteArray, result=QJsonValue)
-    def launch(self, data):
+    @Slot(QByteArray, QJsonValue, result=QJsonValue)
+    def launch(self, data, rect=None):
+        
         data = np.frombuffer(data, dtype=np.float32)
-        finder = PeakValleyFinder()
-        finder(data[:1024])
+        start_x = 0
+        if rect is not None:
+            rect = rect.toVariant()
+            data = data[round(rect['x1']): round(rect['x2'])]
+            start_x = round(rect['x1'])
+
+        finder = PeakValleyFinder(x_offset = start_x)
+        for i in range(0, len(data), 256):
+            finder(data[i: i+256])
 
         return finder.result.serialize()

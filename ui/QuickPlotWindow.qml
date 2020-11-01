@@ -203,7 +203,11 @@ SubWindow {
             }
             if(event.key == 69) {
                 let arr = getArray().slice(0)
-                let x = algo.launch(arr.buffer)
+                let x;
+                if(plot.recAnchor.visible)
+                    x = algo.launch(arr.buffer, {x1: plot.recAnchor.x1, x2: plot.recAnchor.x2})
+                else
+                    x = algo.launch(arr.buffer)
                 plot.rectangleModel.clear()
                 for(let i=0; i<x.rectangles.length; i++) {
                     plot.rectangleModel.append(x.rectangles[i])
@@ -224,8 +228,11 @@ SubWindow {
             if(event.key == 82) {
                 // record!!!
                 // window.recording = !window.recording
-
-                sfd.open()
+                if(!signalSource.recording) {
+                    sfd.open()
+                } else {
+                    app.notify('You cannot save during recording')
+                }
             }
 
 
