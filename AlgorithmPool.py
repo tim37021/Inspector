@@ -124,15 +124,6 @@ class AlgorithmPool(QObject):
 
         return data.tolist()
 
-    @Slot(QByteArray, result=float)
-    def hybridMethod(self, data):
-        from matplotlib.mlab import specgram
-        data = np.frombuffer(data, dtype=np.float32)
-
-        arr2D, freqs, bins = specgram(data, Fs=32000, NFFT=1024, noverlap=512)
-
-        return float(np.argmax(arr2D[1:, 0])+1) * 32000/1024
-
     @Slot(str, QByteArray, QJsonValue, result=QJsonValue)
     def launch(self, action, data, metadata=None):
         if not action in get_algorithm():
@@ -150,7 +141,7 @@ class AlgorithmPool(QObject):
             data = data[round(rect['x1']): round(rect['x2'])]
             start_x = round(rect['x1'])
 
-        finder = algo(x_offset = start_x, rate=metadata['rate'])
+        finder = algo(x_offset = start_x, **metadata)
         for i in range(0, len(data), 256):
             finder(data[i: i+256])
 

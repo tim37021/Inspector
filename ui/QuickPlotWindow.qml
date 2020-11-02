@@ -23,11 +23,7 @@ SubWindow {
         repeat: true
 
         onTriggered: {
-            let arr;
-            if(signalSource && signalSource.array)
-                arr = signalSource.array
-            if(signalSource && Array.isArray(signalSource))
-                arr = signalSource
+            let arr=getArray();
             
             // move mouse cursor
             let cursorX = Math.round(plot.mouseCoordX)
@@ -156,9 +152,9 @@ SubWindow {
                     let min = argMin(x.slice(32))+32
                     app.notify(signalSource.rate/min)
                     if(plotWindow==null)
-                        plotWindow = app.createQuickPlotWindow('autocorrelation', x)
+                        plotWindow = app.createQuickPlotWindow('autocorrelation', new Float32Array(x))
                     else {
-                        plotWindow.signalSource = x
+                        plotWindow.signalSource = new Float32Array(x)
                     }
                 }
                 
@@ -203,12 +199,12 @@ SubWindow {
             if(event.key == 80) {
                 let arr = getArray().slice(0)
                 app.playBuffer(arr.buffer, signalSource.rate)
-                
             }
 
             if(event.key == 82) {
                 // record!!!
                 // window.recording = !window.recording
+                // this also handles Float32Array
                 if(!signalSource.recording) {
                     sfd.open()
                 } else {
@@ -286,6 +282,7 @@ SubWindow {
 
         function launchAlgorithm(action) {
             let arr = getArray().slice(0)
+            
             let x;
             let metadata = {'rate': signalSource.rate}
             if(plot.recAnchor.visible) 
@@ -307,9 +304,10 @@ SubWindow {
         let arr;
         if(signalSource && signalSource.array)
             arr = signalSource.array
-        if(signalSource && Array.isArray(signalSource))
+        if(signalSource && signalSource instanceof Float32Array) {
             // TODO: allow using Float32Array for signalSource for low overhead calc
-            arr = new Float32Array(signalSource)
+            arr = signalSource
+        }
         return arr
     }
 }
