@@ -2,7 +2,7 @@ from .Processor import Processor
 from .Common import *
 from .Algorithm import *
 import numpy as np
-from cInspector import auto_correlation
+from cInspector import auto_correlation, hcpeakvalley
 
 
 def freq_to_note(freq):
@@ -29,13 +29,24 @@ class DoubleACProcessor(Processor):
 
         r = np.zeros(500+1, dtype=np.float32)
         r[32:] = auto_correlation(self._buf.array, 32, 500, 256)
-        ac = auto_correlation(r, 32, 500, 256)
-
-        delay = np.argmin(ac) + 32
-
-        self._result.rect(self._x_offset+self._samples, np.min(data), self._x_offset+self._samples+len(data), np.max(data),
-            note_name(freq_to_note(self._rate / delay)))
         
+        
+
+        p, v = hcpeakvalley(r)
+        """
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.plot(r)
+        print(len(v))
+        plt.scatter(v, r[v])
+        plt.show()
+        """
+        if len(v) >= 2 and v[0] < 32:
+            freq = self._rate / v[1]
+
+            self._result.rect(self._x_offset+self._samples, np.min(data), self._x_offset+self._samples+len(data), np.max(data),
+                note_name(freq_to_note(freq)))
+            
 
         self._samples += len(data)
 
