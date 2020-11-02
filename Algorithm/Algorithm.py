@@ -24,3 +24,13 @@ class Result(object):
             'rectangles': self._rectangles
         }
 
+__algoList = {}
+
+def Algorithm(name=None):
+    def Algorithm_(class_arg):
+        __algoList[name] = class_arg
+        return class_arg
+    return Algorithm_
+
+def get_algorithm():
+    return __algoList

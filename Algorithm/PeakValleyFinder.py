@@ -4,6 +4,7 @@ from .Algorithm import *
 import numpy as np
 import cInspector
 
+@Algorithm(name='hcPeakValley')
 class PeakValleyFinder(Processor):
     def __init__(self, x_offset=0, lookback=16):
         Processor.__init__(self)

@@ -193,30 +193,11 @@ SubWindow {
             }
 
             if(event.key == 68) {
-                let arr = getArray()
-                if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
-                    let startX = Math.floor(plot.mouseCoordX)
-                    let x = algo.hybridMethod(getArray().slice(startX, startX+1024).buffer)
-                    app.notify(x)
-                }
+                algo.launchAlgorithm('DoubleAC')
                 
             }
             if(event.key == 69) {
-                let arr = getArray().slice(0)
-                let x;
-                if(plot.recAnchor.visible)
-                    x = algo.launch(arr.buffer, {x1: plot.recAnchor.x1, x2: plot.recAnchor.x2})
-                else
-                    x = algo.launch(arr.buffer)
-                plot.rectangleModel.clear()
-                for(let i=0; i<x.rectangles.length; i++) {
-                    plot.rectangleModel.append(x.rectangles[i])
-                }
-
-                plot.pointModel.clear()
-                for(let i=0; i<x.points.length; i++) {
-                    plot.pointModel.append(x.points[i])
-                }
+                algo.launchAlgorithm('hcPeakValley')
             }
 
             if(event.key == 80) {
@@ -302,6 +283,24 @@ SubWindow {
 
     AlgorithmPool {
         id: algo
+
+        function launchAlgorithm(action) {
+            let arr = getArray().slice(0)
+            let x;
+            if(plot.recAnchor.visible)
+                x = algo.launch(action, arr.buffer, {x1: plot.recAnchor.x1, x2: plot.recAnchor.x2})
+            else
+                x = algo.launch(action, arr.buffer)
+            plot.rectangleModel.clear()
+            for(let i=0; i<x.rectangles.length; i++) {
+                plot.rectangleModel.append(x.rectangles[i])
+            }
+
+            plot.pointModel.clear()
+            for(let i=0; i<x.points.length; i++) {
+                plot.pointModel.append(x.points[i])
+            }
+        }
     }
 
     function getArray() {

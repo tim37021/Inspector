@@ -8,7 +8,8 @@ from PySide2.QtQuick import *
 
 import json
 import cInspector
-from Algorithm.PeakValleyFinder import PeakValleyFinder
+
+from Algorithm import get_algorithm
 
 def plot_stft(arr, fs, nfft, noverlap):
     """Plot specgram of raw signal into numpy array
@@ -132,10 +133,14 @@ class AlgorithmPool(QObject):
 
         return float(np.argmax(arr2D[1:, 0])+1) * 32000/1024
 
-    @Slot(QByteArray, result=QJsonValue)
-    @Slot(QByteArray, QJsonValue, result=QJsonValue)
-    def launch(self, data, rect=None):
+    @Slot(str, QByteArray, result=QJsonValue)
+    @Slot(str, QByteArray, QJsonValue, result=QJsonValue)
+    def launch(self, action, data, rect=None):
+        if not action in get_algorithm():
+            return Result().serialize()
         
+        algo = get_algorithm()[action]
+
         data = np.frombuffer(data, dtype=np.float32)
         start_x = 0
         if rect is not None:
@@ -143,7 +148,7 @@ class AlgorithmPool(QObject):
             data = data[round(rect['x1']): round(rect['x2'])]
             start_x = round(rect['x1'])
 
-        finder = PeakValleyFinder(x_offset = start_x)
+        finder = algo(x_offset = start_x)
         for i in range(0, len(data), 256):
             finder(data[i: i+256])
 
