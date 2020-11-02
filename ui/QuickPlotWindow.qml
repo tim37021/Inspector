@@ -287,10 +287,10 @@ SubWindow {
         function launchAlgorithm(action) {
             let arr = getArray().slice(0)
             let x;
-            if(plot.recAnchor.visible)
-                x = algo.launch(action, arr.buffer, {x1: plot.recAnchor.x1, x2: plot.recAnchor.x2})
-            else
-                x = algo.launch(action, arr.buffer)
+            let metadata = {'rate': signalSource.rate}
+            if(plot.recAnchor.visible) 
+                metadata['selectArea'] = [{x1: plot.recAnchor.x1, x2: plot.recAnchor.x2}]
+            x = algo.launch(action, arr.buffer, metadata)
             plot.rectangleModel.clear()
             for(let i=0; i<x.rectangles.length; i++) {
                 plot.rectangleModel.append(x.rectangles[i])

@@ -6,7 +6,7 @@ import cInspector
 
 @Algorithm(name='hcPeakValley')
 class PeakValleyFinder(Processor):
-    def __init__(self, x_offset=0, lookback=16):
+    def __init__(self, x_offset=0, lookback=16, **argv):
         Processor.__init__(self)
         self._result = Result()
         self._inst = cInspector.hcPeakValley()

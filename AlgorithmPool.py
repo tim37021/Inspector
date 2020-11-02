@@ -133,22 +133,24 @@ class AlgorithmPool(QObject):
 
         return float(np.argmax(arr2D[1:, 0])+1) * 32000/1024
 
-    @Slot(str, QByteArray, result=QJsonValue)
     @Slot(str, QByteArray, QJsonValue, result=QJsonValue)
-    def launch(self, action, data, rect=None):
+    def launch(self, action, data, metadata=None):
         if not action in get_algorithm():
             return Result().serialize()
         
         algo = get_algorithm()[action]
 
         data = np.frombuffer(data, dtype=np.float32)
+
         start_x = 0
-        if rect is not None:
-            rect = rect.toVariant()
+        metadata = metadata.toVariant()
+
+        if 'selectArea' in metadata:
+            rect = metadata['selectArea'][0]
             data = data[round(rect['x1']): round(rect['x2'])]
             start_x = round(rect['x1'])
 
-        finder = algo(x_offset = start_x)
+        finder = algo(x_offset = start_x, rate=metadata['rate'])
         for i in range(0, len(data), 256):
             finder(data[i: i+256])
 
