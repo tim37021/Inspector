@@ -7,8 +7,9 @@ from PySide2.QtGui import *
 from PySide2.QtQuick import *
 
 import json
-import inspector
-from Algorithm.PeakValleyFinder import PeakValleyFinder
+import cInspector
+
+from Algorithm import get_algorithm
 
 def plot_stft(arr, fs, nfft, noverlap):
     """Plot specgram of raw signal into numpy array
@@ -108,7 +109,7 @@ class AlgorithmPool(QObject):
     @Slot(QByteArray, int, int, int, result='QVariantList')
     def autocorrelation(self, data, min_lag=32, max_lag=500, window_size=500):
         data = np.frombuffer(data, dtype=np.float32)
-        return inspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
+        return cInspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
 
     @Slot(QByteArray, int, int, int, result=QByteArray)
     def stft(self, data, fs, nfft, noverlap):
@@ -123,19 +124,25 @@ class AlgorithmPool(QObject):
 
         return data.tolist()
 
-    @Slot(QByteArray, result=float)
-    def hybridMethod(self, data):
-        from matplotlib.mlab import specgram
+    @Slot(str, QByteArray, QJsonValue, result=QJsonValue)
+    def launch(self, action, data, metadata=None):
+        if not action in get_algorithm():
+            return Result().serialize()
+        
+        algo = get_algorithm()[action]
+
         data = np.frombuffer(data, dtype=np.float32)
 
-        arr2D, freqs, bins = specgram(data, Fs=32000, NFFT=1024, noverlap=512)
+        start_x = 0
+        metadata = metadata.toVariant()
 
-        return float(np.argmax(arr2D[1:, 0])+1) * 32000/1024
+        if 'selectArea' in metadata:
+            rect = metadata['selectArea'][0]
+            data = data[round(rect['x1']): round(rect['x2'])]
+            start_x = round(rect['x1'])
 
-    @Slot(QByteArray, result=QJsonValue)
-    def launch(self, data):
-        data = np.frombuffer(data, dtype=np.float32)
-        finder = PeakValleyFinder()
-        finder(data[:1024])
+        finder = algo(x_offset = start_x, **metadata)
+        for i in range(0, len(data), 256):
+            finder(data[i: i+256])
 
         return finder.result.serialize()

@@ -23,11 +23,7 @@ SubWindow {
         repeat: true
 
         onTriggered: {
-            let arr;
-            if(signalSource && signalSource.array)
-                arr = signalSource.array
-            if(signalSource && Array.isArray(signalSource))
-                arr = signalSource
+            let arr=getArray();
             
             // move mouse cursor
             let cursorX = Math.round(plot.mouseCoordX)
@@ -156,9 +152,9 @@ SubWindow {
                     let min = argMin(x.slice(32))+32
                     app.notify(signalSource.rate/min)
                     if(plotWindow==null)
-                        plotWindow = app.createQuickPlotWindow('autocorrelation', x)
+                        plotWindow = app.createQuickPlotWindow('autocorrelation', new Float32Array(x))
                     else {
-                        plotWindow.signalSource = x
+                        plotWindow.signalSource = new Float32Array(x)
                     }
                 }
                 
@@ -193,39 +189,27 @@ SubWindow {
             }
 
             if(event.key == 68) {
-                let arr = getArray()
-                if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
-                    let startX = Math.floor(plot.mouseCoordX)
-                    let x = algo.hybridMethod(getArray().slice(startX, startX+1024).buffer)
-                    app.notify(x)
-                }
+                algo.launchAlgorithm('DoubleAC')
                 
             }
             if(event.key == 69) {
-                let arr = getArray().slice(0)
-                let x = algo.launch(arr.buffer)
-                plot.rectangleModel.clear()
-                for(let i=0; i<x.rectangles.length; i++) {
-                    plot.rectangleModel.append(x.rectangles[i])
-                }
-
-                plot.pointModel.clear()
-                for(let i=0; i<x.points.length; i++) {
-                    plot.pointModel.append(x.points[i])
-                }
+                algo.launchAlgorithm('hcPeakValley')
             }
 
             if(event.key == 80) {
                 let arr = getArray().slice(0)
                 app.playBuffer(arr.buffer, signalSource.rate)
-                
             }
 
             if(event.key == 82) {
                 // record!!!
                 // window.recording = !window.recording
-
-                sfd.open()
+                // this also handles Float32Array
+                if(!signalSource.recording) {
+                    sfd.open()
+                } else {
+                    app.notify('You cannot save during recording')
+                }
             }
 
 
@@ -295,15 +279,35 @@ SubWindow {
 
     AlgorithmPool {
         id: algo
+
+        function launchAlgorithm(action) {
+            let arr = getArray().slice(0)
+            
+            let x;
+            let metadata = {'rate': signalSource.rate}
+            if(plot.recAnchor.visible) 
+                metadata['selectArea'] = [{x1: plot.recAnchor.x1, x2: plot.recAnchor.x2}]
+            x = algo.launch(action, arr.buffer, metadata)
+            plot.rectangleModel.clear()
+            for(let i=0; i<x.rectangles.length; i++) {
+                plot.rectangleModel.append(x.rectangles[i])
+            }
+
+            plot.pointModel.clear()
+            for(let i=0; i<x.points.length; i++) {
+                plot.pointModel.append(x.points[i])
+            }
+        }
     }
 
     function getArray() {
         let arr;
         if(signalSource && signalSource.array)
             arr = signalSource.array
-        if(signalSource && Array.isArray(signalSource))
+        if(signalSource && signalSource instanceof Float32Array) {
             // TODO: allow using Float32Array for signalSource for low overhead calc
-            arr = new Float32Array(signalSource)
+            arr = signalSource
+        }
         return arr
     }
 }

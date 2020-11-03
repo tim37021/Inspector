@@ -45,7 +45,7 @@ SignalPlotOpenGL {
         onReleased: {
             if(ctl.state == 'selecting') {
                 plot.selectChanged()
-            } else {
+            } else if(ctl.state == ''){
                 recAnchor_.visible = false
             }
         }
