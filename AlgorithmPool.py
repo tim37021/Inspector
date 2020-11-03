@@ -109,7 +109,14 @@ class AlgorithmPool(QObject):
     @Slot(QByteArray, int, int, int, result='QVariantList')
     def autocorrelation(self, data, min_lag=32, max_lag=500, window_size=500):
         data = np.frombuffer(data, dtype=np.float32)
-        return cInspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
+        r = np.zeros(max_lag+1, dtype=np.float32)
+        r[min_lag:] = cInspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
+        
+        p, v = cInspector.hcpeakvalley(r)
+        print(','.join(['%d,%f'%(e, r[e]/1000000) for e in v]))
+
+        return r.tolist()
+
 
     @Slot(QByteArray, int, int, int, result=QByteArray)
     def stft(self, data, fs, nfft, noverlap):

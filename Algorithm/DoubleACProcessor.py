@@ -14,6 +14,53 @@ def freq_to_note_noround(freq):
 def note_name(number):
     return ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B'][number%12] + str(number//12 - 1)
 
+class Smoother(object):
+
+    def same_note(x, y):
+        if x != None and y != None:
+            return abs(x-y)<0.5
+        else:
+            return False
+
+    def __init__(self):
+        self._curNote = None
+        self._cntOn = 0
+        self._chance = 2
+        self._cntOff = 2
+
+    def feed(self, note):
+        event = 'no'
+        if self._curNote == None and note==None:
+            self._cntOff+=1
+        elif self._curNote == None and note!=None:
+            self._cntOn = 1
+            self._curNote = note
+            self._chance = 0
+            event = 'check'
+            
+        elif note != None and Smoother.same_note(self._curNote, note):
+            self._cntOff = 0
+            self._cntOn+=1
+            self._chance = 2
+            self._curNote = note
+            if self._cntOn == 3:
+                event = 'onset'
+            elif self._cntOn > 3:
+                event = 'sustain'
+        elif self._curNote !=None and not Smoother.same_note(note, self._curNote):
+            self._chance -= 1
+            
+            if self._chance < 0:
+                self._cntOff = 0
+                self._curNote = None
+                if self._cntOn >= 3:
+                    event = 'offset'
+            elif self._cntOn > 3:
+                event = 'sustain'
+
+        return event, 0 if self._curNote==None else self._curNote
+        
+
 
 
 @Algorithm('DoubleAC')
@@ -25,6 +72,7 @@ class DoubleACProcessor(Processor):
         self._samples = 0
         self._rate = rate
         self._x_offset = x_offset
+        self._sm = Smoother()
 
     def __call__(self, data):
         self._buf.push(data)
@@ -35,31 +83,43 @@ class DoubleACProcessor(Processor):
         p, v = hcpeakvalley(r)
         
         
-        if len(v) >= 2 and v[0] < 32:
-            if not r[p].min() > r[v].max():
+        if len(v) >= 2 and v[0] < 32 and v[-1]>245:
+            
 
+            
+            v = np.asarray(v)
+            vv = np.argsort(r[v])
+            
+            delay = None
+            for i in range(1, len(v)):
+                rnk = np.where(vv == i)[0]
+                if rnk < 3:
+                    delay = v[i]
+                    break
+
+            if delay is not None:
                 """
                 import matplotlib.pyplot as plt
                 plt.figure()
                 plt.plot(r)
                 plt.scatter(p, r[p])
+                print(p)
+                print(v)
                 plt.scatter(v, r[v])
                 plt.show()
                 """
-                pass
                 
-            vv = np.argsort(r[v])
-            
-            delay = 500
-            for i in range(1, len(v)):
-                if np.where(vv == i)[0] < 3:
-                    delay = v[i]
-                    break
-            
-            freq = self._rate / delay
+                
+                
 
-            self._result.rect(self._x_offset+self._samples, np.min(data), self._x_offset+self._samples+len(data), np.max(data),
-                note_name(freq_to_note(freq)))
+                freq = self._rate / delay
+                note = freq_to_note_noround(freq)
+                event, res = self._sm.feed(note)
+                if event == 'onset' or event == 'sustain':
+
+                    self._result.rect(self._x_offset+self._samples, np.min(data), self._x_offset+self._samples+len(data), np.max(data),
+                        note_name(round(res)))
+                
             
 
         self._samples += len(data)
