@@ -70,6 +70,10 @@ class LiCAPDevice(BufferedSource):
 
             self.recordingChanged.emit()
 
+    def stop(self):
+        if self._inst is not None:
+            self._inst.stop()
+
     def reopen(self):
 
         if self._inst is not None:
