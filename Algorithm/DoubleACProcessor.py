@@ -15,6 +15,7 @@ def note_name(number):
     return ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B'][number%12] + str(number//12 - 1)
 
 
+
 @Algorithm('DoubleAC')
 class DoubleACProcessor(Processor):
     def __init__(self, x_offset=0, rate=32000, size=1024, dtype=np.float32, **argv):
@@ -24,25 +25,38 @@ class DoubleACProcessor(Processor):
         self._samples = 0
         self._rate = rate
         self._x_offset = x_offset
+
     def __call__(self, data):
         self._buf.push(data)
 
         r = np.zeros(500+1, dtype=np.float32)
         r[32:] = auto_correlation(self._buf.array, 32, 500, 256)
         
-        
-
         p, v = hcpeakvalley(r)
-        """
-        import matplotlib.pyplot as plt
-        plt.figure()
-        plt.plot(r)
-        print(len(v))
-        plt.scatter(v, r[v])
-        plt.show()
-        """
+        
+        
         if len(v) >= 2 and v[0] < 32:
-            freq = self._rate / v[1]
+            if not r[p].min() > r[v].max():
+
+                """
+                import matplotlib.pyplot as plt
+                plt.figure()
+                plt.plot(r)
+                plt.scatter(p, r[p])
+                plt.scatter(v, r[v])
+                plt.show()
+                """
+                pass
+                
+            vv = np.argsort(r[v])
+            
+            delay = 500
+            for i in range(1, len(v)):
+                if np.where(vv == i)[0] < 3:
+                    delay = v[i]
+                    break
+            
+            freq = self._rate / delay
 
             self._result.rect(self._x_offset+self._samples, np.min(data), self._x_offset+self._samples+len(data), np.max(data),
                 note_name(freq_to_note(freq)))
