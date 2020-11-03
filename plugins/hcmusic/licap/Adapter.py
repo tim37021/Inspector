@@ -1,5 +1,6 @@
 from .LiCAPDevice import *
 from PySide2.QtCore import *
+from PySide2.QtWidgets import *
 from enum import Enum
 from Buffer import BufferedSource
 
