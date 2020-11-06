@@ -113,7 +113,6 @@ class AlgorithmPool(QObject):
         r[min_lag:] = cInspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
         
         p, v = cInspector.hcpeakvalley(r)
-        print(','.join(['%d,%f'%(e, r[e]/1000000) for e in v]))
 
         return r.tolist()
 
