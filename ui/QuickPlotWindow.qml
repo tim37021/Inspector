@@ -192,7 +192,7 @@ SubWindow {
                 
             }
             if(event.key == 69) {
-                algo.launchAlgorithm('hcPeakValley')
+                algo.launchAlgorithm('OnsetDetector')
             }
 
             if(event.key == 80) {

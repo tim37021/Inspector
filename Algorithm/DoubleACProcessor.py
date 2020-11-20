@@ -84,9 +84,6 @@ class DoubleACProcessor(Processor):
         
         
         if len(v) >= 2 and v[0] < 32 and v[-1]>245:
-            
-
-            
             v = np.asarray(v)
             vv = np.argsort(r[v])
             
