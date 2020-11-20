@@ -1,5 +1,6 @@
 from .LiCAPDevice import *
 from PySide2.QtCore import *
+from PySide2.QtWidgets import *
 from enum import Enum
 from Buffer import BufferedSource
 
@@ -19,6 +20,8 @@ class LiCAPDevice(BufferedSource):
         self._inst = None
         self._deviceType = 0
         self._recording = False
+
+        QApplication.instance().aboutToQuit.connect(lambda: self.stop())
 
 
     @Property(int, notify=rateChanged)
@@ -67,6 +70,10 @@ class LiCAPDevice(BufferedSource):
                     self._inst.stop()
 
             self.recordingChanged.emit()
+
+    def stop(self):
+        if self._inst is not None:
+            self._inst.stop()
 
     def reopen(self):
 

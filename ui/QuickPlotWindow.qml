@@ -148,7 +148,6 @@ SubWindow {
                 if(plot.mouseCoordX >= 0 && plot.mouseCoordX < arr.length) {
                     let startX = Math.floor(plot.mouseCoordX)
                     let x = algo.autocorrelation(getArray().slice(startX, startX+1024).buffer, 32, 500, 256)
-                    x = new Array(32).fill(0).concat(x)
                     let min = argMin(x.slice(32))+32
                     app.notify(signalSource.rate/min)
                     if(plotWindow==null)
@@ -193,7 +192,7 @@ SubWindow {
                 
             }
             if(event.key == 69) {
-                algo.launchAlgorithm('hcPeakValley')
+                algo.launchAlgorithm('OnsetDetector')
             }
 
             if(event.key == 80) {

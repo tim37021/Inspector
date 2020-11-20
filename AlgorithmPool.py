@@ -9,7 +9,7 @@ from PySide2.QtQuick import *
 import json
 import cInspector
 
-from Algorithm import get_algorithm
+from Algorithm import get_algorithm, hot_reload
 
 def plot_stft(arr, fs, nfft, noverlap):
     """Plot specgram of raw signal into numpy array
@@ -109,7 +109,13 @@ class AlgorithmPool(QObject):
     @Slot(QByteArray, int, int, int, result='QVariantList')
     def autocorrelation(self, data, min_lag=32, max_lag=500, window_size=500):
         data = np.frombuffer(data, dtype=np.float32)
-        return cInspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
+        r = np.zeros(max_lag+1, dtype=np.float32)
+        r[min_lag:] = cInspector.auto_correlation(data, min_lag, max_lag, window_size).tolist()
+        
+        p, v = cInspector.hcpeakvalley(r)
+
+        return r.tolist()
+
 
     @Slot(QByteArray, int, int, int, result=QByteArray)
     def stft(self, data, fs, nfft, noverlap):
@@ -126,6 +132,7 @@ class AlgorithmPool(QObject):
 
     @Slot(str, QByteArray, QJsonValue, result=QJsonValue)
     def launch(self, action, data, metadata=None):
+        hot_reload()
         if not action in get_algorithm():
             return Result().serialize()
         
