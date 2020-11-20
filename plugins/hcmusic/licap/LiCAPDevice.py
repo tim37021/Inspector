@@ -60,13 +60,16 @@ class LiCAPv1(object):
 
 
 class LiCAP_R_EVT(LiCAPv1):
-    MAPPING = [0, 6, 5, 3, 4, 1, 2, 7]
+    MAPPING = list(range(8))
+
+    def __init__(self, port, callback):
+        LiCAPv1.__init__(self, port, callback)
     
     def run(self):
         self._ser = serial.Serial(self._port)
         self._ser.flushInput()
         
-        while not self.stopped:
+        while not self._stopped:
             buf = np.frombuffer(self.read(3072), np.uint16).astype(np.int32) * 65536 / 256
             buf = buf.reshape(-1, 8)[..., LiCAP_R_EVT.MAPPING]
             self._callback(buf)

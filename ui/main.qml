@@ -32,10 +32,6 @@ ApplicationWindow {
         }
     }
 
-    LiCAPDevice {
-        id: licap
-    }
-
     AudioOutputDevice {
         id: od
         rate: 44100
@@ -66,6 +62,7 @@ ApplicationWindow {
             sourceBuffer: LiCAPDevice {
                 port: vcpScanner.result
                 recording: true
+                deviceType: 1
             }
         }
     }

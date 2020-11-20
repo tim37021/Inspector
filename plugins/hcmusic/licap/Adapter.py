@@ -44,6 +44,7 @@ class LiCAPDevice(BufferedSource):
     
     @deviceType.setter
     def setDeviceType(self, val):
+        print(val)
         if self._deviceType != val:
             self._deviceType = val
             self.reopen()
@@ -74,10 +75,10 @@ class LiCAPDevice(BufferedSource):
 
         if self._deviceType == 0:
             self._inst = LiCAPv1(self._port, self.callback)
-            self.init(44100, 6)
+            self.init(32000, 6)
         elif self._deviceType == 1:
             self._inst = LiCAP_R_EVT(self._port, self.callback)
-            self.init(44100, 8)
+            self.init(32000, 8)
 
         if self._recording:
             self._inst.start()
