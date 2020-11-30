@@ -1,4 +1,3 @@
-
 from PySide2.QtCore import Signal, Property, QByteArray, Qt
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication
@@ -23,7 +22,7 @@ class MyCanvas(QQuickPaintedItem):
         return self._buffer
 
     @buffer.setter
-    def setBuffer(self, buf):
+    def buffer(self, buf):
         if self._buffer == buf:
             return
 

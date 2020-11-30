@@ -19,7 +19,6 @@ ApplicationWindow {
     color: Constants.background
     title: 'Inspector'
 
-
     VCPEnumModel {
         id: vcpScanner
         running: true
@@ -38,11 +37,12 @@ ApplicationWindow {
         id: licap
     }
 
-
     AudioOutputDevice {
         id: od
         rate: 44100
     }
+    
+
 
     Component {
         id: buf_comp
@@ -272,10 +272,6 @@ ApplicationWindow {
             radius: 2
             opacity: 1.0
         }
-    }
-
-    Component.onCompleted: {
-        console.log('tim: Don\'t worry, these warnings are QT\'s bugs')
     }
 }
 

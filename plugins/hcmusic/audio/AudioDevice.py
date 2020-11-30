@@ -58,7 +58,7 @@ class AudioInputDevice(BufferedSource):
         return self._deviceIndex
 
     @deviceIndex.setter
-    def setDeviceIndex(self, val):
+    def deviceIndex(self, val):
         if self._deviceIndex != val:
             self.reopen()
             self.deviceIndexChanged.emit()
@@ -69,7 +69,7 @@ class AudioInputDevice(BufferedSource):
         return self._recording
 
     @recording.setter
-    def setRecording(self, val):
+    def recording(self, val):
         if self._recording != val:
             if val:
                 if self._stream is None:
@@ -122,7 +122,6 @@ class AudioOutputDevice(QObject):
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
         self._rate = 44100
-
         self._deviceIndex = p.get_default_output_device_info()['index']
         self._stream = None
         self._q = queue.Queue()
@@ -142,7 +141,7 @@ class AudioOutputDevice(QObject):
         return self._rate
 
     @rate.setter
-    def setRate(self, val):
+    def rate(self, val):
         if self._rate != val:
             self._rate = val
             self.reopen()
@@ -153,7 +152,7 @@ class AudioOutputDevice(QObject):
         return self._deviceIndex
 
     @deviceIndex.setter
-    def setDeviceIndex(self, val):
+    def deviceIndex(self, val):
         if self._deviceIndex != val:
             self._deviceIndex = val
             self.reopen()
@@ -179,7 +178,7 @@ class AudioOutputDevice(QObject):
     @Slot(QByteArray, int)
     def play(self, data, rate=None):
         if rate:
-            self.setRate(rate)
+            AudioOutputDevice.rate.fset(self, rate)
 
         if self._stream is None:
             self.reopen()
