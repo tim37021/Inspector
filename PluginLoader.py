@@ -9,9 +9,11 @@ class PluginLoader(object):
     def uri(self):
         return self._path
 
+
 class QMLPluginLoader(PluginLoader):
     def __init__(self, path):
         PluginLoader.__init__(self, path)
+
 
 class PythonPluginLoader(PluginLoader):
     def __init__(self, path):
@@ -30,6 +32,7 @@ class PythonPluginLoader(PluginLoader):
                 export['minor'],
                 export['exportName']
             )
+
 
 def scan_plugins(folder, prefix=''):
     import os
