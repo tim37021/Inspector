@@ -19,6 +19,7 @@ ApplicationWindow {
     color: Constants.background
     title: 'Inspector'
 
+
     VCPEnumModel {
         id: vcpScanner
         running: true
@@ -32,9 +33,11 @@ ApplicationWindow {
         }
     }
 
+
     LiCAPDevice {
         id: licap
     }
+
 
     AudioOutputDevice {
         id: od

@@ -4,17 +4,16 @@ AudioDevice plugin is an example plugin, it provides audio functionalities for I
 
 """
 
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
+from PySide2.QtCore import QObject, Signal, Property, Slot, QByteArray
+from PySide2.QtWidgets import QApplication
 
 import pyaudio
 import numpy as np
-import threading
 import queue
 from Buffer import BufferedSource
 
 p = pyaudio.PyAudio()
+
 
 class AudioInputDevice(BufferedSource):
     """AudioInputDevice
@@ -33,7 +32,7 @@ class AudioInputDevice(BufferedSource):
     deviceIndexChanged = Signal()
     recordingChanged = Signal()
     rateChanged = Signal()
-    
+
     def __init__(self, parent=None):
         BufferedSource.__init__(self, 44100*5, 1, True, parent)
         self._recording = False
@@ -53,7 +52,7 @@ class AudioInputDevice(BufferedSource):
 
     def stop(self):
         self._stream.stop_stream()
-        
+
     @Property(int)
     def deviceIndex(self):
         return self._deviceIndex
@@ -64,7 +63,6 @@ class AudioInputDevice(BufferedSource):
             self.reopen()
             self.deviceIndexChanged.emit()
         self._deviceIndex = val
-
 
     @Property(bool)
     def recording(self):
@@ -85,20 +83,18 @@ class AudioInputDevice(BufferedSource):
             self.recordingChanged.emit()
         self._recording = val
 
-
     def reopen(self):
         # open stream (2)
         if self._stream is not None:
             self.stop()
         self._stream = p.open(format=pyaudio.paInt16,
-                        channels=1,
-                        rate=44100,
-                        input=True,
-                        frames_per_buffer=1024,
-                        input_device_index=self._deviceIndex,
-                        stream_callback=self.callback
+            channels=1,
+            rate=44100,
+            input=True,
+            frames_per_buffer=1024,
+            input_device_index=self._deviceIndex,
+            stream_callback=self.callback
         )
-        
         self._stream.start_stream()
 
     def callback(self, in_data, frame_count, time_info, status):
@@ -108,9 +104,9 @@ class AudioInputDevice(BufferedSource):
 
         return (np.zeros(1024, dtype=np.int16), pyaudio.paContinue)
 
+
 class AudioOutputDevice(QObject):
     """AudioOutputDevice
-    
     Args:
         parent (QObject): Parent node
 
@@ -122,15 +118,14 @@ class AudioOutputDevice(QObject):
 
     rateChanged = Signal()
     deviceIndexChanged = Signal()
-    
+
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
         self._rate = 44100
-        
+
         self._deviceIndex = p.get_default_output_device_info()['index']
         self._stream = None
         self._q = queue.Queue()
-
         QApplication.instance().aboutToQuit.connect(lambda: self.stop())
 
     def start(self, data):
@@ -141,7 +136,6 @@ class AudioOutputDevice(QObject):
             self._stream.stop_stream()
             self._stream.close()
             self._stream = None
-
 
     @Property(int, notify=rateChanged)
     def rate(self):
@@ -189,7 +183,7 @@ class AudioOutputDevice(QObject):
 
         if self._stream is None:
             self.reopen()
-        
+
         data = np.frombuffer(data, dtype=np.float32)
         if (np.abs(data) > 16384).any():
             data /= data.max()
@@ -197,16 +191,14 @@ class AudioOutputDevice(QObject):
         data = data.astype(np.int16)
         i = 0
         while i < len(data):
-            b = data[i:i+1024]
+            b = data[i: i+1024]
             self._q.put(np.pad(b, (0, 1024-len(b))))
             i += 1024
         self._stream.start_stream()
 
     def callback(self, in_data, frame_count, time_info, status):
-        
         if not self._q.empty():
             data = self._q.get_nowait()
-            
             if data is not None:
                 return (data, pyaudio.paContinue)
         else:

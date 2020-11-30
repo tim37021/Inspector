@@ -1,14 +1,14 @@
 
 from PySide2.QtCore import Signal, Property, QByteArray, Qt
 from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
-from PySide2.QtGui import QApplication, QImage
+from PySide2.QtWidgets import QApplication
+from PySide2.QtGui import QImage
 from PySide2.QtQuick import QQuickPaintedItem
-from AlgorithmPool import AlgorithmPool
 import PluginLoader
-
 import os
 import sys
 sys.path.insert(0, 'plugins')
+from AlgorithmPool import AlgorithmPool     # noqa: E402
 
 
 class MyCanvas(QQuickPaintedItem):
