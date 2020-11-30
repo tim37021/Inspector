@@ -44,6 +44,7 @@ class App(object):
     def __init__(self, argv):
         os.environ['QT_SCALE_FACTOR'] = '0'
         QApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
         QApplication.setOrganizationName('hcmusic')
         self._argv = argv
         
