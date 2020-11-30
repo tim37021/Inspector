@@ -42,9 +42,9 @@ def scan_plugins(folder, prefix=''):
     for fn in listdir(folder):
         if os.path.isdir(os.path.join(folder, fn)):
             if os.path.isfile(os.path.join(folder, fn, '__init__.py')):
-                ret.append(PythonPluginLoader('%s.%s'%(prefix, fn)))
+                ret.append(PythonPluginLoader('%s.%s' % (prefix, fn)))
             elif os.path.isfile(os.path.join(folder, fn, 'qmldir')):
-                ret.append(QMLPluginLoader('%s.%s'%(prefix, fn)))
+                ret.append(QMLPluginLoader('%s.%s' % (prefix, fn)))
             else:
                 ret += scan_plugins(os.path.join(folder, fn), fn)
 
