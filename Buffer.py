@@ -1,12 +1,12 @@
 import numpy as np
+from PySide2.QtCore import QObject, Signal, Property, Slot, QByteArray, QUrl
 
-from PySide2.QtCore import *
 
 class BufferedSource(QObject):
     update = Signal()
     rowsChanged = Signal()
     colsChanged = Signal()
-    
+
     def __init__(self, length, channels, shared=False, parent=None):
         QObject.__init__(self, parent)
         self._shared = shared
