@@ -1,16 +1,14 @@
+from PySide2.QtCore import Signal, Property, QByteArray, Qt
+from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
+from PySide2.QtWidgets import QApplication
+from PySide2.QtGui import QImage
+from PySide2.QtQuick import QQuickPaintedItem
+import PluginLoader
 import os
 import sys
 sys.path.insert(0, 'plugins')
+from AlgorithmPool import AlgorithmPool     # noqa: E402
 
-from PySide2.QtCore import * 
-from PySide2.QtWidgets import *
-from PySide2.QtQml import *
-from PySide2.QtGui import *
-from PySide2.QtQuick import *
-
-import numpy as np
-from AlgorithmPool import AlgorithmPool
-import PluginLoader
 
 class MyCanvas(QQuickPaintedItem):
     bufferChanged = Signal()
@@ -24,7 +22,7 @@ class MyCanvas(QQuickPaintedItem):
         return self._buffer
 
     @buffer.setter
-    def setBuffer(self, buf):
+    def buffer(self, buf):
         if self._buffer == buf:
             return
 
@@ -34,22 +32,24 @@ class MyCanvas(QQuickPaintedItem):
         self.update()
 
     def paint(self, painter):
-        if not self._buffer is None:
-            qimage = QImage(self._buffer, 640, 480,
-                            QImage.Format_BGR888 )
+        if self._buffer is not None:
+            qimage = QImage(self._buffer, 640, 480, QImage.Format_BGR888)
             qimage = qimage.smoothScaled(int(self.width()), int(self.height()))
             painter.drawImage(0, 0, qimage)
+
 
 class App(object):
     def __init__(self, argv):
         os.environ['QT_SCALE_FACTOR'] = '0'
         QApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
         QApplication.setOrganizationName('hcmusic')
         self._argv = argv
-        
+
     def run(self):
         # Create an instance of the application
-        # QApplication MUST be declared in global scope to avoid segmentation fault
+        # QApplication MUST be declared in global scope to avoid segmentation
+        # fault
         app = QApplication(self._argv)
 
         # Create QML engine
@@ -59,7 +59,7 @@ class App(object):
         # install all
         for p in plugins:
             p.install()
-            print('Plugin %s loaded'%p.uri)
+            print('Plugin %s loaded' % p.uri)
 
         qmlRegisterType(MyCanvas, 'MyCanvas', 1, 0, 'MyCanvas')
         qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
@@ -75,6 +75,7 @@ class App(object):
             sys.exit(-1)
 
         return app.exec_()
+
 
 if __name__ == '__main__':
     app = App(sys.argv)
