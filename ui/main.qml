@@ -32,14 +32,6 @@ ApplicationWindow {
         }
     }
 
-<<<<<<< HEAD
-=======
-
-    LiCAPDevice {
-        id: licap
-    }
-
->>>>>>> 5f3985dae2830439f24ff0da862b025fc856fbd7
     AudioOutputDevice {
         id: od
         rate: 44100
