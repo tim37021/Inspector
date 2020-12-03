@@ -32,10 +32,50 @@ ApplicationWindow {
         }
     }
 
+
+    LiCAPDevice {
+        id: licap
+    }
+
+    AudioDiscoveryModelProvider {
+        id: provider
+    }
+
+    ListView {
+        width: 100
+        height: 100
+        anchors.centerIn: parent
+        model: provider.inputDeviceModel
+        delegate: Text {
+            text: (provider.defaultInputDeviceIndex==model.deviceIndex?'*':'') + model.name
+            color: "white"
+        }
+    }
+
+
+
+    AudioInputDevice2 {
+        id: aid2
+        rate: 44100
+        active: true
+        bufferLength: 1024
+        deviceIndex: provider.defaultInputDeviceIndex
+    }
+
+    AudioOutputDevice2 {
+        rate: 44100
+        active: true
+        input: aid2.output
+        bufferLength: 16
+        deviceIndex: provider.defaultOutputDeviceIndex
+    }
+    
+    
+    /*
     AudioOutputDevice {
         id: od
         rate: 44100
-    }
+    }*/
     
 
 
