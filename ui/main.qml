@@ -10,6 +10,7 @@ import hcmusic.utils 1.0
 import QtWebSockets 1.8
 
 import hcmusic.licap 1.0
+import inspector.dsp 1.0
 
 ApplicationWindow {
     id: app
@@ -52,8 +53,6 @@ ApplicationWindow {
         }
     }
 
-
-
     AudioInputDevice2 {
         id: aid2
         rate: 44100
@@ -62,22 +61,13 @@ ApplicationWindow {
         deviceIndex: provider.defaultInputDeviceIndex
     }
 
-    AudioOutputDevice2 {
-        rate: 44100
-        active: true
-        input: aid2.output
-        bufferLength: 16
-        deviceIndex: provider.defaultOutputDeviceIndex
-    }
-    
-    
-    /*
     AudioOutputDevice {
         id: od
-        rate: 44100
-    }*/
-    
-
+        rate: 32000
+        onRateChanged: {
+            console.log(rate)
+        }
+    }
 
     Component {
         id: buf_comp
@@ -98,6 +88,7 @@ ApplicationWindow {
         }
     }
 
+
     Component {
         id: buf_comp3
         RawBufferView {
@@ -105,6 +96,15 @@ ApplicationWindow {
                 port: vcpScanner.result
                 recording: true
             }
+        }
+    }
+
+    Component {
+        id: buf_comp4
+        StorageBuffer {
+            input: aid2.output
+            bufferLength: 44100 * 5
+            channels: 1
         }
     }
 
@@ -198,8 +198,9 @@ ApplicationWindow {
                     MenuItem {
                         text: "From Microphone"
                         onClicked: {
-                            let buf = buf_comp2.createObject(null)
-                            app.createQuickPlotWindow('plot', buf)
+                            let win = app.createQuickPlotWindow('plot')
+                            let buf = buf_comp4.createObject(win)
+                            win.signalSource = buf.output
                         }
                     }
                     MenuItem {

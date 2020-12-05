@@ -62,8 +62,10 @@ Rectangle {
     property bool __internalClosed: state == "Closed"
 
     onStateChanged: {
-        if(state == "Closed")
+        if(state == "Closed") {
             root.visible = false
+            root.destroy()
+        }
     }
 
     color: Qt.rgba(0.1434, 0.1758, 0.2405)

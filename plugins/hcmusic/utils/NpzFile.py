@@ -1,7 +1,8 @@
 import numpy as np
 
-from PySide2.QtCore import *
+from PySide2.QtCore import Signal, Property, QUrl
 from Buffer import BufferedSource
+
 
 class NpzFile(BufferedSource):
     filenameChanged = Signal()
@@ -20,7 +21,7 @@ class NpzFile(BufferedSource):
         return self._filename
 
     @filename.setter
-    def setFilename(self, val):
+    def filename(self, val):
         if self._filename == val:
             return
 

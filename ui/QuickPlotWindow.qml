@@ -5,16 +5,18 @@ import Algo 1.0
 
 SubWindow {
     id: window
-    property var signalSource       ///< raw jsarray or buffered signal source
+    property var signalSource       ///< raw float32array or a node
     property SubWindow plotWindow
     property SubWindow stftWindow
 
     property bool recording: false
 
     onSignalSourceChanged: {
-        let arr=getArray()
-        ls.set(arr)
-        fit(arr)
+        if(signalSource) {
+            let arr=getArray()
+            ls.set(arr)
+            fit(arr)
+        }
     }
 
     Timer {
@@ -24,6 +26,8 @@ SubWindow {
 
         onTriggered: {
             let arr=getArray();
+            if(!arr)
+                return;
             
             // move mouse cursor
             let cursorX = Math.round(plot.mouseCoordX)
@@ -47,8 +51,8 @@ SubWindow {
     Connections {
         target: signalSource instanceof QtObject? signalSource: null
 
-        function onUpdate(array) {
-            ls.set(array)
+        function onUpdate() {
+            ls.set(getArray())
         }
     }
 
@@ -92,9 +96,9 @@ SubWindow {
         width: parent.width * 0.9
         height: parent.height * 0.8
         anchors.centerIn: parent
+        drawGrid: false
         gridSizeX: ls.length / 20
         gridSizeY: 500000
-
 
         xAxis: ValueAxis {
             id: xAxis_
@@ -104,8 +108,8 @@ SubWindow {
 
         yAxis: ValueAxis {
             id: yAxis_
-            min: -1000000
-            max: 1000000
+            min: -100
+            max: 100
         }
 
         LineSeries {
@@ -188,8 +192,7 @@ SubWindow {
             }
 
             if(event.key == 68) {
-                algo.launchAlgorithm('DoubleAC')
-                
+                algo.launchAlgorithm('DoubleAC') 
             }
             if(event.key == 69) {
                 algo.launchAlgorithm('OnsetDetector')
@@ -226,7 +229,7 @@ SubWindow {
         orientation: ListView.Horizontal
 
         // If siganlSource has channels
-        model: signalSource.channels? signalSource.channels: 0
+        model: signalSource && signalSource.channels? signalSource.channels: 0
 
         delegate: Item {
             width: 128
@@ -262,7 +265,7 @@ SubWindow {
         }
 
         onCurrentIndexChanged: {
-            signalSource.channel = lv.currentIndex
+            // signalSource.channel = lv.currentIndex
         }
     }
 
@@ -303,6 +306,9 @@ SubWindow {
         let arr;
         if(signalSource && signalSource.array)
             arr = signalSource.array
+        // TODO: reduce object creation here
+        if(signalSource && signalSource.buffer)
+            arr = new Float32Array(signalSource.buffer)
         if(signalSource && signalSource instanceof Float32Array) {
             // TODO: allow using Float32Array for signalSource for low overhead calc
             arr = signalSource
