@@ -103,7 +103,7 @@ ApplicationWindow {
         id: buf_comp4
         StorageBuffer {
             input: aid2.output
-            bufferLength: 44100 * 5
+            bufferLength: 16
             channels: 1
         }
     }

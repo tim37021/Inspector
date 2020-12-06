@@ -11,7 +11,8 @@ class SignalOutput(QObject):
 
     it stores raw byte in [channel, length], row major
     """
-    update = Signal()
+    update = Signal(int, int, arguments=['offset', 'length'])
+    realloc = Signal()
     lengthChanged = Signal()
     channelsChanged = Signal()
 
@@ -26,14 +27,14 @@ class SignalOutput(QObject):
         """Inplace update to the output object"""
         assert arr.shape == self.numpy_array.shape, 'Different dimension'
         self.numpy_array[...] = arr
-        self.update.emit()
+        self.update.emit(0, self._length)
 
     def shift(self, arr):
         """Push arr and drop the oldest"""
         assert arr.shape[0] == self.numpy_array.shape[0], 'Different number of channels'
         self.numpy_array[:, :-arr.shape[1]] = self.numpy_array[:, arr.shape[1]:]
         self.numpy_array[:, -arr.shape[1]:] = arr
-        self.update.emit()
+        self.update.emit(0, self._length)
 
     def append(self, arr):
         """append to buffer, enlarge capacity if necessary"""
@@ -41,10 +42,11 @@ class SignalOutput(QObject):
         capacity = 2**ceil(log2(capacity))
         self._buf.reserve(capacity * self._channels * 4)
         self._buf.resize((self._length + arr.shape[1]) * self._channels * 4)
+        oldLength = self._length
         self._length += arr.shape[1]
         self.numpy_array[:, -arr.shape[1]:] = arr
         self.lengthChanged.emit()
-        self.update.emit()
+        self.update.emit(oldLength, arr.shape[1])
 
     @Property(int, final=True, notify=lengthChanged)
     def length(self):
