@@ -1,6 +1,5 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
-import nrf.beacon 1.0
 import App 1.0
 
 import QtQuick.Dialogs 1.1
@@ -19,11 +18,10 @@ ApplicationWindow {
     visible: true
     color: Constants.background
     title: 'Inspector'
-
+/*
     VCPEnumModel {
         id: vcpScanner
         running: true
-        idFilter: /0483:.*/
         property string result
         onCompleted: {
             if(list.length > 0) {
@@ -32,7 +30,7 @@ ApplicationWindow {
             }
         }
     }
-
+*/
 
     LiCAPDevice {
         id: licap
@@ -71,11 +69,7 @@ ApplicationWindow {
 
     Component {
         id: buf_comp
-        RawBufferView {
-            property alias filename: nb.filename
-            sourceBuffer: NpzFile {
-                id: nb
-            }
+        NpzFile {
         }
     }
 
@@ -125,15 +119,6 @@ ApplicationWindow {
             windowing.focusedWindow.signalSource.saveToFile(fileUrl)
         }
     }
-    
-    property DeviceManager deviceMgr: DeviceManager {
-        onDevicePlugged: {
-            tm.message(`New device found: ${port}`)
-        }
-        onDeviceUnplugged: {
-            tm.message(`${port} is unplugged`)
-        }
-    }
 
     SideToolbar {
         x: parent.width - width - 16
@@ -149,36 +134,6 @@ ApplicationWindow {
         content: Column {
             anchors.fill: parent
             spacing: 16
-            
-            ListView {
-                model: app.deviceMgr.enumModel
-                spacing: 16
-
-                width: parent.width
-                height: 48 * count + 16 * (count-1)
-                delegate: DeviceButton {
-                    id: deviceBtn
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: parent.width * 0.8
-                    height: 48
-                    scanner: app.deviceMgr.getScanner(display)
-                    port: display
-
-                    property SubWindow window
-
-                    Connections {
-                        target: app.deviceMgr.getScanner(display)
-                        function onStateChanged(v) {
-                            if(target.state == BeaconScanner.Scanning && deviceBtn.window == null) {
-                                deviceBtn.window = app.createPlotWindow(display, scanner.model)
-                                app.createRaceWindow(`Runners (${display})`, scanner.model)
-                            }
-
-                        }
-                    }
-                }
-
-            }
             
             SideButton {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -230,14 +185,6 @@ ApplicationWindow {
         id: wf
     }
 
-    /**
-     * createPlotWindow
-     * @param title Title of the new window
-     * @param mdl Instance of TrackedDeviceModel
-     */
-    function createPlotWindow(title, mdl) {
-        return windowing.createWindow(wf.fetch('plot'), {open: true, title: title, target: mdl});
-    }
 
     /**
      * createQuickPlotWindow
@@ -245,7 +192,7 @@ ApplicationWindow {
      * @param source Signal source. Can be raw array
      */
     function createQuickPlotWindow(title, source) {
-        return windowing.createWindow(wf.fetch('quickplot'), {open: true, title: title, signalSource: source});
+        return windowing.createWindow(wf.fetch('quickplot'), {open: true, title: title});
     }
 
     /**
@@ -255,15 +202,6 @@ ApplicationWindow {
      */
     function createImageWindow(title, source) {
         return windowing.createWindow(wf.fetch('image'), {open: true, title: title, signalSource: source});
-    }
-
-    /**
-     * createRaceWindow
-     * @param title Title of the new window
-     * @param mdl Instance of TrackedDeviceModel
-     */
-    function createRaceWindow(title, mdl) {
-        return windowing.createWindow(wf.fetch('race'), {open: true, title: title, target: mdl});
     }
 
     function moveToTop(window) {

@@ -5,7 +5,7 @@ import Algo 1.0
 
 SubWindow {
     id: window
-    property var signalSource       ///< raw float32array or a node
+    property var signalSource: null       ///< raw float32array or a node
     property SubWindow plotWindow
     property SubWindow stftWindow
 
@@ -14,7 +14,6 @@ SubWindow {
     onSignalSourceChanged: {
         if(signalSource) {
             let arr=getArray()
-            ls.set(arr)
             fit(arr)
         }
     }
@@ -28,7 +27,6 @@ SubWindow {
             let arr=getArray();
             if(!arr)
                 return;
-            
             // move mouse cursor
             let cursorX = Math.round(plot.mouseCoordX)
             if(cursorX >= 0 && cursorX < arr.length) {
@@ -44,15 +42,6 @@ SubWindow {
                 
             }
             
-        }
-    }
-   
-
-    Connections {
-        target: signalSource instanceof QtObject? signalSource: null
-
-        function onUpdate() {
-            ls.set(getArray())
         }
     }
 
@@ -103,7 +92,7 @@ SubWindow {
         xAxis: ValueAxis {
             id: xAxis_
             min: 0
-            max: 4096
+            max: signalSource? signalSource.length: 4096
         }
 
         yAxis: ValueAxis {
@@ -112,13 +101,14 @@ SubWindow {
             max: 100
         }
 
-        LineSeries {
+        BufferLineSeries {
             id: ls
             xAxis: xAxis_
             yAxis: yAxis_
             color: Qt.rgba(247/255, 193/255, 121/255, 1.0)
-            length: 1
             lineWidth: 2
+
+            source: signalSource
         }
 
         function argMin(array) {

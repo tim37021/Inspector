@@ -3,7 +3,7 @@ from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication
 from PySide2.QtGui import QImage
 from PySide2.QtQuick import QQuickPaintedItem
-from Buffer import RingBuffer, StorageBuffer
+from Buffer import RingBuffer, StorageBuffer, SignalOutput
 import PluginLoader
 import os
 import sys
@@ -66,6 +66,7 @@ class App(object):
         qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
         qmlRegisterType(RingBuffer, 'inspector.dsp', 1, 0, 'RingBuffer')
         qmlRegisterType(StorageBuffer, 'inspector.dsp', 1, 0, 'StorageBuffer')
+        qmlRegisterType(SignalOutput, 'inspector.dsp', 1, 0, 'SignalOutput')
 
         engine.addImportPath('plugins')
         engine.addImportPath('imports')

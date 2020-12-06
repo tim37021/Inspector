@@ -12,15 +12,15 @@ class SignalOutput(QObject):
     it stores raw byte in [channel, length], row major
     """
     update = Signal(int, int, arguments=['offset', 'length'])
-    realloc = Signal()
     lengthChanged = Signal()
     channelsChanged = Signal()
 
-    def __init__(self, length, channels, parent=None):
+    def __init__(self, length, channels, alloc=True, parent=None):
         QObject.__init__(self, parent)
         self._length = length
         self._channels = channels
-        self._buf = QByteArray(length * channels * 4, 0)
+        if alloc:
+            self._buf = QByteArray(length * channels * 4, 0)
         self._capacity = length
 
     def set(self, arr):
@@ -67,6 +67,23 @@ class SignalOutput(QObject):
         return np.frombuffer(memoryview(self._buf), dtype=np.float32).reshape(
             self._channels, self._length
         )
+
+
+class SignalOutputNumpy(SignalOutput):
+    def __init__(self, arr, parent=None):
+        SignalOutput.__init__(self, arr.shape[1], arr.shape[0], alloc=False, parent=parent)
+        self._arr = arr
+
+    def append(self, arr):
+        self._arr = np.stack([self._arr, arr], axis=1)
+
+    @SignalOutput.buffer.getter
+    def buffer(self):
+        return QByteArray(self._arr.tobytes())
+
+    @property
+    def numpy_array(self):
+        return self._arr
 
 
 class BufferedSource(QObject):
@@ -169,7 +186,7 @@ class ProcessorNode(QQuickItem):
         self._output = SignalOutput(outputLength, outputChannels)
         self.outputChanged.emit()
 
-    def update(self):
+    def update(self, offset, length):
         raise Exception('Unimplemented update method for Node')
 
     def initBuffer(self):
@@ -178,6 +195,15 @@ class ProcessorNode(QQuickItem):
     def componentComplete(self):
         self._inited = True
         self.initBuffer()
+
+
+class BufferView(ProcessorNode):
+    """View to the buffer
+
+    Avoid copying!
+    """
+    def __init__(self, parent):
+        ProcessorNode.__init__(self, parent)
 
 
 class StorageNode(ProcessorNode):
@@ -224,10 +250,10 @@ class StorageNode(ProcessorNode):
 
 
 class RingBuffer(StorageNode):
-    def update(self):
+    def update(self, offset, length):
         self._output.shift(self._input.numpy_array)
 
 
 class StorageBuffer(StorageNode):
-    def update(self):
+    def update(self, offset, length):
         self._output.append(self._input.numpy_array)

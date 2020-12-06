@@ -50,7 +50,7 @@ SignalPlotOpenGL {
             }
         }
     }
-
+    
     ListModel {
         id: pointModel_
     }

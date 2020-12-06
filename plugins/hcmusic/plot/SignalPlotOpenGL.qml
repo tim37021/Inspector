@@ -47,15 +47,9 @@ QQ2.Item {
         let obj = template.createObject(sceneRoot, {primitiveType: type})
 
         // TODO better declarative API, reduce manual binding
-        x.update.connect(function (b) {
-            b = b instanceof Float32Array? b: new Float32Array(b)
-            // Possible performance issue when b enlarge frequenctly
-            if(b.length != obj.count) {
-                obj.count = b.length
-                obj.buffer.data = b
-            } else {
-                obj.buffer.updateData(0, b)
-            }
+        x.update.connect(function (offset, length) {
+            let b = x.slice(offset, length)
+            obj.update(offset, b);
         })
 
         obj.material.xAxis = x.xAxis;
@@ -65,8 +59,6 @@ QQ2.Item {
 
         obj.enabled = Qt.binding(function() { return x.visible; })
 
-        obj.count = x.array.length
-        obj.buffer.data = new Float32Array(x.array)
         return obj
     }
 
