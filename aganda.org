@@ -1,4 +1,4 @@
-* Schedule [77%]
+* Schedule [63%]
 ** DONE Python Template for Adding New Signal Source
 ** DONE Refactor modules
 ** DONE Save Buffer
@@ -12,9 +12,68 @@
 ** DONE Key-binding Manage System
 ** DONE SignalPlotControl Refactor
 ** TODO DSP Framework [3/3]
-- [X] StorageNode
-- [X] RingBuffer
-- [X] StorageBuffer
+- [X] StorageNode [[./Buffer.py::StorageNode]]
+- [X] RingBuffer [[./Buffer.py::RingBuffer]]
+- [X] StorageBuffer [[./Buffer.py::StorageBuffer]]
 - [ ] BufferView
 - [ ] Load File as StorageBuffer
 ** TODO BufferPlayer
+** TODO Bug Fix: AudioInputDevice Stucks After A Few Second
+** TODO Test for Multi Channels
+* DSP Framework
+This new arch is to bring better realtime experience to Inspector
+** Basic Usage
+#+BEGIN_SRC qml
+import inspector.dsp 1.0
+
+AudioDiscoveryModelProvider {
+    id: provider
+}
+
+AudioInputDevice2 {
+    id: aid
+    deviceIndex: provider.defaultInputDeviceIndex
+    rate: 44100
+    bufferLength: 1024
+}
+
+// sb.output
+StorageBuffer {
+    id: sb
+    input: aid.output
+}
+
+BufferView {
+    channels: [0, 1, 2]
+}
+
+ChannelView {
+    channel: 0
+}
+
+AudioOutputDevice2 {
+    input: aid.output
+    deviceIndex: provider.defaultOutputDeviceIndex
+    rate: 44100
+    bufferLength: 16
+}
+#+END_SRC
+Reference:
+[[./plugins/hcmusic/audio/AudioDevice.py::AudioInputDevice2]]
+[[./plugins/hcmusic/audio/AudioDevice.py::AudioOutputDevice2]]
+[[./Buffer.py::SignalOutput]] - SignalOutput is a class that handles IO of a node.
+[[./Buffer.py::ProcessorNode]] - ProcessorNode is a node that has input and output
+** BufferView and Channel
+In order to slice a buffer, we can use BufferView.
+#+BEGIN_SRC qml
+BufferView {
+    input: aid.output
+    offset: 0
+    length: aid.output.length
+    channels: [0, 1, 2]
+}
+
+Channel {
+    input: aid.output
+}
+#+END_SRC
