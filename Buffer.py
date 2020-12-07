@@ -178,16 +178,40 @@ class BufferedSource(QObject):
         np.savez_compressed(fn, arr)
 
 
-class ProcessorNode(QQuickItem):
-    inputChanged = Signal()
+class BaseNode(QQuickItem):
     outputChanged = Signal()
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         QQuickItem.__init__(self, parent)
-
-        self._input = None
-        self._output = None
         self._inited = False
+        self._output = None
+
+    @Property(SignalOutput, final=True, notify=outputChanged)
+    def output(self):
+        return self._output
+
+    def alloc(self, outputLength, outputChannels):
+        self._output = SignalOutput(outputLength, outputChannels)
+        self.outputChanged.emit()
+
+    def initBuffer(self):
+        raise Exception('Unimplemented initBuffer method for Node')
+
+    def componentComplete(self):
+        self._inited = True
+        self.initBuffer()
+
+    @Slot(str)
+    def saveToNpz(self, filename):
+        np.savez(filename, self._output.numpy_array.transpose())
+
+
+class ProcessorNode(BaseNode):
+    inputChanged = Signal()
+
+    def __init__(self, parent=None):
+        BaseNode.__init__(self, parent)
+        self._input = None
 
     @Property(SignalOutput, notify=inputChanged)
     def input(self):
@@ -205,23 +229,8 @@ class ProcessorNode(QQuickItem):
             if self._inited:
                 self.update(0, self._input._length)
 
-    @Property(SignalOutput, final=True, notify=outputChanged)
-    def output(self):
-        return self._output
-
-    def alloc(self, outputLength, outputChannels):
-        self._output = SignalOutput(outputLength, outputChannels)
-        self.outputChanged.emit()
-
     def update(self, offset, length):
         raise Exception('Unimplemented update method for Node')
-
-    def initBuffer(self):
-        raise Exception('Unimplemented initBuffer method for Node')
-
-    def componentComplete(self):
-        self._inited = True
-        self.initBuffer()
 
 
 class BufferView(ProcessorNode):
@@ -349,10 +358,6 @@ class StorageNode(ProcessorNode):
 
     def initBuffer(self):
         self.alloc(self._bufferLength, self._channels)
-
-    @Slot(str)
-    def saveToNpz(self, filename):
-        np.savez(filename, self._output.numpy_array.transpose())
 
 
 class RingBuffer(StorageNode):
