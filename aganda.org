@@ -11,12 +11,12 @@
    - [X] Array out of bound when mouse move
 ** DONE Key-binding Manage System
 ** DONE SignalPlotControl Refactor
-** TODO DSP Framework [3/3]
+** TODO DSP Framework [4/5]
 - [X] StorageNode [[./Buffer.py::StorageNode]]
 - [X] RingBuffer [[./Buffer.py::RingBuffer]]
 - [X] StorageBuffer [[./Buffer.py::StorageBuffer]]
-- [ ] BufferView
-- [ ] Load File as StorageBuffer
+- [X] BufferView [[./Buffer.py::BufferView]]
+- [ ] Load File
 ** TODO BufferPlayer
 ** TODO Bug Fix: AudioInputDevice Stucks After A Few Second
 ** TODO Test for Multi Channels
@@ -64,7 +64,7 @@ Reference:
 [[./Buffer.py::SignalOutput]] - SignalOutput is a class that handles IO of a node.
 [[./Buffer.py::ProcessorNode]] - ProcessorNode is a node that has input and output
 ** BufferView and Channel
-In order to slice a buffer, we can use BufferView.
+In order to slice a buffer, we can use [[./Buffer.py::BufferView][BufferView]]
 #+BEGIN_SRC qml
 BufferView {
     input: aid.output
