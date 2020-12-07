@@ -173,7 +173,7 @@ class AudioInputDevice2(QQuickItem):
         if self._bufferLength != val:
             self._bufferLength = val
             self.bufferLengthChanged.emit()
-            self._output = SignalOutput(val, 1, self)
+            self._output = SignalOutput(val, 1)
             self.outputChanged.emit()
 
             if self._inited and self._active:

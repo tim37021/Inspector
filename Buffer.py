@@ -70,16 +70,44 @@ class SignalOutput(QObject):
 
 
 class SignalOutputNumpy(SignalOutput):
+    """SignalOutput Numpy Implementation
+
+    Direct operate on numpy array, slice can be O(1)
+    TODO: Capacity
+    """
     def __init__(self, arr, parent=None):
         SignalOutput.__init__(self, arr.shape[1], arr.shape[0], alloc=False, parent=parent)
         self._arr = arr
+        self._qarr = QByteArray(self._arr.tobytes())
+        self._dirty = False
+
+    def set(self, arr):
+        SignalOutput.set(self, arr)
+        self._dirty = False
+
+    def shift(self, arr):
+        SignalOutput.shift(self, arr)
+        self._dirty = False
 
     def append(self, arr):
-        self._arr = np.stack([self._arr, arr], axis=1)
+        oldLength = self._arr.shape[1]
+        self._arr = np.hstack([self._arr, arr])
+        self._dirty = True
+        self._length += arr.shape[1]
+        self.lengthChanged.emit()
+        self.update.emit(oldLength, arr.shape[1])
 
     @SignalOutput.buffer.getter
     def buffer(self):
-        return QByteArray(self._arr.tobytes())
+        """BufferLineSeries will call this function to get a slice of an array"""
+        if self._dirty:
+            # Get a copy
+            self._qarr = QByteArray(self._arr.tobytes())
+            self._dirty = False
+        return self._qarr
+
+    def markDirty(self):
+        self._dirty = True
 
     @property
     def numpy_array(self):
@@ -152,7 +180,6 @@ class BufferedSource(QObject):
 
 class ProcessorNode(QQuickItem):
     inputChanged = Signal()
-
     outputChanged = Signal()
 
     def __init__(self, parent):
@@ -176,7 +203,7 @@ class ProcessorNode(QQuickItem):
             self._input.update.connect(self.update)
             self.inputChanged.emit()
             if self._inited:
-                self.update()
+                self.update(0, self._input._length)
 
     @Property(SignalOutput, final=True, notify=outputChanged)
     def output(self):
@@ -201,9 +228,88 @@ class BufferView(ProcessorNode):
     """View to the buffer
 
     Avoid copying!
+    It doesn't matter if [offset, offset+length] lays within input buffer
     """
-    def __init__(self, parent):
+    channelsChanged = Signal()
+    offsetChanged = Signal()
+    lengthChanged = Signal()
+
+    def __init__(self, parent=None):
         ProcessorNode.__init__(self, parent)
+        self._channels = []
+        self._offset = 0
+        self._length = 0
+        self._output = None
+
+    @Property(list, notify=channelsChanged)
+    def channels(self):
+        return self._channels
+
+    @channels.setter
+    def channels(self, val):
+        if self._channels != val:
+            self._channels = val
+            self.channelsChanged.emit()
+
+            if self._inited:
+                self.initBuffer()
+
+    @Property(int, notify=offsetChanged)
+    def offset(self):
+        return self._offset
+
+    @offset.setter
+    def offset(self, val):
+        if self._offset != val:
+            self._offset = val
+            self.offsetChanged.emit()
+
+            if self._inited:
+                self.initBuffer()
+
+    @Property(int, notify=lengthChanged)
+    def length(self):
+        return self._length
+
+    @length.setter
+    def length(self, val):
+        if self._length != val:
+            self._length = val
+            self.lengthChanged.emit()
+
+            if self._inited:
+                self.initBuffer()
+
+    def update(self, offset, length):
+        # check intersection
+        if offset + length < self._offset or offset > self._offset + self._length:
+            return
+        # [offset, offset+length] that needs update
+        offset = max(offset, self._offset)
+        length = min(length, self._length - (offset - self._offset))
+        if offset >= self._output._length:
+            if offset == self._output._length:
+                # it seems the buffer enlarges, we gonna catch up
+                self._output.append(self._input.numpy_array[self._channels, offset: offset+length])
+                return
+            else:
+                print([offset, length])
+                # the buffer doesn't grow correctly
+                # this limitation can be release
+                raise Exception('The buffer doesnot grow correctly')
+        else:
+            if np.may_share_memory(self._input.numpy_array, self._output.numpy_array):
+                self._output.markDirty()
+            else:
+                raise Exception('Two array doesnot share memory')
+        if self._output.numpy_array.size > 0:
+            self._output.update.emit(offset, length)
+
+    def initBuffer(self):
+        # arr = self._input.numpy_array[self._channels, self._offset:self._offset+self._length]
+        arr = self._input.numpy_array[:, self._offset:self._offset+self._length]
+        self._output = SignalOutputNumpy(arr)
+        self.outputChanged.emit()
 
 
 class StorageNode(ProcessorNode):
@@ -255,5 +361,24 @@ class RingBuffer(StorageNode):
 
 
 class StorageBuffer(StorageNode):
+    maxLengthChanged = Signal()
+
+    def __init__(self, parent=None):
+        StorageNode.__init__(self, parent)
+        self._maxLength = 0
+
+    @Property(int, notify=maxLengthChanged)
+    def maxLength(self):
+        return self._maxLength
+
+    @maxLength.setter
+    def maxLength(self, val):
+        if self._maxLength != val:
+            self._maxLength = val
+            self.maxLengthChanged.emit()
+
     def update(self, offset, length):
-        self._output.append(self._input.numpy_array)
+        if self._maxLength > 0:
+            length = min(self._maxLength - self._input._length, length)
+        if length > 0:
+            self._output.append(self._input.numpy_array[..., : length])

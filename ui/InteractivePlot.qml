@@ -15,6 +15,8 @@ SignalPlotOpenGL {
 
     property alias mouseCoordX: ctl.mouseCoordX
     property alias mouseCoordY: ctl.mouseCoordY
+    property alias lockX: ctl.lockX
+    property alias lockY: ctl.lockY
     property alias mouseAnchor: mouseAnchor_
     property alias recAnchor: recAnchor_
     property alias drawGrid: plotUI.drawGrid

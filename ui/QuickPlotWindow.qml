@@ -5,7 +5,8 @@ import Algo 1.0
 
 SubWindow {
     id: window
-    property var signalSource: null       ///< raw float32array or a node
+    property var node: null
+    property var signalSource: node? node.output: null       ///< raw float32array or a node
     property SubWindow plotWindow
     property SubWindow stftWindow
 
@@ -92,7 +93,7 @@ SubWindow {
         xAxis: ValueAxis {
             id: xAxis_
             min: 0
-            max: signalSource? signalSource.length: 4096
+            max: 4096
         }
 
         yAxis: ValueAxis {
@@ -260,9 +261,6 @@ SubWindow {
     }
 
     function fit(arr) {
-        plot.xAxis.min = 0
-        plot.xAxis.max = arr.length
-
         plot.yAxis.min = Math.min(...arr) - 10
         plot.yAxis.max = Math.max(...arr) + 10
 

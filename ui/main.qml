@@ -95,10 +95,18 @@ ApplicationWindow {
 
     Component {
         id: buf_comp4
-        StorageBuffer {
-            input: aid2.output
-            bufferLength: 16
-            channels: 1
+        BufferView {
+            id: bv
+            input: sb.output
+            channels: [0]
+            offset: 0
+            length: 22050
+            RingBuffer {
+                id: sb
+                input: aid2.output
+                bufferLength: 44100
+                channels: 1
+            }
         }
     }
 
@@ -155,7 +163,7 @@ ApplicationWindow {
                         onClicked: {
                             let win = app.createQuickPlotWindow('plot')
                             let buf = buf_comp4.createObject(win)
-                            win.signalSource = buf.output
+                            win.node = buf
                         }
                     }
                     MenuItem {
