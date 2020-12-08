@@ -31,7 +31,7 @@ class SignalOutput(QObject):
 
     def shift(self, arr):
         """Push arr and drop the oldest"""
-        assert arr.shape[0] == self.numpy_array.shape[0], 'Different number of channels'
+        assert arr.shape[0] == self.numpy_array.shape[0], 'Different number of channels %s and %s' % (arr.shape, self.numpy_array.shape)
         self.numpy_array[:, :-arr.shape[1]] = self.numpy_array[:, arr.shape[1]:]
         self.numpy_array[:, -arr.shape[1]:] = arr
         self.update.emit(0, self._length)
@@ -316,7 +316,12 @@ class BufferView(ProcessorNode):
 
     def initBuffer(self):
         # arr = self._input.numpy_array[self._channels, self._offset:self._offset+self._length]
-        arr = self._input.numpy_array[:, self._offset:self._offset+self._length]
+        if np.all(np.diff(self._channels) == 1):
+            # this also handles lists of one element
+            channels = slice(self._channels[0], self._channels[-1]+1)
+        else:
+            channels = self._channels
+        arr = self._input.numpy_array[channels, self._offset:self._offset+self._length].reshape(1, -1)
         self._output = SignalOutputNumpy(arr)
         self.outputChanged.emit()
 
@@ -328,7 +333,7 @@ class StorageNode(ProcessorNode):
     def __init__(self, parent=None):
         ProcessorNode.__init__(self, parent)
         self._bufferLength = 0
-        self._channels = 0
+        self._channels = 1
 
     @Property(int, notify=bufferLengthChanged)
     def bufferLength(self):

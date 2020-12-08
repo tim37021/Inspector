@@ -131,6 +131,7 @@ class AudioInputDevice2(QQuickItem):
     activeChanged = Signal()
     deviceIndexChanged = Signal()
     outputChanged = Signal()
+    channelsChanged = Signal()
 
     def __init__(self, parent=None):
         QQuickItem.__init__(self, parent)
@@ -143,6 +144,7 @@ class AudioInputDevice2(QQuickItem):
         self._stream = None
         self._inited = False
         self._lastTime = 0
+        self._channels = 1
         QApplication.instance().aboutToQuit.connect(lambda: self.closeDevice())
 
     @Property(SignalOutput, notify=outputChanged)
@@ -173,11 +175,12 @@ class AudioInputDevice2(QQuickItem):
         if self._bufferLength != val:
             self._bufferLength = val
             self.bufferLengthChanged.emit()
-            self._output = SignalOutput(val, 1)
-            self.outputChanged.emit()
 
-            if self._inited and self._active:
-                raise Exception('Changing bufferLength when active is not support yet')
+            if self._inited:
+                self._output = SignalOutput(self._bufferLength, self._channels)
+                self.outputChanged.emit()
+                if self._active:
+                    raise Exception('Changing bufferLength when active is not support yet')
 
     @Property(int)
     def rate(self):
@@ -205,7 +208,25 @@ class AudioInputDevice2(QQuickItem):
             if self._inited and self._active:
                 self.openDevice()
 
+    @Property(int)
+    def channels(self):
+        return self._channels
+
+    @channels.setter
+    def channels(self, val):
+        if self._channels != val:
+            self._channels = val
+            self.channelsChanged.emit()
+
+            if self._inited:
+                self._output = SignalOutput(self._bufferLength, self._channels)
+                self.outputChanged.emit()
+                if self._active:
+                    raise Exception('Changing channels when active is not support yet')
+
     def componentComplete(self):
+        self._output = SignalOutput(self._bufferLength, self._channels)
+        self.outputChanged.emit()
         self._inited = True
         if self._active:
             self.openDevice()
@@ -213,7 +234,7 @@ class AudioInputDevice2(QQuickItem):
     def openDevice(self):
         self.closeDevice()
         self._stream = p.open(format=pyaudio.paInt16,
-            channels=1,
+            channels=self._channels,
             rate=self._rate,
             input=True,
             output=False,
@@ -229,7 +250,7 @@ class AudioInputDevice2(QQuickItem):
 
     def callback(self, in_data, frame_count, time_info, status):
         import time
-        buf = np.frombuffer(in_data, dtype=np.int16).astype(np.float32).reshape(1, -1)
+        buf = np.frombuffer(in_data, dtype=np.int16).astype(np.float32).reshape(-1, self._channels).transpose()
         self._output.set(buf)
         self._lastTime = time.time()
         return (None, pyaudio.paContinue)
@@ -432,6 +453,7 @@ class AudioOutputDevice2(QQuickItem):
     """
     activeChanged = Signal()
     bufferLengthChanged = Signal()
+    channelsChanged = Signal()
     deviceIndexChanged = Signal()
     inputChanged = Signal()
     rateChanged = Signal()
@@ -445,6 +467,7 @@ class AudioOutputDevice2(QQuickItem):
         self._active = False
         self._stream = None
         self._inited = False
+        self._channels = 1
         import queue
         self._q = queue.Queue()
 
@@ -486,7 +509,20 @@ class AudioOutputDevice2(QQuickItem):
             self._bufferLength = val
             self.bufferLengthChanged.emit()
 
-            if self._inited:
+            if self._inited and self._active:
+                raise Exception('Changing buffer size on the fly is not support yet')
+
+    @Property(int)
+    def channels(self):
+        return self._channels
+
+    @channels.setter
+    def channels(self, val):
+        if self._channels != val:
+            self._channels = val
+            self.channelsChanged.emit()
+
+            if self._inited and self._active:
                 raise Exception('Changing buffer size on the fly is not support yet')
 
     @Property(SignalOutput)
@@ -497,10 +533,10 @@ class AudioOutputDevice2(QQuickItem):
     def input(self, val):
         if self._input != val:
             if self._input is not None:
-                self._input.changed.disconnect(self.appendBuffer)
+                self._input.update.disconnect(self.appendBuffer)
 
             self._input = val
-            self._input.changed.connect(self.appendBuffer)
+            self._input.update.connect(self.appendBuffer)
             self.inputChanged.emit()
 
     @Property(bool)
@@ -518,21 +554,24 @@ class AudioOutputDevice2(QQuickItem):
             if self._inited and not self._active:
                 self.closeDevice()
 
-    def appendBuffer(self):
+    def appendBuffer(self, offset, length):
         """append buffer when input buffer changed
 
         TODO Discussion: should we auto normalize the buffer?
         """
+        assert offset == 0 and length == self._input._length, 'Uncompatible node connected'
+        assert self._input._channels == self._channels, 'Wrong num of channels expected %d got %d' % (self._channels, self._input._channels)
+
         data = self._input.numpy_array
         if (np.abs(data) > 16384).any():
             data /= data.max()
             data *= 16384
-        data = data.astype(np.int16)
+        data = data.astype(np.int16).transpose()
         i = 0
         bl = self._bufferLength
         while i < self._input._length:
             b = data[..., i: i+bl]
-            padded = np.pad(b, ((0, 0), (0, bl-b.shape[1])))
+            padded = np.pad(b, ((0, bl-b.shape[0]), (0, 0)))
             self._q.put(padded)
             i += bl
 
@@ -544,7 +583,7 @@ class AudioOutputDevice2(QQuickItem):
     def openDevice(self):
         self.closeDevice()
         self._stream = p.open(format=pyaudio.paInt16,
-                        channels=1,
+                        channels=self._channels,
                         rate=self._rate,
                         output=True,
                         frames_per_buffer=self._bufferLength,
@@ -560,4 +599,6 @@ class AudioOutputDevice2(QQuickItem):
     def callback(self, in_data, frame_count, time_info, status):
         data = self._q.get()
         if data is not None:
+            if not data.flags['C_CONTIGUOUS']:
+                data = np.ascontiguousarray(data)
             return (data, pyaudio.paContinue)

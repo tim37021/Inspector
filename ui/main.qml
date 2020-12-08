@@ -59,12 +59,11 @@ ApplicationWindow {
         deviceIndex: provider.defaultInputDeviceIndex
     }
 
-    AudioOutputDevice {
+    AudioOutputDevice2 {
         id: od
-        rate: 32000
-        onRateChanged: {
-            console.log(rate)
-        }
+        rate: 44100
+        active: true
+        input: aid2.output
     }
 
     Component {
@@ -95,19 +94,18 @@ ApplicationWindow {
 
     Component {
         id: buf_comp4
-        BufferView {
-            id: bv
-            input: sb.output
-            channels: [0]
-            offset: 0
-            length: 22050
+        //BufferView {
+        //    id: bv
+        //    input: sb.output
+        //    channels: [0]
+        //    offset: 0
+        //    length: 22050
             RingBuffer {
                 id: sb
                 input: aid2.output
                 bufferLength: 44100
-                channels: 1
             }
-        }
+        //}
     }
 
     FileDialog {
