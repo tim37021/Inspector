@@ -94,18 +94,18 @@ ApplicationWindow {
 
     Component {
         id: buf_comp4
-        //BufferView {
-        //    id: bv
-        //    input: sb.output
-        //    channels: [0]
-        //    offset: 0
-        //    length: 22050
-            RingBuffer {
+        BufferView {
+            id: bv
+            input: sb.output
+            channels: [0]
+            offset: 0
+            length: 22050
+            StorageBuffer {
                 id: sb
                 input: aid2.output
-                bufferLength: 44100
+                bufferLength: 16
             }
-        //}
+        }
     }
 
     FileDialog {

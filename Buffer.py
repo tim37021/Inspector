@@ -97,6 +97,20 @@ class SignalOutputNumpy(SignalOutput):
         self.lengthChanged.emit()
         self.update.emit(oldLength, arr.shape[1])
 
+    def setArr(self, arr):
+        """setArr
+
+        Just a handy function for workaround with no copy slicing
+        """
+        self._arr = arr
+        if self._length != arr.shape[1]:
+            self._length = arr.shape[1]
+            self.lengthChanged.emit()
+        if self._channels != arr.shape[0]:
+            self._channels = arr.shape[0]
+            self.channelsChanged.emit()
+        self._dirty = True
+
     @SignalOutput.buffer.getter
     def buffer(self):
         """BufferLineSeries will call this function to get a slice of an array"""
@@ -165,9 +179,9 @@ class BufferedSource(QObject):
         if buf.dtype != np.float32:
             buf = buf.astype(np.float32)
 
-        l = buf.shape[1]
-        self._arr[..., :-l] = self._arr[..., l:]
-        self._arr[..., -l:] = buf
+        ll = buf.shape[1]
+        self._arr[..., :-ll] = self._arr[..., ll:]
+        self._arr[..., -ll:] = buf
 
         self.update.emit()
 
@@ -180,15 +194,27 @@ class BufferedSource(QObject):
 
 class BaseNode(QQuickItem):
     outputChanged = Signal()
+    runningChanged = Signal()
 
     def __init__(self, parent=None):
         QQuickItem.__init__(self, parent)
         self._inited = False
         self._output = None
+        self._running = True
 
     @Property(SignalOutput, final=True, notify=outputChanged)
     def output(self):
         return self._output
+
+    @Property(bool, notify=runningChanged)
+    def running(self):
+        return self._running
+
+    @running.setter
+    def running(self, val):
+        if self._running != val:
+            self._running = val
+            self.runningChanged.emit()
 
     def alloc(self, outputLength, outputChannels):
         self._output = SignalOutput(outputLength, outputChannels)
@@ -221,13 +247,17 @@ class ProcessorNode(BaseNode):
     def input(self, val):
         if self._input != val:
             if self._input is not None:
-                self._input.update.disconnect(self.update)
+                self._input.update.disconnect(self._update)
 
             self._input = val
-            self._input.update.connect(self.update)
+            self._input.update.connect(self._update)
             self.inputChanged.emit()
             if self._inited:
-                self.update(0, self._input._length)
+                self._update(0, self._input._length)
+
+    def _update(self, offset, length):
+        if self._running:
+            self.update(offset, length)
 
     def update(self, offset, length):
         raise Exception('Unimplemented update method for Node')
@@ -290,6 +320,12 @@ class BufferView(ProcessorNode):
                 self.initBuffer()
 
     def update(self, offset, length):
+        """
+        calculate intersection of [offset, offset+length) and [self._offset, self._offset+self._length)
+        for update region
+
+        Some care need to be taken if input array is less than our desired.
+        """
         # check intersection
         if offset + length < self._offset or offset > self._offset + self._length:
             return
@@ -299,10 +335,17 @@ class BufferView(ProcessorNode):
         if offset >= self._output._length:
             if offset == self._output._length:
                 # it seems the buffer enlarges, we gonna catch up
-                self._output.append(self._input.numpy_array[self._channels, offset: offset+length])
-                return
+                # self._output.append(self._input.numpy_array[self._channels, offset: offset+length])
+                # return
+                if np.all(np.diff(self._channels) == 1):
+                    # this also handles lists of one element
+                    channels = slice(self._channels[0], self._channels[-1]+1)
+                else:
+                    channels = self._channels
+                self._output.setArr(self._input.numpy_array[channels, self._offset: offset+length])
             else:
                 print([offset, length])
+                print([self._output.numpy_array.shape])
                 # the buffer doesn't grow correctly
                 # this limitation can be release
                 raise Exception('The buffer doesnot grow correctly')

@@ -1,4 +1,4 @@
-* Schedule [58%]
+* Schedule [53%]
 ** DONE Python Template for Adding New Signal Source
 ** DONE Refactor modules
 ** DONE Save Buffer
@@ -17,6 +17,7 @@
 - [X] [[./Buffer.py::StorageBuffer][StorageBuffer]]
 - [X] [[./Buffer.py::BufferView][BufferView]]
 - [ ] Load File
+** TODO SignalOutput Interface
 ** TODO BufferPlayer
 ** TODO Bug Fix: AudioInputDevice Stucks After A Few Second
 ** STRT Test for Multi Channels [1/2]
