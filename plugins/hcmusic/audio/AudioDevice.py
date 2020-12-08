@@ -11,47 +11,9 @@ from PySide2.QtQuick import QQuickItem
 import pyaudio
 import numpy as np
 import queue
-from Buffer import BufferedSource
+from Buffer import BufferedSource, SignalOutput
 
 p = pyaudio.PyAudio()
-
-
-class SignalOutput(QObject):
-    """Output of a Node
-
-    The name of this class may change
-
-    it stores raw byte in [channel, length], row major
-    """
-    changed = Signal()
-
-    def __init__(self, length, channels, parent=None):
-        QObject.__init__(self, parent)
-        self._length = length
-        self._channels = channels
-        self._buf = QByteArray(length * channels * 4, 0)
-
-    def update(self, arr):
-        self.array[...] = arr
-        self.changed.emit()
-
-    @Property(int)
-    def length(self):
-        return self._length
-
-    @Property(int)
-    def channels(self):
-        return self._channels
-
-    @Property(QByteArray, notify=changed)
-    def buffer(self):
-        return self._buf
-
-    @property
-    def array(self):
-        return np.frombuffer(memoryview(self._buf), dtype=np.float32).reshape(
-            self._channels, self._length
-        )
 
 
 class AudioInputDeviceModel(QAbstractListModel):
@@ -174,12 +136,13 @@ class AudioInputDevice2(QQuickItem):
         QQuickItem.__init__(self, parent)
 
         self._bufferLength = 1024
-        self._output = SignalOutput(1024, 1)
+        self._output = SignalOutput(1024, 1, self)
         self._active = False
         self._rate = 44100
         self._deviceIndex = p.get_default_input_device_info()['index']
         self._stream = None
         self._inited = False
+        self._lastTime = 0
         QApplication.instance().aboutToQuit.connect(lambda: self.closeDevice())
 
     @Property(SignalOutput, notify=outputChanged)
@@ -265,8 +228,10 @@ class AudioInputDevice2(QQuickItem):
             self._stream.close()
 
     def callback(self, in_data, frame_count, time_info, status):
+        import time
         buf = np.frombuffer(in_data, dtype=np.int16).astype(np.float32).reshape(1, -1)
-        self._output.update(buf)
+        self._output.set(buf)
+        self._lastTime = time.time()
         return (None, pyaudio.paContinue)
 
 
@@ -558,7 +523,7 @@ class AudioOutputDevice2(QQuickItem):
 
         TODO Discussion: should we auto normalize the buffer?
         """
-        data = self._input.array
+        data = self._input.numpy_array
         if (np.abs(data) > 16384).any():
             data /= data.max()
             data *= 16384
@@ -567,7 +532,8 @@ class AudioOutputDevice2(QQuickItem):
         bl = self._bufferLength
         while i < self._input._length:
             b = data[..., i: i+bl]
-            self._q.put(np.pad(b, (0, bl-len(b))))
+            padded = np.pad(b, ((0, 0), (0, bl-b.shape[1])))
+            self._q.put(padded)
             i += bl
 
     def componentComplete(self):
@@ -592,9 +558,6 @@ class AudioOutputDevice2(QQuickItem):
             self._stream.close()
 
     def callback(self, in_data, frame_count, time_info, status):
-        if not self._q.empty():
-            data = self._q.get_nowait()
-            if data is not None:
-                return (data, pyaudio.paContinue)
-        else:
-            return (np.zeros(1024, dtype=np.int16), pyaudio.paContinue)
+        data = self._q.get()
+        if data is not None:
+            return (data, pyaudio.paContinue)

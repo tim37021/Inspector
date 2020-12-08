@@ -1,6 +1,6 @@
 module hcmusic.utils
 
 # Use C++ extension
-plugin hcmusic-utils
+# plugin hcmusic-utils
 
 TimeoutModel 1.0 TimeoutModel.qml

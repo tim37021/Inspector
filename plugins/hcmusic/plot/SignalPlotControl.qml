@@ -18,6 +18,8 @@ Item {
     property alias hoverEnabled: ma.hoverEnabled
 
     property bool lockView: false
+    property bool lockX: false
+    property bool lockY: false
 
     QtObject {
         id: priv
@@ -51,10 +53,14 @@ Item {
         onWheel: {
             let dir = wheel.angleDelta.y>0? -1: 1
             let scale = (1+dir*0.1)
-            xAxis.min = (xAxis.min - mouseCoordX) * scale + mouseCoordX
-            xAxis.max = (xAxis.max - mouseCoordX) * scale + mouseCoordX
-            yAxis.min = (yAxis.min - mouseCoordY) * scale + mouseCoordY
-            yAxis.max = (yAxis.max - mouseCoordY) * scale + mouseCoordY
+            if(!lockX) {
+                xAxis.min = (xAxis.min - mouseCoordX) * scale + mouseCoordX
+                xAxis.max = (xAxis.max - mouseCoordX) * scale + mouseCoordX
+            }
+            if(!lockY) {
+                yAxis.min = (yAxis.min - mouseCoordY) * scale + mouseCoordY
+                yAxis.max = (yAxis.max - mouseCoordY) * scale + mouseCoordY
+            }
         }
 
         onPositionChanged: {
@@ -69,12 +75,12 @@ Item {
 
                 if(pressedButtons === Qt.LeftButton) {
                     // dragging
-                    xAxis.min -= dx; xAxis.max -= dx;
-                    yAxis.min -= dy; yAxis.max -= dy;
+                    if(!lockX) { xAxis.min -= dx; xAxis.max -= dx;}
+                    if(!lockY) { yAxis.min -= dy; yAxis.max -= dy; }
                 } else if(pressedButtons === Qt.RightButton){
                     // zooming
-                    xAxis.min += dx; xAxis.max -= dx;
-                    yAxis.min += dy; yAxis.max -= dy;
+                    if(!lockX) { xAxis.min += dx; xAxis.max -= dx; }
+                    if(!lockY) { yAxis.min += dy; yAxis.max -= dy; }
                 }
 
             }

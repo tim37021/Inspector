@@ -1,13 +1,79 @@
-* Schedule [16%]
+* Schedule [63%]
 ** DONE Python Template for Adding New Signal Source
-** TODO Refactor modules
-** TODO Save Buffer
+** DONE Refactor modules
+** DONE Save Buffer
    This is a hard one currently
-** TODO Reduce copy from python to SignalPlot
+** DONE Reduce copy from python to SignalPlot
    Currently the draw path is too long
-** TODO Eliminate Warnings [1/1]
+** DONE Eliminate Warnings [2/2]
    - [X] FileDialog
      The warnings is actually Qt's bug
-   - [ ] Array out of bound when mouse move
-** TODO Key-binding Manage System
-** TODO SignalPlotControl Refactor
+   - [X] Array out of bound when mouse move
+** DONE Key-binding Manage System
+** DONE SignalPlotControl Refactor
+** TODO DSP Framework [4/5]
+- [X] StorageNode [[./Buffer.py::StorageNode]]
+- [X] RingBuffer [[./Buffer.py::RingBuffer]]
+- [X] StorageBuffer [[./Buffer.py::StorageBuffer]]
+- [X] BufferView [[./Buffer.py::BufferView]]
+- [ ] Load File
+** TODO BufferPlayer
+** TODO Bug Fix: AudioInputDevice Stucks After A Few Second
+** TODO Test for Multi Channels
+* DSP Framework
+This new arch is to bring better realtime experience to Inspector
+** Basic Usage
+#+BEGIN_SRC qml
+import inspector.dsp 1.0
+
+AudioDiscoveryModelProvider {
+    id: provider
+}
+
+AudioInputDevice2 {
+    id: aid
+    deviceIndex: provider.defaultInputDeviceIndex
+    rate: 44100
+    bufferLength: 1024
+}
+
+// sb.output
+StorageBuffer {
+    id: sb
+    input: aid.output
+}
+
+BufferView {
+    channels: [0, 1, 2]
+}
+
+ChannelView {
+    channel: 0
+}
+
+AudioOutputDevice2 {
+    input: aid.output
+    deviceIndex: provider.defaultOutputDeviceIndex
+    rate: 44100
+    bufferLength: 16
+}
+#+END_SRC
+Reference:
+[[./plugins/hcmusic/audio/AudioDevice.py::AudioInputDevice2]]
+[[./plugins/hcmusic/audio/AudioDevice.py::AudioOutputDevice2]]
+[[./Buffer.py::SignalOutput]] - SignalOutput is a class that handles IO of a node.
+[[./Buffer.py::ProcessorNode]] - ProcessorNode is a node that has input and output
+** BufferView and Channel
+In order to slice a buffer, we can use [[./Buffer.py::BufferView][BufferView]]
+#+BEGIN_SRC qml
+BufferView {
+    input: aid.output
+    offset: 0
+    length: aid.output.length
+    channels: [0, 1, 2]
+}
+
+Channel {
+    input: aid.output
+}
+#+END_SRC

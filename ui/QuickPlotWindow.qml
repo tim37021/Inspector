@@ -5,16 +5,18 @@ import Algo 1.0
 
 SubWindow {
     id: window
-    property var signalSource       ///< raw jsarray or buffered signal source
+    property var node: null
+    property var signalSource: node? node.output: null       ///< raw float32array or a node
     property SubWindow plotWindow
     property SubWindow stftWindow
 
     property bool recording: false
 
     onSignalSourceChanged: {
-        let arr=getArray()
-        ls.set(arr)
-        fit(arr)
+        if(signalSource) {
+            let arr=getArray()
+            fit(arr)
+        }
     }
 
     Timer {
@@ -24,7 +26,8 @@ SubWindow {
 
         onTriggered: {
             let arr=getArray();
-            
+            if(!arr)
+                return;
             // move mouse cursor
             let cursorX = Math.round(plot.mouseCoordX)
             if(cursorX >= 0 && cursorX < arr.length) {
@@ -40,15 +43,6 @@ SubWindow {
                 
             }
             
-        }
-    }
-   
-
-    Connections {
-        target: signalSource instanceof QtObject? signalSource: null
-
-        function onUpdate(array) {
-            ls.set(array)
         }
     }
 
@@ -92,9 +86,9 @@ SubWindow {
         width: parent.width * 0.9
         height: parent.height * 0.8
         anchors.centerIn: parent
+        drawGrid: false
         gridSizeX: ls.length / 20
         gridSizeY: 500000
-
 
         xAxis: ValueAxis {
             id: xAxis_
@@ -104,17 +98,18 @@ SubWindow {
 
         yAxis: ValueAxis {
             id: yAxis_
-            min: -1000000
-            max: 1000000
+            min: -100
+            max: 100
         }
 
-        LineSeries {
+        BufferLineSeries {
             id: ls
             xAxis: xAxis_
             yAxis: yAxis_
             color: Qt.rgba(247/255, 193/255, 121/255, 1.0)
-            length: 1
             lineWidth: 2
+
+            source: signalSource
         }
 
         function argMin(array) {
@@ -188,8 +183,7 @@ SubWindow {
             }
 
             if(event.key == 68) {
-                algo.launchAlgorithm('DoubleAC')
-                
+                algo.launchAlgorithm('DoubleAC') 
             }
             if(event.key == 69) {
                 algo.launchAlgorithm('OnsetDetector')
@@ -226,7 +220,7 @@ SubWindow {
         orientation: ListView.Horizontal
 
         // If siganlSource has channels
-        model: signalSource.channels? signalSource.channels: 0
+        model: signalSource && signalSource.channels? signalSource.channels: 0
 
         delegate: Item {
             width: 128
@@ -262,14 +256,11 @@ SubWindow {
         }
 
         onCurrentIndexChanged: {
-            signalSource.channel = lv.currentIndex
+            // signalSource.channel = lv.currentIndex
         }
     }
 
     function fit(arr) {
-        plot.xAxis.min = 0
-        plot.xAxis.max = arr.length
-
         plot.yAxis.min = Math.min(...arr) - 10
         plot.yAxis.max = Math.max(...arr) + 10
 
@@ -303,6 +294,9 @@ SubWindow {
         let arr;
         if(signalSource && signalSource.array)
             arr = signalSource.array
+        // TODO: reduce object creation here
+        if(signalSource && signalSource.buffer)
+            arr = new Float32Array(signalSource.buffer)
         if(signalSource && signalSource instanceof Float32Array) {
             // TODO: allow using Float32Array for signalSource for low overhead calc
             arr = signalSource

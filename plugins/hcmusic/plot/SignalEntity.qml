@@ -5,6 +5,7 @@ Entity {
     property var material
     property alias buffer: buf
     property alias count: attr.count
+    property int capacity: 0
 
     property alias primitiveType: geometryRenderer.primitiveType
 
@@ -35,7 +36,7 @@ Entity {
                 buffer : Buffer {
                     id: buf
                     type: Buffer.VertexBuffer
-                    data: new Float32Array(new Array(4096).fill(0))
+                    data: new Float32Array(new Array(0).fill(0))
                 }
             }, Attribute {
                 id: dummy
@@ -56,4 +57,22 @@ Entity {
         }
     }
     components: [geometryRenderer, material]
+
+    function update(offset, bytes) {
+        if(offset+bytes.length > capacity) {
+            // new length will be nearest power of two >= offset+length
+            let nl = Math.pow(2, Math.ceil(Math.log2(offset+bytes.length)))
+            let nb = new Float32Array(nl);
+            nb.set(new Float32Array(buf.data));
+            nb.set(bytes, offset);
+            nb.fill(0, offset+bytes.length)
+            buf.data = nb;
+            capacity = nl;
+
+            attr.count = offset+bytes.length;
+        } else {
+            buf.updateData(offset*4, bytes);
+            attr.count = Math.max(offset+bytes.length, attr.count);
+        }
+    }
 }

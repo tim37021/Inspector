@@ -7,6 +7,7 @@ SignalStyle 1.0 SignalStyle.qml
 SignalPlotUI 1.0 SignalPlotUI.qml
 ValueAxis 1.0 ValueAxis.qml
 LineSeries 1.0 LineSeries.qml
+BufferLineSeries 1.0 BufferLineSeries.qml
 
 PointPlot 1.0 PointPlot.qml
 RectanglePlot 1.0 RectanglePlot.qml
