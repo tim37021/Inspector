@@ -5,6 +5,11 @@ LineSeries {
     id: root
     property SignalOutput source
 
+    onSourceChanged: {
+        if(source)
+            this.update(0, source.length)
+    }
+
     Connections {
         target: source
         

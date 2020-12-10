@@ -3,7 +3,7 @@ from PySide2.QtQml import QQmlApplicationEngine, qmlRegisterType
 from PySide2.QtWidgets import QApplication
 from PySide2.QtGui import QImage
 from PySide2.QtQuick import QQuickPaintedItem
-from Buffer import RingBuffer, StorageBuffer, SignalOutput, BufferView, BaseNode
+from Buffer import RingBuffer, StorageBuffer, SignalOutput, BufferView, BaseNode, Distortion
 import PluginLoader
 import os
 import sys
@@ -69,12 +69,13 @@ class App(object):
         qmlRegisterType(SignalOutput, 'inspector.dsp', 1, 0, 'SignalOutput')
         qmlRegisterType(BufferView, 'inspector.dsp', 1, 0, 'BufferView')
         qmlRegisterType(BaseNode, 'inspector.dsp', 1, 0, 'BaseNode')
+        qmlRegisterType(Distortion, 'inspector.dsp', 1, 0, 'Distortion')
 
         engine.addImportPath('plugins')
         engine.addImportPath('imports')
 
         # Load the qml file into the engine
-        engine.load('ui/main.qml')
+        engine.load('demo/main.qml')
 
         # Qml file error handling
         if not engine.rootObjects():

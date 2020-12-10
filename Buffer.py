@@ -252,11 +252,12 @@ class ProcessorNode(BaseNode):
             self._input = val
             self._input.update.connect(self._update)
             self.inputChanged.emit()
+
             if self._inited:
                 self._update(0, self._input._length)
 
     def _update(self, offset, length):
-        if self._running:
+        if self._running and self._input is not None:
             self.update(offset, length)
 
     def update(self, offset, length):
@@ -329,6 +330,9 @@ class BufferView(ProcessorNode):
         # check intersection
         if offset + length < self._offset or offset > self._offset + self._length:
             return
+        if self._output is None:
+            self.initBuffer()
+
         # [offset, offset+length] that needs update
         offset = max(offset, self._offset)
         length = min(length, self._length - (offset - self._offset))
@@ -362,11 +366,14 @@ class BufferView(ProcessorNode):
         if np.all(np.diff(self._channels) == 1):
             # this also handles lists of one element
             channels = slice(self._channels[0], self._channels[-1]+1)
+            ll = channels.stop - channels.start
         else:
             channels = self._channels
-        arr = self._input.numpy_array[channels, self._offset:self._offset+self._length].reshape(1, -1)
-        self._output = SignalOutputNumpy(arr)
-        self.outputChanged.emit()
+            ll = len(self._channels)
+        if self._input is not None:
+            arr = self._input.numpy_array[channels, self._offset:self._offset+self._length].reshape(ll, -1)
+            self._output = SignalOutputNumpy(arr)
+            self.outputChanged.emit()
 
 
 class StorageNode(ProcessorNode):
@@ -415,10 +422,12 @@ class RingBuffer(StorageNode):
 
 class StorageBuffer(StorageNode):
     maxLengthChanged = Signal()
+    fullChanged = Signal()
 
     def __init__(self, parent=None):
         StorageNode.__init__(self, parent)
         self._maxLength = 0
+        self._full = False
 
     @Property(int, notify=maxLengthChanged)
     def maxLength(self):
@@ -430,8 +439,51 @@ class StorageBuffer(StorageNode):
             self._maxLength = val
             self.maxLengthChanged.emit()
 
+            if self._inited:
+                self._full = self._output._length < self._maxLength
+
+    @Property(bool, final=True, notify=fullChanged)
+    def full(self):
+        return self._full
+
     def update(self, offset, length):
         if self._maxLength > 0:
-            length = min(self._maxLength - self._input._length, length)
+            length = min(self._maxLength - self._output._length, length)
         if length > 0:
             self._output.append(self._input.numpy_array[..., : length])
+        if self._maxLength > 0 and self._output._length >= self._maxLength and not self._full:
+            self._full = True
+            self.fullChanged.emit()
+
+
+class Distortion(ProcessorNode):
+    gainChanged = Signal()
+
+    def __init__(self, parent=None):
+        ProcessorNode.__init__(self, parent)
+        self._gain = 1
+
+    @Property(float, notify=gainChanged)
+    def gain(self):
+        return self._gain
+
+    @gain.setter
+    def gain(self, val):
+        if self._gain != val:
+            self._gain = val
+            self.gainChanged.emit()
+
+    def initBuffer(self):
+        if self._input is not None:
+            self.alloc(self._input._length, self._input._channels)
+
+    def update(self, offset, length):
+        if offset == 0:
+            self._output.numpy_array[...] = self._input.numpy_array
+            arr = self._output.numpy_array
+            arr *= self._gain
+            arr[arr > 8000] = 8000
+            arr[arr < -8000] = -8000
+            self._output.update.emit(offset, length)
+        else:
+            raise Exception('You might connect this to storage node')

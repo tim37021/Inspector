@@ -1,4 +1,4 @@
-* Schedule [53%]
+* Schedule [50%]
 ** DONE Python Template for Adding New Signal Source
 ** DONE Refactor modules
 ** DONE Save Buffer
@@ -24,6 +24,11 @@
 - [X] Work
 - [ ] Test
 ** TODO Use SoundDevice Package
+** TODO Performance of BufferView
+Currently, getting slice of a data require several copies in SignalOutputNumpy, O(1) in SignalOutput
+#+BEGIN_SRC javascript
+new Float32Array(node.output.buffer, offset * 4, length)
+#+END_SRC
 * DSP Framework Draft
 This new arch is to bring better realtime experience to Inspector
 ** Basic Usage
