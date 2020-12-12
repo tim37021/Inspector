@@ -11,28 +11,39 @@ ApplicationWindow {
     color: "black"
     title: 'NegativeGrid'
 
+    function midi_to_note(mid) {
+        return ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][mid%12]
+    }
+
     Image {
         anchors.centerIn: parent
         source: 'logo.png'
     }
 
+    Text {
+        anchors.right: parent.right
+        anchors.top: parent.top
+        text: midi_to_note(Math.round(69 + Math.log2(synth.frequency/440)*12))
+        color: "white"
+    }
+
     SineSynth {
         id: synth
-        rate: 32000
-        frequency: 441
+        rate: 44100
+        frequency: 440
         length: 1024
-        valueScale: 2000
+        amplitude: 8000
         Timer {
             running: true
             repeat: true
-            interval: 32000 / 1024
+            interval: 1024 / 44100 * 1000 
             onTriggered: synth.synth()
         }
     }
 
     AudioInputDevice2 {
         id: aid
-        active: true
+        active: false
         bufferLength: 1024
         rate: 32000
     }
@@ -40,7 +51,7 @@ ApplicationWindow {
     RingBuffer {
         id: sb
         channels: 1
-        length: 32000*2
+        length: 44100
         input: synth.output
 
         //onFullChanged: {
@@ -80,9 +91,9 @@ ApplicationWindow {
 
         Keys.onPressed: {
             if(event.key == 74)
-                synth.frequency-=5
+                synth.frequency *= Math.pow(2, -1/12)
             if(event.key == 75)
-                synth.frequency+=5
+                synth.frequency *= Math.pow(2, 1/12)
         }
     }
 
@@ -90,7 +101,7 @@ ApplicationWindow {
         active: true
         bufferLength: 1024
         input: synth.output
-        rate: 32000
+        rate: 44100
     }
 
 }
