@@ -1,9 +1,14 @@
 import QtQuick 2.12
-import inspector.dsp 1.0
+import hcmusic.dsp 1.0
 
 LineSeries {
     id: root
-    property SignalOutput source
+    property Signal1D source
+
+    onSourceChanged: {
+        if(source)
+            this.update(0, source.length)
+    }
 
     Connections {
         target: source

@@ -1,7 +1,7 @@
 import QtQuick 2.12
 
 QtObject {
-    property Component quickplot: QuickPlotWindow {
+    property Component quickplot: QuickPlotWindow2 {
         width: app.width * 0.8
         height: app.height * 0.8
     }

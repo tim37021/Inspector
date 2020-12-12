@@ -57,14 +57,15 @@ ApplicationWindow {
         active: true
         bufferLength: 1024
         deviceIndex: provider.defaultInputDeviceIndex
+        channels: 2
     }
 
-    AudioOutputDevice {
+    AudioOutputDevice2 {
         id: od
-        rate: 32000
-        onRateChanged: {
-            console.log(rate)
-        }
+        rate: 44100
+        active: true
+        input: aid2.output
+        channels: 2
     }
 
     Component {
@@ -96,18 +97,11 @@ ApplicationWindow {
 
     Component {
         id: buf_comp4
-        BufferView {
-            id: bv
-            input: sb.output
-            channels: [0]
-            offset: 0
-            length: 22050
-            RingBuffer {
-                id: sb
-                input: aid2.output
-                bufferLength: 44100
-                channels: 1
-            }
+        RingBuffer {
+            id: sb
+            input: aid2.output
+            bufferLength: 44100
+            channels: 2
         }
     }
 
@@ -115,8 +109,9 @@ ApplicationWindow {
         id: ofd
         nameFilters: [ "npz files (*.npz)" ]
         onAccepted: {
+            let win = app.createQuickPlotWindow('plot')
             let buf = buf_comp.createObject(null, {filename: fileUrl})
-            app.createQuickPlotWindow('plot', buf)
+            win.node = buf
         }
     }
 

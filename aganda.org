@@ -1,4 +1,4 @@
-* Schedule [63%]
+* Schedule [50%]
 ** DONE Python Template for Adding New Signal Source
 ** DONE Refactor modules
 ** DONE Save Buffer
@@ -12,15 +12,24 @@
 ** DONE Key-binding Manage System
 ** DONE SignalPlotControl Refactor
 ** TODO DSP Framework [4/5]
-- [X] StorageNode [[./Buffer.py::StorageNode]]
-- [X] RingBuffer [[./Buffer.py::RingBuffer]]
-- [X] StorageBuffer [[./Buffer.py::StorageBuffer]]
-- [X] BufferView [[./Buffer.py::BufferView]]
+- [X] [[./Buffer.py::StorageNode][StorageNode]]
+- [X] [[./Buffer.py::RingBuffer][RingBuffer]]
+- [X] [[./Buffer.py::StorageBuffer][StorageBuffer]]
+- [X] [[./Buffer.py::BufferView][BufferView]]
 - [ ] Load File
+** TODO SignalOutput Interface
 ** TODO BufferPlayer
 ** TODO Bug Fix: AudioInputDevice Stucks After A Few Second
-** TODO Test for Multi Channels
-* DSP Framework
+** STRT Test for Multi Channels [1/2]
+- [X] Work
+- [ ] Test
+** TODO Use SoundDevice Package
+** TODO Performance of BufferView
+Currently, getting slice of a data require several copies in SignalOutputNumpy, O(1) in SignalOutput
+#+BEGIN_SRC javascript
+new Float32Array(node.output.buffer, offset * 4, length)
+#+END_SRC
+* DSP Framework Draft
 This new arch is to bring better realtime experience to Inspector
 ** Basic Usage
 #+BEGIN_SRC qml
