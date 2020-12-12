@@ -32,7 +32,7 @@ ApplicationWindow {
         rate: 44100
         frequency: 440
         length: 1024
-        amplitude: 8000
+        amplitude: slider.value
         Timer {
             running: true
             repeat: true
@@ -48,6 +48,12 @@ ApplicationWindow {
         rate: 32000
     }
 
+    AudioOutputDevice2 {
+        active: true
+        bufferLength: 1024
+        input: synth.output
+        rate: 44100
+    }
     RingBuffer {
         id: sb
         channels: 1
@@ -66,7 +72,7 @@ ApplicationWindow {
         ValueAxis {
             id: xAxis_
             min: 0
-            max: 32000 * 2
+            max: 32000 
         }
 
         ValueAxis {
@@ -80,7 +86,7 @@ ApplicationWindow {
             yAxis: yAxis_
             color: "orange"
             lineWidth: 2
-            source: sb.output
+            // source: sb.output
         }
 
         SignalPlotControl {
@@ -96,12 +102,13 @@ ApplicationWindow {
                 synth.frequency *= Math.pow(2, 1/12)
         }
     }
-
-    AudioOutputDevice2 {
-        active: true
-        bufferLength: 1024
-        input: synth.output
-        rate: 44100
+    Slider {
+        id: slider
+        from: 1
+        to: 8000
+        value: 2000
     }
+
+
 
 }
