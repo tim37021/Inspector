@@ -7,7 +7,7 @@ from math import floor
 class SineSynth(Node):
     frequencyChanged = Signal()
     rateChanged = Signal()
-    valueScaleChanged = Signal()
+    amplitudeChanged = Signal()
     lengthChanged = Signal()
     phaseChanged = Signal()
     outputChanged = Signal()
@@ -18,7 +18,7 @@ class SineSynth(Node):
         self._frequency = 1
         self._length = 1024
         self._rate = 44100
-        self._scale = 1
+        self._amplitude = 1
         self._output = QtSignal1D()
 
     @Property(float, notify=phaseChanged)
@@ -31,15 +31,15 @@ class SineSynth(Node):
             self._phase = val
             self.phaseChanged.emit()
 
-    @Property(float, notify=valueScaleChanged)
-    def valueScale(self):
-        return self._scale
+    @Property(float, notify=amplitudeChanged)
+    def amplitude(self):
+        return self._amplitude
 
-    @valueScale.setter
-    def valueScale(self, val):
-        if self._scale != val:
-            self._scale = val
-            self.valueScaleChanged.emit()
+    @amplitude.setter
+    def amplitude(self, val):
+        if self._amplitude != val:
+            self._amplitude = val
+            self.amplitudeChanged.emit()
 
     @Property(int, notify=rateChanged)
     def rate(self):
@@ -61,7 +61,7 @@ class SineSynth(Node):
             self._length = val
             self.lengthChanged.emit()
 
-            if self.complated:
+            if self.completed:
                 self.initialize()
 
     @Property(float, notify=frequencyChanged)
@@ -91,5 +91,5 @@ class SineSynth(Node):
         t = np.linspace(start, end, self._length)
         self._phase = end / T - floor(end / T)
         self.phaseChanged.emit()
-        self._output.numpy_array[..., 0] = self._scale * np.sin(2 * np.pi * self._frequency * t)
+        self._output.numpy_array[..., 0] = self._amplitude * np.sin(2 * np.pi * self._frequency * t)
         self._output.update.emit(0, self._length)

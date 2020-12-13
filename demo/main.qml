@@ -10,22 +10,36 @@ ApplicationWindow {
     visible: true
     color: "black"
     title: 'NegativeGrid'
+    property bool isfft: false
+
+    function midi_to_note(mid) {
+        let n = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][mid%12]
+        return n+(Math.floor(mid / 12)-1)
+    }
 
     Image {
         anchors.centerIn: parent
         source: 'logo.png'
     }
 
+    Text {
+        anchors.right: parent.right
+        anchors.top: parent.top
+        text: midi_to_note(Math.round(69 + Math.log2(ac.frequency/440)*12))
+        color: "white"
+        font.pointSize: 24
+    }
+
     SineSynth {
         id: synth
-        rate: 32000
-        frequency: 441
+        rate: 44100
+        frequency: 440
         length: 1024
-        valueScale: 2000
+        amplitude: 2000
         Timer {
-            running: true
+            running: false
             repeat: true
-            interval: 32000 / 1024
+            interval: 1024 / 44100 * 1000 
             onTriggered: synth.synth()
         }
     }
@@ -34,14 +48,24 @@ ApplicationWindow {
         id: aid
         active: true
         bufferLength: 1024
-        rate: 32000
+        rate: 44100
     }
 
-    RingBuffer {
-        id: sb
-        channels: 1
-        length: 32000*2
-        input: synth.output
+    AudioOutputDevice2 {
+        active: true
+        bufferLength: 1024
+        input: aid.output
+        rate: 44100
+    }
+    AutoCorrelation {
+        id: ac
+        input: aid.output
+        rate: 44100
+    }
+    FFT {
+        id: fft
+        input: aid.output
+        rate: 44100
 
         //onFullChanged: {
             // this.saveToNpz('yoyo.npz')
@@ -55,7 +79,7 @@ ApplicationWindow {
         ValueAxis {
             id: xAxis_
             min: 0
-            max: 32000 * 2
+            max: ls.source.length 
         }
 
         ValueAxis {
@@ -65,11 +89,21 @@ ApplicationWindow {
         }
 
         BufferLineSeries {
+            id: ls
             xAxis: xAxis_
             yAxis: yAxis_
             color: "orange"
             lineWidth: 2
-            source: sb.output
+            source: ac.output
+        }
+        
+        BufferLineSeries {
+            id: ls2
+            xAxis: xAxis_
+            yAxis: yAxis_
+            color: "blue"
+            lineWidth: 2
+            source: fft.output
         }
 
         SignalPlotControl {
@@ -78,19 +112,18 @@ ApplicationWindow {
             yAxis: yAxis_
         }
 
+
         Keys.onPressed: {
             if(event.key == 74)
-                synth.frequency-=5
+                synth.frequency *= Math.pow(2, -1/12)
             if(event.key == 75)
-                synth.frequency+=5
+                synth.frequency *= Math.pow(2, 1/12)
         }
     }
-
-    AudioOutputDevice2 {
-        active: true
-        bufferLength: 1024
-        input: synth.output
-        rate: 32000
+    Button {
+        id: btn
+        text: isfft?'fft':'ac'
+        onClicked: isfft = !isfft
     }
 
 }

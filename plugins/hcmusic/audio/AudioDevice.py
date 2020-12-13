@@ -565,7 +565,7 @@ class AudioOutputDevice2(Node):
         i = 0
         bl = self._bufferLength
         while i < self._input._length:
-            b = data[..., i: i+bl]
+            b = data[i: i+bl, :]
             padded = np.pad(b, ((0, bl-b.shape[0]), (0, 0)))
             self._q.put(padded)
             i += bl
