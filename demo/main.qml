@@ -12,7 +12,8 @@ ApplicationWindow {
     title: 'NegativeGrid'
 
     function midi_to_note(mid) {
-        return ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][mid%12]
+        let n = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][mid%12]
+        return n+(Math.floor(mid / 12)-1)
     }
 
     Image {
@@ -23,8 +24,9 @@ ApplicationWindow {
     Text {
         anchors.right: parent.right
         anchors.top: parent.top
-        text: midi_to_note(Math.round(69 + Math.log2(synth.frequency/440)*12))
+        text: midi_to_note(Math.round(69 + Math.log2(ac.frequency/440)*12))
         color: "white"
+        font.pointSize: 24
     }
 
     SineSynth {
@@ -34,7 +36,7 @@ ApplicationWindow {
         length: 1024
         amplitude: slider.value
         Timer {
-            running: true
+            running: false
             repeat: true
             interval: 1024 / 44100 * 1000 
             onTriggered: synth.synth()
@@ -43,22 +45,26 @@ ApplicationWindow {
 
     AudioInputDevice2 {
         id: aid
-        active: false
+        active: true
         bufferLength: 1024
-        rate: 32000
+        rate: 44100
     }
 
     AudioOutputDevice2 {
         active: true
         bufferLength: 1024
-        input: synth.output
+        input: aid.output
         rate: 44100
     }
-    RingBuffer {
-        id: sb
-        channels: 1
-        length: 44100
-        input: synth.output
+    AutoCorrelation {
+        id: ac
+        input: aid.output
+        rate: 44100
+    }
+    FFT {
+        id: fft
+        input: aid.output
+        rate: 44100
 
         //onFullChanged: {
             // this.saveToNpz('yoyo.npz')
@@ -72,7 +78,7 @@ ApplicationWindow {
         ValueAxis {
             id: xAxis_
             min: 0
-            max: 32000 
+            max: ac.output.length 
         }
 
         ValueAxis {
@@ -86,7 +92,7 @@ ApplicationWindow {
             yAxis: yAxis_
             color: "orange"
             lineWidth: 2
-            // source: sb.output
+            source: ac.output
         }
 
         SignalPlotControl {

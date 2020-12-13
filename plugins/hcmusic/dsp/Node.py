@@ -252,3 +252,81 @@ class Storage(ProcessorNode):
 
     def initialize(self):
         self._output.alloc(0, self._channels)
+
+
+class FFT(ProcessorNode):
+    frequencyChanged = Signal()
+    rateChanged = Signal()
+
+    def __init__(self, parent=None):
+        ProcessorNode.__init__(self, QtSignal1D, parent)
+        self._frequency = 0
+        self._rate = 0
+
+    @Property(float, final=True, notify=frequencyChanged)
+    def frequency(self):
+        return self._frequency
+
+    @Property(int, notify=rateChanged)
+    def rate(self):
+        return self._rate
+
+    @rate.setter
+    def rate(self, val):
+        if self._rate != val:
+            self._rate = val
+            self.rateChanged.emit()
+
+    def update(self, offset, length):
+        if self._output.numpy_array.shape != self._input.numpy_array.shape:
+            self.initialize()
+        arr = self._input.numpy_array[0: length, :]
+        arr = self._output.numpy_array[...] = np.abs(np.fft.fft(arr, axis=0))
+        arr /= arr.max()
+        freq = arr.argmax() * self._rate / length
+        if freq != self._frequency:
+            self._frequency = freq
+            self.frequencyChanged.emit()
+        self._output.update.emit(0, length)
+
+    def initialize(self):
+        if self._input is not None:
+            self._output.alloc(self._input._length, self._input._channels)
+
+
+class AutoCorrelation(ProcessorNode):
+    frequencyChanged = Signal()
+    rateChanged = Signal()
+
+    def __init__(self, parent=None):
+        ProcessorNode.__init__(self, QtSignal1D, parent)
+        self._frequency = 0
+        self._rate = 0
+
+    @Property(float, final=True, notify=frequencyChanged)
+    def frequency(self):
+        return self._frequency
+
+    @Property(int, notify=rateChanged)
+    def rate(self):
+        return self._rate
+
+    @rate.setter
+    def rate(self, val):
+        if self._rate != val:
+            self._rate = val
+            self.rateChanged.emit()
+
+    def update(self, offset, length):
+        from cInspector import auto_correlation
+        ac = np.zeros(shape=501, dtype=np.float32)
+        ac[32:] = auto_correlation(self._input.numpy_array.reshape(-1), 32, 500, 256)
+        self._output.numpy_array[...] = ac.reshape(501, 1) 
+        self._output.update.emit(0, 501)
+        freq = self._rate / (ac[32:].argmin()+32)
+        if freq != self._frequency:
+            self._frequency = freq
+            self.frequencyChanged.emit()
+
+    def initialize(self):
+        self._output.alloc(501, 1)
