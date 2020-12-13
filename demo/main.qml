@@ -10,6 +10,7 @@ ApplicationWindow {
     visible: true
     color: "black"
     title: 'NegativeGrid'
+    property bool isfft: false
 
     function midi_to_note(mid) {
         let n = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][mid%12]
@@ -34,7 +35,7 @@ ApplicationWindow {
         rate: 44100
         frequency: 440
         length: 1024
-        amplitude: slider.value
+        amplitude: 2000
         Timer {
             running: false
             repeat: true
@@ -78,7 +79,7 @@ ApplicationWindow {
         ValueAxis {
             id: xAxis_
             min: 0
-            max: ac.output.length 
+            max: ls.source.length 
         }
 
         ValueAxis {
@@ -88,11 +89,21 @@ ApplicationWindow {
         }
 
         BufferLineSeries {
+            id: ls
             xAxis: xAxis_
             yAxis: yAxis_
             color: "orange"
             lineWidth: 2
             source: ac.output
+        }
+        
+        BufferLineSeries {
+            id: ls2
+            xAxis: xAxis_
+            yAxis: yAxis_
+            color: "blue"
+            lineWidth: 2
+            source: fft.output
         }
 
         SignalPlotControl {
@@ -101,6 +112,7 @@ ApplicationWindow {
             yAxis: yAxis_
         }
 
+
         Keys.onPressed: {
             if(event.key == 74)
                 synth.frequency *= Math.pow(2, -1/12)
@@ -108,13 +120,10 @@ ApplicationWindow {
                 synth.frequency *= Math.pow(2, 1/12)
         }
     }
-    Slider {
-        id: slider
-        from: 1
-        to: 8000
-        value: 2000
+    Button {
+        id: btn
+        text: isfft?'fft':'ac'
+        onClicked: isfft = !isfft
     }
-
-
 
 }
