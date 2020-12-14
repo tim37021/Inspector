@@ -15,7 +15,6 @@ class LiCAPv1(object):
         self._stopped = False
 
     def run(self):
-        self._ser = serial.Serial(self._port)
         self._ser.stopbits = serial.STOPBITS_ONE
         self._ser.bytesize = serial.EIGHTBITS
         self._ser.parity = serial.PARITY_NONE
@@ -44,8 +43,13 @@ class LiCAPv1(object):
 
     def start(self):
         self._stopped = False
-        self._t = threading.Thread(target=self.run, args=())
-        self._t.start()
+        try:
+            self._ser = serial.Serial(self._port)
+            self._t = threading.Thread(target=self.run, args=())
+            self._t.start()
+            return True
+        except Exception:
+            return False
 
     def stop(self):
         self._stopped = True

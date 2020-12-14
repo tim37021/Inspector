@@ -3,6 +3,7 @@ import QtQuick.Controls 2.12
 import hcmusic.audio 1.0
 import hcmusic.plot 1.0
 import hcmusic.dsp 1.0
+import hcmusic.licap 1.0
 
 ApplicationWindow {
     width: 800
@@ -30,16 +31,20 @@ ApplicationWindow {
         font.pointSize: 24
     }
 
+//    LiCAPv1 {
+
+//    }
+
     SineSynth {
         id: synth
-        rate: 44100
+        rate: 32000
         frequency: 440
         length: 1024
         amplitude: 2000
         Timer {
             running: false
             repeat: true
-            interval: 1024 / 44100 * 1000 
+            interval: 1024 / 32000 * 1000 
             onTriggered: synth.synth()
         }
     }
@@ -48,24 +53,24 @@ ApplicationWindow {
         id: aid
         active: true
         bufferLength: 1024
-        rate: 44100
+        rate: 32000
     }
 
     AudioOutputDevice2 {
         active: true
         bufferLength: 1024
         input: aid.output
-        rate: 44100
+        rate: 32000
     }
     AutoCorrelation {
         id: ac
         input: aid.output
-        rate: 44100
+        rate: 32000
     }
     FFT {
         id: fft
-        input: aid.output
-        rate: 44100
+        input: aid.outpust
+        rate: 32000
 
         //onFullChanged: {
             // this.saveToNpz('yoyo.npz')
