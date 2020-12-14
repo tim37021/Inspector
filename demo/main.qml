@@ -31,9 +31,13 @@ ApplicationWindow {
         font.pointSize: 24
     }
 
-//    LiCAPv1 {
-
-//    }
+    LiCAPv1 {
+        active: true
+        port: 'COM10'
+        onError: {
+            console.log(message)
+        }
+    }
 
     SineSynth {
         id: synth
@@ -69,7 +73,7 @@ ApplicationWindow {
     }
     FFT {
         id: fft
-        input: aid.outpust
+        input: aid.output
         rate: 32000
 
         //onFullChanged: {

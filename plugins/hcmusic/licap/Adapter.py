@@ -106,6 +106,7 @@ class QLiCAPv1(Node):
     activeChanged = Signal()
     bufferLengthChanged = Signal()
     portChanged = Signal()
+    error = Signal(str, arguments=['message'])
 
     def __init__(self, parent=None):
         Node.__init__(self, parent)
@@ -127,7 +128,7 @@ class QLiCAPv1(Node):
 
     @active.setter
     def active(self, val):
-        if self._active == val:
+        if self._active != val:
             self._active = val
             self.activeChanged.emit()
 
@@ -168,6 +169,7 @@ class QLiCAPv1(Node):
         if not self._device.start():
             self._active = False
             self.activeChanged.emit()
+            self.error.emit('Cannot open device %s' % self._port)
 
     def closeDevice(self):
         if self._device is not None:
