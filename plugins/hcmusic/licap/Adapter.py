@@ -106,6 +106,7 @@ class QLiCAPv1(Node):
     activeChanged = Signal()
     bufferLengthChanged = Signal()
     portChanged = Signal()
+    channelsChanged = Signal()
     error = Signal(str, arguments=['message'])
 
     def __init__(self, parent=None):
@@ -116,6 +117,7 @@ class QLiCAPv1(Node):
         self._acc = 0
         self._port = ''
         self._device = None
+        self._channels = [0, 1, 2, 3, 4, 5]
         QApplication.instance().aboutToQuit.connect(lambda: self.closeDevice())
 
     @Property(Signal1D, notify=outputChanged)
@@ -163,6 +165,19 @@ class QLiCAPv1(Node):
             if self.completed:
                 raise Exception('Changing bufferLength on the fly is not support')
 
+    @Property(list, notify=channelsChanged)
+    def channels(self):
+        return self._channels
+
+    @channels.setter
+    def channels(self, val):
+        if self._channels != val:
+            self._channels = val
+            self.channelsChanged.emit()
+
+            if self.completed:
+                raise Exception('Changing channels on the fly is not supported yet')
+
     def openDevice(self):
         self.closeDevice()
         self._device = LiCAPv1(self._port, self._update)
@@ -177,13 +192,13 @@ class QLiCAPv1(Node):
             self._device = None
 
     def _update(self, buf):
-        self._output.numpy_array[self._acc: self._acc+len(buf), :] = buf
+        self._output.numpy_array[self._acc: self._acc+len(buf), :] = buf[:, self._channels]
         self._acc += len(buf)
         if self._acc >= self._bufferLength:
             self._acc = 0
             self._output.update.emit(0, self._bufferLength)
 
     def initialize(self):
-        self._output.alloc(self._bufferLength, 6)
+        self._output.alloc(self._bufferLength, len(self._channels))
         if self._active:
             self.openDevice()
