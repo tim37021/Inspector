@@ -54,7 +54,8 @@ class QtSignal1D(Signal1D):
         return self._buf
 
     def slice(self, offset, length):
-        return QtCore.QByteArray(self.numpy_array[offset, offset+length, :])
+        return self._buf[offset * self._channels * 4: (offset+length) * self._channels * 4]
+        # return QtCore.QByteArray(self.numpy_array[offset: offset+length, :].tobytes())
 
     def alloc(self, length, channels):
         self._buf = QtCore.QByteArray(length * channels * 4, 0)
@@ -81,6 +82,18 @@ class QtSignal1D(Signal1D):
     @property
     def numpy_array(self):
         return np.frombuffer(self._buf, dtype=np.float32).reshape(self._length, self._channels)
+
+
+class NumpySignal1D(Signal1D):
+    def __init__(self, parent=None):
+        Signal1D.__init__(self, parent)
+
+    @Signal1D.buffer.getter
+    def buffer(self):
+        pass
+
+    def slice(self, offset, length):
+        return QtCore.QByteArray(self.numpy_array[offset, offset+length, :])
 
 
 class Node(QtQuick.QQuickItem):
@@ -376,3 +389,7 @@ class AutoCorrelation(ProcessorNode):
 
     def initialize(self):
         self._output.alloc(self._maxShift + 1, 1)
+
+class BufferView(ProcessorNode):
+    def __init__(self, parent=None):
+        ProcessorNode.__init__(self)

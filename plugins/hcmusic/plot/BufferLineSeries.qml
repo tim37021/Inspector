@@ -20,7 +20,8 @@ LineSeries {
 
     function slice(offset, length) {
         if(source) {
-            return new Float32Array(source.buffer, offset * 4, length)
+            return new Float32Array(source.slice(offset, length))
+            //return new Float32Array(source.buffer, offset * 4, length)
         } else
             return null
 
