@@ -70,6 +70,7 @@ ApplicationWindow {
         id: ac
         input: aid.output
         rate: 32000
+        windowSize: 500
     }
     FFT {
         id: fft
