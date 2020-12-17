@@ -5,7 +5,7 @@ Entity {
     property var material
     property alias buffer: buf
     property alias count: attr.count
-    property int capacity: 2
+    property int capacity: 0
 
     property alias primitiveType: geometryRenderer.primitiveType
 
