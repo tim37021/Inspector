@@ -6,12 +6,10 @@ AudioDevice plugin is an example plugin, it provides audio functionalities for I
 
 from PySide2.QtCore import QObject, Signal, Property, Slot, QByteArray, QAbstractListModel, Qt, QModelIndex
 from PySide2.QtWidgets import QApplication
-from PySide2.QtQuick import QQuickItem
-
 import pyaudio
 import numpy as np
 import queue
-from Buffer import BufferedSource, SignalOutput
+from Buffer import BufferedSource
 from ..dsp.Node import QtSignal1D, Signal1D, Node
 p = pyaudio.PyAudio()
 
@@ -174,7 +172,7 @@ class AudioInputDevice2(Node):
             self._bufferLength = val
             self.bufferLengthChanged.emit()
 
-            if self.complated:
+            if self.completed:
                 self._output.alloc(self._bufferLength, self._channels)
                 self._output.update.emit(0, self._bufferLength)
                 if self._active:

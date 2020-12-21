@@ -1,3 +1,4 @@
+
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import hcmusic.audio 1.0
@@ -10,8 +11,7 @@ ApplicationWindow {
     height: 600
     visible: true
     color: "black"
-    title: 'NegativeGrid'
-    property bool isfft: false
+    title: 'NegativeGrid' + `${spc.mouseCoordX}${spc.mouseCoordY}`
 
     function midi_to_note(mid) {
         let n = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][mid%12]
@@ -23,17 +23,13 @@ ApplicationWindow {
         source: 'logo.png'
     }
 
-    Text {
-        anchors.right: parent.right
-        anchors.top: parent.top
-        text: midi_to_note(Math.round(69 + Math.log2(ac.frequency/440)*12))
-        color: "white"
-        font.pointSize: 24
-    }
 
     LiCAPv1 {
+        id: lid
         active: true
-        port: 'COM10'
+        port: 'COM3'
+        channels: [4]
+        bufferLength: 1024
         onError: {
             console.log(message)
         }
@@ -48,7 +44,7 @@ ApplicationWindow {
         Timer {
             running: false
             repeat: true
-            interval: 1024 / 32000 * 1000 
+            interval: parent.frequency / 32000 * 1000 
             onTriggered: synth.synth()
         }
     }
@@ -60,29 +56,36 @@ ApplicationWindow {
         rate: 32000
     }
 
+    RingBuffer {
+        id: rb
+        input: lid.output
+        length: 32000
+        channels: 1
+    }
+
+/*
     AudioOutputDevice2 {
         active: true
         bufferLength: 1024
         input: aid.output
         rate: 32000
     }
+    */
+    /*
+    RingBuffer {
+        id: rb
+        input: lid.output
+        length: 1024
+        channels: 1
+    }*/
+/*
     AutoCorrelation {
         id: ac
-        input: aid.output
+        input: rb.output
         rate: 32000
         windowSize: 500
     }
-    FFT {
-        id: fft
-        input: aid.output
-        rate: 32000
-
-        //onFullChanged: {
-            // this.saveToNpz('yoyo.npz')
-            // console.log('saved')
-        //}
-    }
-
+*/
     SignalPlotOpenGL {
         anchors.fill: parent
         focus: true
@@ -104,19 +107,11 @@ ApplicationWindow {
             yAxis: yAxis_
             color: "orange"
             lineWidth: 2
-            source: ac.output
+            source: rb.output
         }
         
-        BufferLineSeries {
-            id: ls2
-            xAxis: xAxis_
-            yAxis: yAxis_
-            color: "blue"
-            lineWidth: 2
-            source: fft.output
-        }
-
         SignalPlotControl {
+            id: spc
             anchors.fill: parent
             xAxis: xAxis_
             yAxis: yAxis_
@@ -130,10 +125,4 @@ ApplicationWindow {
                 synth.frequency *= Math.pow(2, 1/12)
         }
     }
-    Button {
-        id: btn
-        text: isfft?'fft':'ac'
-        onClicked: isfft = !isfft
-    }
-
 }
