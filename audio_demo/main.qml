@@ -1,52 +1,19 @@
-
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import hcmusic.audio 1.0
 import hcmusic.plot 1.0
 import hcmusic.dsp 1.0
-import hcmusic.licap 1.0
 
 ApplicationWindow {
     width: 800
     height: 600
     visible: true
     color: "black"
-    title: 'NegativeGrid' + `${spc.mouseCoordX}${spc.mouseCoordY}`
+    title: 'NegativeGrid'
 
     function midi_to_note(mid) {
         let n = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][mid%12]
         return n+(Math.floor(mid / 12)-1)
-    }
-
-    Image {
-        anchors.centerIn: parent
-        source: 'logo.png'
-    }
-
-
-    LiCAPv1 {
-        id: lid
-        active: true
-        port: 'COM3'
-        channels: [4]
-        bufferLength: 1024
-        onError: {
-            console.log(message)
-        }
-    }
-
-    SineSynth {
-        id: synth
-        rate: 32000
-        frequency: 440
-        length: 1024
-        amplitude: 2000
-        Timer {
-            running: false
-            repeat: true
-            interval: parent.frequency / 32000 * 1000 
-            onTriggered: synth.synth()
-        }
     }
 
     AudioInputDevice2 {
@@ -58,34 +25,18 @@ ApplicationWindow {
 
     RingBuffer {
         id: rb
-        input: lid.output
+        input: aid.output
         length: 32000
         channels: 1
     }
 
-/*
     AudioOutputDevice2 {
         active: true
         bufferLength: 1024
         input: aid.output
         rate: 32000
     }
-    */
-    /*
-    RingBuffer {
-        id: rb
-        input: lid.output
-        length: 1024
-        channels: 1
-    }*/
-/*
-    AutoCorrelation {
-        id: ac
-        input: rb.output
-        rate: 32000
-        windowSize: 500
-    }
-*/
+ 
     SignalPlotOpenGL {
         anchors.fill: parent
         focus: true

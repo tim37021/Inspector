@@ -54,7 +54,8 @@ class QtSignal1D(Signal1D):
         return self._buf
 
     def slice(self, offset, length):
-        return QtCore.QByteArray(self.numpy_array[offset, offset+length, :])
+        return self._buf[offset * self._channels * 4: (offset+length) * self._channels * 4]
+        # return QtCore.QByteArray(self.numpy_array[offset: offset+length, :].tobytes())
 
     def alloc(self, length, channels):
         self._buf = QtCore.QByteArray(length * channels * 4, 0)
@@ -297,11 +298,56 @@ class FFT(ProcessorNode):
 class AutoCorrelation(ProcessorNode):
     frequencyChanged = Signal()
     rateChanged = Signal()
+    minShiftChanged = Signal()
+    maxShiftChanged = Signal()
+    windowSizeChanged = Signal()
 
     def __init__(self, parent=None):
         ProcessorNode.__init__(self, QtSignal1D, parent)
         self._frequency = 0
         self._rate = 0
+        self._minShift = 32
+        self._maxShift = 500
+        self._windowSize = 256
+
+    @Property(int, notify=minShiftChanged)
+    def minShift(self):
+        return self._minShift
+
+    @minShift.setter
+    def minShift(self, val):
+        if self._minShift != val:
+            self._minShift = val
+            self.minShiftChanged.emit()
+
+            if self.completed:
+                self.initialize()
+
+    @Property(int, notify=maxShiftChanged)
+    def maxShift(self):
+        return self._maxShift
+
+    @maxShift.setter
+    def maxShift(self, val):
+        if self._maxShift != val:
+            self._maxShift = val
+            self.maxShiftChanged.emit()
+
+            if self.completed:
+                self.initialize()
+
+    @Property(int, notify=windowSizeChanged)
+    def windowSize(self):
+        return self._windowSize
+
+    @windowSize.setter
+    def windowSize(self, val):
+        if self._windowSize != val:
+            self._windowSize = val
+            self.windowSizeChanged.emit()
+
+            if self.completed:
+                self.initialize()
 
     @Property(float, final=True, notify=frequencyChanged)
     def frequency(self):
@@ -319,14 +365,15 @@ class AutoCorrelation(ProcessorNode):
 
     def update(self, offset, length):
         from cInspector import auto_correlation
-        ac = np.zeros(shape=501, dtype=np.float32)
-        ac[32:] = auto_correlation(self._input.numpy_array.reshape(-1), 32, 500, 256)
-        self._output.numpy_array[...] = ac.reshape(501, 1) 
-        self._output.update.emit(0, 501)
-        freq = self._rate / (ac[32:].argmin()+32)
+        ll = self._maxShift - self._minShift + 1
+        ac = np.zeros(shape=self._maxShift+1, dtype=np.float32)
+        ac[self._minShift:] = auto_correlation(self._input.numpy_array.reshape(-1), self._minShift, self._maxShift, self._windowSize)
+        self._output.numpy_array[...] = ac.reshape(self._maxShift+1, 1)
+        self._output.update.emit(self._minShift, ll)
+        freq = self._rate / (ac[self._minShift:].argmin()+self._minShift)
         if freq != self._frequency:
             self._frequency = freq
             self.frequencyChanged.emit()
 
     def initialize(self):
-        self._output.alloc(501, 1)
+        self._output.alloc(self._maxShift + 1, 1)

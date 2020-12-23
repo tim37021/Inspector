@@ -1,5 +1,5 @@
-from .Adapter import LiCAPDevice
+from .Adapter import QLiCAPv1
 
 qmlexports = [
-    {'class': LiCAPDevice, 'exportName': 'LiCAPDevice', 'uri': 'hcmusic.licap', 'major': 1, 'minor' : 0}
+    {'class': QLiCAPv1, 'exportName': 'LiCAPv1', 'uri': 'hcmusic.licap', 'major': 1, 'minor': 0},
 ]

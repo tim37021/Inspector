@@ -36,7 +36,7 @@ Entity {
                 buffer : Buffer {
                     id: buf
                     type: Buffer.VertexBuffer
-                    data: new Float32Array(new Array(0).fill(0))
+                    data: new Float32Array(new Array(2).fill(0))
                 }
             }, Attribute {
                 id: dummy

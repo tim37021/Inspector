@@ -1,15 +1,16 @@
-from PySide2.QtCore import Signal, Property, QEnum
+from PySide2.QtCore import Signal, Property
 from PySide2.QtWidgets import QApplication
-from .LiCAPDevice import *
-from enum import Enum
-from Buffer import BufferedSource
+from ..dsp.Node import QtSignal1D, Node, Signal1D
+from .LiCAPDevice import LiCAPv1
 
+
+"""
 class LiCAPDevice(BufferedSource):
     portChanged = Signal()
     deviceTypeChanged = Signal()
     recordingChanged = Signal()
     rateChanged = Signal()
-    
+
     @QEnum
     class Variant(Enum):
         LiCAPv1, LiCAP_R_DVT = range(2)
@@ -94,3 +95,111 @@ class LiCAPDevice(BufferedSource):
         # to [channel, length]
         buf = buf.transpose()
         self.consume(buf)
+"""
+
+
+class QLiCAPv1(Node):
+    """LiCAP DSP Style
+
+    TODO: Check device exists
+    """
+    outputChanged = Signal()
+    activeChanged = Signal()
+    bufferLengthChanged = Signal()
+    portChanged = Signal()
+    channelsChanged = Signal()
+    error = Signal(str, arguments=['message'])
+
+    def __init__(self, parent=None):
+        Node.__init__(self, parent)
+        self._output = QtSignal1D()
+        self._active = False
+        self._bufferLength = 256
+        self._acc = 0
+        self._port = ''
+        self._device = None
+        self._channels = [0, 1, 2, 3, 4, 5]
+        QApplication.instance().aboutToQuit.connect(lambda: self.closeDevice())
+
+    @Property(Signal1D, notify=outputChanged)
+    def output(self):
+        return self._output
+
+    @Property(bool, notify=activeChanged)
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        if self._active != val:
+            self._active = val
+            self.activeChanged.emit()
+
+            if self.completed and self._active:
+                self.openDevice()
+            if self.completed and not self._active:
+                self.closeDevice()
+
+    @Property(str, notify=portChanged)
+    def port(self):
+        return self._port
+
+    @port.setter
+    def port(self, val):
+        if self._port != val:
+            self._port = val
+            self.portChanged.emit()
+
+            if self.completed and self._active:
+                self.openDevice()
+
+    @Property(int, notify=bufferLengthChanged)
+    def bufferLength(self):
+        return self._bufferLength
+
+    @bufferLength.setter
+    def bufferLength(self, val):
+        if self._bufferLength != val:
+            self._bufferLength = val
+            self.bufferLengthChanged.emit()
+
+            if self.completed:
+                raise Exception('Changing bufferLength on the fly is not support')
+
+    @Property(list, notify=channelsChanged)
+    def channels(self):
+        return self._channels
+
+    @channels.setter
+    def channels(self, val):
+        if self._channels != val:
+            self._channels = val
+            self.channelsChanged.emit()
+
+            if self.completed:
+                raise Exception('Changing channels on the fly is not supported yet')
+
+    def openDevice(self):
+        self.closeDevice()
+        self._device = LiCAPv1(self._port, self._update)
+        if not self._device.start():
+            self._active = False
+            self.activeChanged.emit()
+            self.error.emit('Cannot open device %s' % self._port)
+
+    def closeDevice(self):
+        if self._device is not None:
+            self._device.stop()
+            self._device = None
+
+    def _update(self, buf):
+        self._output.numpy_array[self._acc: self._acc+len(buf), :] = buf[:, self._channels]
+        self._acc += len(buf)
+        if self._acc >= self._bufferLength:
+            self._acc = 0
+            self._output.update.emit(0, self._bufferLength)
+
+    def initialize(self):
+        self._output.alloc(self._bufferLength, len(self._channels))
+        if self._active:
+            self.openDevice()
