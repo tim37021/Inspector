@@ -74,8 +74,12 @@ class App(object):
         engine.addImportPath('plugins')
         engine.addImportPath('imports')
 
-        # Load the qml file into the engine
-        engine.load('demo/main.qml')
+        if len(self._argv) == 1:
+            print('Use demo/main.qml')
+            engine.load('demo/main.qml')
+        else:
+            # Load the qml file into the engine
+            engine.load(self._argv[1])
 
         # Qml file error handling
         if not engine.rootObjects():
