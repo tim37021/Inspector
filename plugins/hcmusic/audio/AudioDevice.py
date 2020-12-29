@@ -6,6 +6,7 @@ AudioDevice plugin is an example plugin, it provides audio functionalities for I
 
 from PySide2.QtCore import QObject, Signal, Property, Slot, QByteArray, QAbstractListModel, Qt, QModelIndex
 from PySide2.QtWidgets import QApplication
+import sounddevice as sd
 import pyaudio
 import numpy as np
 import queue
@@ -121,6 +122,47 @@ class AudioDiscoveryModelProvider(QAbstractListModel):
                     dev['defaultSampleRate']
                 )
                 inp.append(dev['index'])
+
+
+class AudioDiscoveryModelProvider2(QAbstractListModel):
+    inputDeviceModelChanged = Signal()
+    defaultInputDeviceIndexChanged = Signal()
+    defaultOutputDeviceIndexChanged = Signal()
+
+    def __init__(self, parent=None):
+        QAbstractListModel.__init__(self, parent)
+
+        self._inputModel = AudioInputDeviceModel(self)
+        self.refresh()
+
+    @Property(QObject, final=True, notify=inputDeviceModelChanged)
+    def inputDeviceModel(self):
+        return self._inputModel
+
+    @Property(int, final=True, notify=defaultInputDeviceIndexChanged)
+    def defaultInputDeviceIndex(self):
+        return sd.default.device[0]
+
+    @Property(int, final=True, notify=defaultOutputDeviceIndexChanged)
+    def defaultOutputDeviceIndex(self):
+        return sd.default.device[1]
+
+    @Slot()
+    def refresh(self):
+        c = len(sd.query_devices())
+
+        inp = []
+        devs = sd.query_devices()
+        for i in range(c):
+            dev = devs[i]
+            if dev['max_input_channels'] > 0:
+                self._inputModel.update(
+                    i,
+                    dev['name'],
+                    dev['max_input_channels'],
+                    dev['default_sampleRate']
+                )
+                inp.append(i)
 
 
 class AudioInputDevice2(Node):
@@ -338,6 +380,131 @@ class AudioInputDevice(BufferedSource):
         self.consume(buf)
 
         return (np.zeros(1024, dtype=np.int16), pyaudio.paContinue)
+
+
+## Using Sounddevice module
+class AudioInputDevice3(Node):
+    bufferLengthChanged = Signal()
+    rateChanged = Signal()
+    activeChanged = Signal()
+    deviceIndexChanged = Signal()
+    outputChanged = Signal()
+    channelsChanged = Signal()
+
+    def __init__(self, parent=None):
+        Node.__init__(self, parent)
+
+        self._bufferLength = 1024
+        self._output = QtSignal1D()
+        self._active = False
+        self._rate = 44100
+        self._deviceIndex = sd.default.device[0] if sd.default.device[0] != -1 else None
+        self._stream = None
+        self._channels = 1
+
+        QApplication.instance().aboutToQuit.connect(lambda: self.closeDevice())
+
+    @Property(Signal1D, notify=outputChanged)
+    def output(self):
+        return self._output
+
+    @Property(bool)
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        if self._active != val:
+            self._active = val
+            self.activeChanged.emit()
+
+            if self.completed and self._active:
+                self.openDevice()
+            if self.completed and not self._active:
+                self.closeDevice()
+
+    @Property(int)
+    def bufferLength(self):
+        return self._bufferLength
+
+    @bufferLength.setter
+    def bufferLength(self, val):
+        if self._bufferLength != val:
+            self._bufferLength = val
+            self.bufferLengthChanged.emit()
+
+            if self.completed:
+                self._output.alloc(self._bufferLength, self._channels)
+                self._output.update.emit(0, self._bufferLength)
+                if self._active:
+                    raise Exception('Changing bufferLength when active is not support yet')
+
+    @Property(int)
+    def rate(self):
+        return self._rate
+
+    @rate.setter
+    def rate(self, val):
+        if self._rate != val:
+            self._rate = val
+            self.rateChanged.emit()
+
+            if self.completed and self._active:
+                self.openDevice()
+
+    @Property(int)
+    def deviceIndex(self):
+        return self._deviceIndex
+
+    @deviceIndex.setter
+    def deviceIndex(self, val):
+        if self._deviceIndex != val:
+            self._deviceIndex = val
+            self.deviceIndexChanged.emit()
+
+            if self.completed and self._active:
+                self.openDevice()
+
+    @Property(int)
+    def channels(self):
+        return self._channels
+
+    @channels.setter
+    def channels(self, val):
+        if self._channels != val:
+            self._channels = val
+            self.channelsChanged.emit()
+
+            if self.completed:
+                self._output.alloc(self._bufferLength, self._channels)
+                self._output.update.emit(0, self._bufferLength)
+                if self._active:
+                    raise Exception('Changing channels when active is not support yet')
+
+    def initialize(self):
+        self._output.alloc(self._bufferLength, self._channels)
+        self.outputChanged.emit()
+        if self._active:
+            self.openDevice()
+
+    def openDevice(self):
+        self.closeDevice()
+        self._stream = sd.InputStream(
+            dtype='int16',
+            channels=self._channels,
+            samplerate=self._rate,
+            blocksize=self._bufferLength,
+            device=self._deviceIndex,
+            callback=self.callback
+        )
+        self._stream.start()
+    def closeDevice(self):
+        if self._stream is not None:
+            self._stream.stop()
+    def callback(self, in_data, frame_count, time_info, status):
+        buf = np.frombuffer(in_data, dtype=np.int16).astype(np.float32).reshape(-1, self._channels)
+        self._output.numpy_array[...] = buf
+        self._output.update.emit(0, buf.shape[0])
 
 
 class AudioOutputDevice(QObject):
@@ -594,3 +761,154 @@ class AudioOutputDevice2(Node):
             if not data.flags['C_CONTIGUOUS']:
                 data = np.ascontiguousarray(data)
             return (data, pyaudio.paContinue)
+
+
+## Using Sounddevice module
+class AudioOutputDevice3(Node):
+    activeChanged = Signal()
+    bufferLengthChanged = Signal()
+    channelsChanged = Signal()
+    deviceIndexChanged = Signal()
+    inputChanged = Signal()
+    rateChanged = Signal()
+
+    def __init__(self, parent=None):
+        Node.__init__(self, parent)
+        self._rate = 44100
+        self._deviceIndex = sd.default.device[1] if sd.default.device[1] != -1 else None
+        self._bufferLength = 1024
+        self._input = None
+        self._active = False
+        self._stream = None
+        self._channels = 1
+        import queue
+        self._q = queue.Queue()
+
+        QApplication.instance().aboutToQuit.connect(lambda: self.closeDevice())
+
+    @Property(int)
+    def rate(self):
+        return self._rate
+
+    @rate.setter
+    def rate(self, val):
+        if self._rate != val:
+            self._rate = val
+            self.rateChanged.emit()
+
+            if self.completed and self._active:
+                self.openDevice()
+
+    @Property(int)
+    def deviceIndex(self):
+        return self._deviceIndex
+
+    @deviceIndex.setter
+    def deviceIndex(self, val):
+        if self._deviceIndex != val:
+            self._deviceIndex = val
+            self.deviceIndexChanged.emit()
+
+            if self.completed and self._active:
+                self.openDevice()
+
+    @Property(int)
+    def bufferLength(self):
+        return self._bufferLength
+
+    @bufferLength.setter
+    def bufferLength(self, val):
+        if self._bufferLength != val:
+            self._bufferLength = val
+            self.bufferLengthChanged.emit()
+
+            if self.completed and self._active:
+                raise Exception('Changing buffer size on the fly is not support yet')
+
+    @Property(int)
+    def channels(self):
+        return self._channels
+
+    @channels.setter
+    def channels(self, val):
+        if self._channels != val:
+            self._channels = val
+            self.channelsChanged.emit()
+
+            if self.complated and self._active:
+                raise Exception('Changing buffer size on the fly is not support yet')
+
+    @Property(Signal1D)
+    def input(self):
+        return self._input
+
+    @input.setter
+    def input(self, val):
+        if self._input != val:
+            if self._input is not None:
+                self._input.update.disconnect(self.appendBuffer)
+
+            self._input = val
+            self._input.update.connect(self.appendBuffer)
+            self.inputChanged.emit()
+
+    @Property(bool)
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        if self._active != val:
+            self._active = val
+            self.activeChanged.emit()
+
+            if self.completed and self._active:
+                self.openDevice()
+            if self.completed and not self._active:
+                self.closeDevice()
+
+    def appendBuffer(self, offset, length):
+        """append buffer when input buffer changed
+
+        TODO Discussion: should we auto normalize the buffer?
+        """
+        assert offset == 0 and length == self._input._length, 'Uncompatible node connected'
+        assert self._input._channels == self._channels, 'Wrong num of channels expected %d got %d' % (self._channels, self._input._channels)
+
+        data = self._input.numpy_array
+        if (np.abs(data) > 16384).any():
+            data /= data.max()
+            data *= 16384
+        data = data.astype(np.int16)
+        i = 0
+        bl = self._bufferLength
+        while i < self._input._length:
+            b = data[i: i+bl, :]
+            padded = np.pad(b, ((0, bl-b.shape[0]), (0, 0)))
+            self._q.put(padded)
+            i += bl
+
+    def initialize(self):
+        if self._active:
+            self.openDevice()
+
+    def openDevice(self):
+        self.closeDevice()
+        self._stream = sd.OutputStream(
+            samplerate=self._rate,
+            blocksize=self._bufferLength,
+            dtype='int16',
+            channels=self._channels,
+            device=self._deviceIndex,
+            callback=self.callback
+        )
+        self._stream.start()
+
+    def closeDevice(self):
+        if self._stream is not None:
+            self._stream.stop()
+
+    def callback(self, outdata, frames, time, status):
+        data = self._q.get()
+        if data is not None:
+            outdata[:] = data
