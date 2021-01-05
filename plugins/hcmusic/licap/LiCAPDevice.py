@@ -63,7 +63,7 @@ class LiCAPv1(object):
 
 
 class LiCAP_R_EVT(LiCAPv1):
-    MAPPING = [0, 6, 5, 3, 4, 1, 2, 7]
+    MAPPING = list(range(8))
 
     def run(self):
         self._ser = serial.Serial(self._port)

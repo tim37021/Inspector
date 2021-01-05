@@ -90,6 +90,7 @@ ApplicationWindow {
             sourceBuffer: LiCAPDevice {
                 port: vcpScanner.result
                 recording: true
+                deviceType: 1
             }
         }
     }
