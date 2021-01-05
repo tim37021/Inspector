@@ -96,6 +96,48 @@ class Node(QtQuick.QQuickItem):
     def initialize(self):
         pass
 
+class EstimateNode(Node):
+    inputChanged = Signal()
+    runningChanged = Signal()
+
+    def __init__(self, parent=None):
+        Node.__init__(self, parent)
+        self._running = True
+        self._input = None
+
+    @Property(Signal1D, notify=inputChanged)
+    def input(self):
+        return self._input
+
+    @input.setter
+    def input(self, val):
+        if self._input != val:
+            if self._input is not None:
+                self._input.update.disconnect(self._update)
+            self._input = val
+            self.inputChanged.emit()
+
+            self._input.update.connect(self._update)
+            if self.completed:
+                self._update()
+    
+    @Property(bool, notify=runningChanged)
+    def running(self):
+        return self._running
+
+    @running.setter
+    def running(self, val):
+        if self._running != val:
+            self._running = val
+            self.runningChanged.emit()
+
+    def _update(self, offset, length):
+        if self._running:
+            self.update(offset, length)
+
+    def update(self, offset, length):
+        raise Exception('Unimplemented update')
+
 
 class ProcessorNode(Node):
     inputChanged = Signal()
