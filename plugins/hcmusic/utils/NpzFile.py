@@ -1,7 +1,9 @@
 import numpy as np
 from PySide2.QtCore import Signal, Property, QUrl
-from Buffer import SignalOutput, BaseNode
 
+
+"""
+from Buffer import SignalOutput, BaseNode
 
 class NpzFile(BaseNode):
     filenameChanged = Signal()
@@ -34,3 +36,4 @@ class NpzFile(BaseNode):
             self._output = SignalOutput(arr.shape[1], arr.shape[0])
             self.outputChanged.emit()
             self._output.set(arr)
+"""
