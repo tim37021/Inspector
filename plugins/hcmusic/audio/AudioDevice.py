@@ -3,7 +3,6 @@
 AudioDevice plugin is an example plugin, it provides audio functionalities for Inspector
 
 """
-
 from PySide2.QtCore import QObject, Signal, Property, Slot, QAbstractListModel, Qt, QModelIndex
 from PySide2.QtWidgets import QApplication
 import pyaudio
@@ -403,3 +402,89 @@ class AudioOutputDevice(Node):
             if not data.flags['C_CONTIGUOUS']:
                 data = np.ascontiguousarray(data)
             return (data, pyaudio.paContinue)
+
+
+class RemoteAudioDevice(Node):
+    activeChanged = Signal()
+    portChanged = Signal()
+    bufferLengthChanged = Signal()
+    accept = Signal(str, arguments=['addr'])
+    outputChanged = Signal()
+    
+    def __init__(self, parent=None):
+        Node.__init__(self, parent)
+        self._port = 8888
+        self._active = False
+        self._bufferLength = 1024
+        self._stop = False
+        self._output = QtSignal1D()
+    
+    @Property(int, notify=portChanged)
+    def port(self):
+        return self._port
+
+    @port.setter
+    def port(self, val):
+        if self._port != val:
+            self._port = val
+            self.portChanged.emit()
+
+            if self.completed and self._active:
+                self.startServer()
+
+    @Property(bool, notify=activeChanged)
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, val):
+        if self._active != val:
+            self._active = val
+            self.activeChanged.emit()
+
+            if self.completed and self._active:
+                self.startServer()
+
+    @Property(int, notify=activeChanged)
+    def bufferLength(self):
+        return self._bufferLength
+
+    @bufferLength.setter
+    def bufferLength(self, val):
+        if self._bufferLength != val:
+            self._bufferLength = val
+            self.bufferLengthChanged.emit()
+
+    @Property(Signal1D, notify=outputChanged)
+    def output(self):
+        return self._output
+
+    def initialize(self):
+        self._output.alloc(self._bufferLength, 1)
+        if self._active:
+            self.startServer()
+
+    def startServer(self):
+        import threading
+        import socket
+        self._s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._s.bind(('0.0.0.0', 6677))
+        self._s.listen(1)
+        self._t = threading.Thread(target=self._run, args=())
+        self._stop = False
+        self._t.start()
+
+    def _run(self):
+        client, addr = self._s.accept()
+        self.accept.emit('%s:%d' % addr)
+        
+        while not self._stop:
+            data = b''
+            l = self._bufferLength * 2
+            while l > 0:
+                d = client.recv(l)
+                l -= len(d)
+                data += d
+            buf = np.frombuffer(data, dtype=np.int16).astype(np.float32).reshape(-1, 1)
+            self._output.numpy_array[...] = buf
+            self._output.update.emit(0, buf.shape[0])
