@@ -24,7 +24,14 @@ LineSeries {
             //return new Float32Array(source.buffer, offset * 4, length)
         } else
             return null
+    }
 
+    function sliceChannel(offset, length, channel) {
+        if(source) {
+            return new Float32Array(source.sliceChannel(offset, length, channel))
+            //return new Float32Array(source.buffer, offset * 4, length)
+        } else
+            return null
     }
 
 }

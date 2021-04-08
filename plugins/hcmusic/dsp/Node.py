@@ -57,6 +57,12 @@ class QtSignal1D(Signal1D):
         return self._buf[offset * self._channels * 4: (offset+length) * self._channels * 4]
         # return QtCore.QByteArray(self.numpy_array[offset: offset+length, :].tobytes())
 
+    @Slot(int, int, int, result=QtCore.QByteArray)
+    def sliceChannel(self, offset, length, channel):
+        ret = QtCore.QByteArray(self._length * 1 * 4, 0)
+        np.frombuffer(ret, dtype=np.float32).reshape(self._length, 1)[...] = self.numpy_array[:, channel].reshape(self._length, 1)
+        return ret[offset * 4: (offset + length) * 4]
+
     def alloc(self, length, channels):
         self._buf = QtCore.QByteArray(length * channels * 4, 0)
         if self._length != length:

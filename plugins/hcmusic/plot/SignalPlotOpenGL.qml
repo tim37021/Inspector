@@ -9,6 +9,7 @@ QQ2.Item {
     id: root
 
     property color clearColor: "transparent"
+    property int viewChannel: 0
     clip: true
 
     Scene3D {
@@ -48,7 +49,7 @@ QQ2.Item {
 
         // TODO better declarative API, reduce manual binding
         x.update.connect(function (offset, length) {
-            let b = x.slice(offset, length)
+            let b = x.sliceChannel(offset, length, root.viewChannel)
             obj.update(offset, b);
         })
 

@@ -69,7 +69,7 @@ class App(object):
 
         if len(self._argv) == 1:
             print('Use demo/main.qml')
-            engine.load('demo/main.qml')
+            engine.load('thermal/main.qml')
         else:
             # Load the qml file into the engine
             engine.load(self._argv[1])
