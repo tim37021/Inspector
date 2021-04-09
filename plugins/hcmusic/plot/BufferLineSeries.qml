@@ -4,6 +4,7 @@ import hcmusic.dsp 1.0
 LineSeries {
     id: root
     property Signal1D source
+    property int viewChannel: -1
 
     onSourceChanged: {
         if(source)
@@ -20,18 +21,12 @@ LineSeries {
 
     function slice(offset, length) {
         if(source) {
-            return new Float32Array(source.slice(offset, length))
+            if(viewChannel === -1)
+                return new Float32Array(source.slice(offset, length))
+            else
+                return new Float32Array(source.sliceChannel(offset, length, viewChannel))
             //return new Float32Array(source.buffer, offset * 4, length)
         } else
             return null
     }
-
-    function sliceChannel(offset, length, channel) {
-        if(source) {
-            return new Float32Array(source.sliceChannel(offset, length, channel))
-            //return new Float32Array(source.buffer, offset * 4, length)
-        } else
-            return null
-    }
-
 }

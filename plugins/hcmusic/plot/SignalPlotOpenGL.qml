@@ -49,7 +49,7 @@ QQ2.Item {
 
         // TODO better declarative API, reduce manual binding
         x.update.connect(function (offset, length) {
-            let b = x.sliceChannel(offset, length, root.viewChannel)
+            let b = x.slice(offset, length)
             obj.update(offset, b);
         })
 
