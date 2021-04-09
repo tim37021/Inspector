@@ -7,6 +7,7 @@ import numpy as np
 class QCsvLoader(Node):
     filenameChanged = Signal()
     outputChanged = Signal()
+    channelsChanged = Signal()
 
     def __init__(self, parent=None):
         Node.__init__(self, parent)
@@ -17,6 +18,7 @@ class QCsvLoader(Node):
         self._channelTimes = []
         self._channelHResolution = []
         self._channelHOffset = []
+        self._channels = 0
         self._output = QtSignal1D()
         self._filename = ''
 
@@ -25,6 +27,10 @@ class QCsvLoader(Node):
     @Property(QUrl, notify=filenameChanged)
     def filename(self):
         return self._filename
+    
+    @Property(int, notify=channelsChanged)
+    def channels(self):
+        return self._channels
 
     @filename.setter
     def filename(self, val):
@@ -75,10 +81,11 @@ class QCsvLoader(Node):
     def _extractFile(self, filename):
         header = np.genfromtxt(filename, delimiter = ',', skip_header = 2, max_rows = 8, dtype = str) 
         # Get channels count
-        channels = 0
+        self._channels = 0
         for block in header[0]:
             if "CH" in block:
-                channels += 1
+                self._channels += 1
+        self.channelsChanged.emit()
 
         # Clear channel info
         self._channelVUnits = []
@@ -89,7 +96,7 @@ class QCsvLoader(Node):
         self._channelHOffset = []
 
         # Set channel info
-        for i in range(1, channels + 1):
+        for i in range(1, self._channels + 1):
             self._channelDates.append(header[2][i])
             self._channelTimes.append(header[3][i])
             self._channelVUnits.append(header[4][i])
@@ -98,7 +105,7 @@ class QCsvLoader(Node):
             self._channelHUnits.append(header[7][i])
 
         # Load channel data
-        buf =np.genfromtxt(filename, delimiter = ',', skip_header = 10, usecols = range(1, channels + 1))
+        buf =np.genfromtxt(filename, delimiter = ',', skip_header = 10, usecols = range(1, self._channels + 1))
         length, _ = buf.shape
         self._output.resize(length)
         self._output.numpy_array[:, :] = buf[:, :]

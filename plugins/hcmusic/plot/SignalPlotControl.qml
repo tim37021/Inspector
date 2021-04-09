@@ -21,6 +21,11 @@ Item {
     property bool lockX: false
     property bool lockY: false
 
+    property bool lockScrollX: false
+    property bool lockScrollY: false
+    property bool lockZoomX: false
+    property bool lockZoomY: false
+
     QtObject {
         id: priv
         property real dragStartX
@@ -75,12 +80,12 @@ Item {
 
                 if(pressedButtons === Qt.LeftButton) {
                     // dragging
-                    if(!lockX) { xAxis.min -= dx; xAxis.max -= dx;}
-                    if(!lockY) { yAxis.min -= dy; yAxis.max -= dy; }
+                    if(!lockScrollX) { xAxis.min -= dx; xAxis.max -= dx;}
+                    if(!lockScrollY) { yAxis.min -= dy; yAxis.max -= dy; }
                 } else if(pressedButtons === Qt.RightButton){
                     // zooming
-                    if(!lockX) { xAxis.min += dx; xAxis.max -= dx; }
-                    if(!lockY) { yAxis.min += dy; yAxis.max -= dy; }
+                    if(!lockZoomX) { xAxis.min += dx; xAxis.max -= dx; }
+                    if(!lockZoomY) { yAxis.min += dy; yAxis.max -= dy; }
                 }
 
             }

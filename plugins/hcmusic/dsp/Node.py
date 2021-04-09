@@ -63,6 +63,20 @@ class QtSignal1D(Signal1D):
         np.frombuffer(ret, dtype=np.float32).reshape(self._length, 1)[...] = self.numpy_array[:, channel].reshape(self._length, 1)
         return ret[offset * 4: (offset + length) * 4]
 
+    @Slot(int, result=float)
+    def getChannelMax(self, channel):
+        if self.numpy_array.size > 0:
+            return self.numpy_array[:, channel].max()
+        else:
+            return 0
+
+    @Slot(int, result=float)
+    def getChannelMin(self, channel):
+        if self.numpy_array.size > 0:
+            return self.numpy_array[:, channel].min()
+        else:
+            return 0
+
     def alloc(self, length, channels):
         self._buf = QtCore.QByteArray(length * channels * 4, 0)
         if self._length != length:
