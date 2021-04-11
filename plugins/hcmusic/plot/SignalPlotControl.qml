@@ -59,8 +59,10 @@ Item {
             let dir = wheel.angleDelta.y>0? -1: 1
             let scale = (1+dir*0.1)
             if(!lockX) {
-                xAxis.min = (xAxis.min - mouseCoordX) * scale + mouseCoordX
-                xAxis.max = (xAxis.max - mouseCoordX) * scale + mouseCoordX
+                // xAxis.min = (xAxis.min - mouseCoordX) * scale + mouseCoordX
+                // xAxis.max = (xAxis.max - mouseCoordX) * scale + mouseCoordX
+                // As scroll
+                if(!lockScrollX) { xAxis.min -= wheel.angleDelta.x; xAxis.max -= wheel.angleDelta.x; console.log(wheel.angleDelta.x)}
             }
             if(!lockY) {
                 yAxis.min = (yAxis.min - mouseCoordY) * scale + mouseCoordY

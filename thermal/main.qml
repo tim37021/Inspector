@@ -124,7 +124,7 @@ ApplicationWindow {
                 anchors.left: parent.left; anchors.right: parent.right;
                 anchors.bottom: parent.bottom
                 anchors.leftMargin: tracksView.width * 0.15
-                height: 40
+                height: 30
                 color: "gray"
                 clip: true
 
@@ -151,8 +151,6 @@ ApplicationWindow {
                             anchors.bottom: parent.bottom
                             color: "white"
                         }
-                        
-                        onWidthChanged: { console.log(width)}
                     }
                 }
             }
@@ -161,8 +159,12 @@ ApplicationWindow {
                 id: xAxis_
                 min: 0
                 max: 1000
-                onMinChanged: if(min <=  0) min = 0
-                onMaxChanged: if(max >= csv.output.length) max = csv.output.length
+                onMinChanged: {
+                    if(min <=  0) min = 0
+                }
+                onMaxChanged: {
+                    if(max >= csv.output.length) max = csv.output.length
+                }
             }
 
             ValueAxis {

@@ -73,7 +73,7 @@ Item {
                 // yAxis: yAxis_
                 xAxis: xValueAxis
                 yAxis: yValueAxis
-                lockX: true
+                // lockX: true
                 lockY: true
                 lockScrollY: true
             }
