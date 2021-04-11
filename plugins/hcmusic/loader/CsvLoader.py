@@ -72,6 +72,10 @@ class QCsvLoader(Node):
     def getChannelHUnit(self, ch):
         return self._channelHUnits[ch]
 
+    @Slot()
+    def refresh(self):
+        self._output.update.emit(0, self._output.length)
+
     def close(self):
         pass
 

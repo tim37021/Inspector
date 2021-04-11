@@ -9,20 +9,16 @@ import hcmusic.plot 1.0
 import hcmusic.dsp 1.0
 
 Item {
-    property alias viewChannel: ls.viewChannel
-    property alias source: ls.source
-    property alias lineColor: ls.color
+    id: root
+    property ListModel signalModel
+    property Signal1D input
     property int samplerate: 3000
 
-    property ValueAxis xValueAxis: ValueAxis {
-        min: 0
-        max: ls.source.length 
-    }
+    property ValueAxis xValueAxis: ValueAxis {}
 
-    property ValueAxis yValueAxis: ValueAxis {
-        min: -16384
-        max: 16384
-    }
+    property ValueAxis yValueAxis: ValueAxis {}
+
+    signal componentAdded
 
     Item {
         id: infoSection
@@ -40,7 +36,6 @@ Item {
             text: (yValueAxis.min / 10).toFixed(0) * 10
             font.pixelSize: 12
         }
-
     }
     
     Rectangle {
@@ -51,44 +46,47 @@ Item {
         border.width: 1
 
         SignalPlotOpenGL {
+            id: canvas
             anchors.fill: parent
             focus: true
 
-            BufferLineSeries {
-                id: ls
-                // xAxis: xAxis_
-                // yAxis: yAxis_
-                xAxis: xValueAxis
-                yAxis: yValueAxis
-                color: "orange"
-                lineWidth: 2
-                source: null
-                viewChannel: 0
+            Repeater {
+                model: signalModel
+                BufferLineSeries {
+                    xAxis: xValueAxis
+                    yAxis: yValueAxis
+                    color: plotColor
+                    lineWidth: 2
+                    source: root.input
+                    viewChannel: plotChannel
+                }
             }
             
             SignalPlotControl {
                 id: spc
                 anchors.fill: parent
-                // xAxis: xAxis_
-                // yAxis: yAxis_
                 xAxis: xValueAxis
                 yAxis: yValueAxis
                 lockX: true
                 lockY: true
                 lockScrollY: true
             }
+
         }
     }
-    
 
     function signalFit() {
         xValueAxis.min = 0
         xValueAxis.max = samplerate * 5 // max for 5 seconds
-        let yA = Math.max(Math.abs(source.getChannelMin(viewChannel)), Math.abs(source.getChannelMax(viewChannel)))
+        let yA = 0
+        for(let i = 0; i < source.channels; i ++) {
+            yA = Math.max(Math.abs(source.getChannelMin(i)), Math.abs(source.getChannelMax(i)))
+        }
         if(yValueAxis.min > ( - yA - 10))
             yValueAxis.min =  - yA - 10
 
         if(yValueAxis.max < (yA + 10))
             yValueAxis.max = yA + 10
     }
+
 }

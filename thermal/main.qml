@@ -19,7 +19,26 @@ ApplicationWindow {
     color: "black"
     // title: `${spc.mouseCoordX}${spc.mouseCoordY}`
 
-    CsvLoader { id: csv }
+    CsvLoader { 
+        id: csv 
+        onChannelsChanged: {
+            loadedSignals.clear()
+            let colors = [
+                'red',
+                'blue',
+                'green',
+                'purple',
+                'gray',
+                'black',
+                'yellow'
+            ]
+            for(let i = 0; i < channels; i++) {
+                loadedSignals.append({"plotChannel": i, "plotColor": colors[i]})
+            }
+        }
+    }
+
+    ListModel { id: loadedSignals }
 
     FileDialog {
         id: ofd
@@ -75,29 +94,105 @@ ApplicationWindow {
 
         Item {
             id: upper
-            anchors.top: parent.top; anchors.left: parent.left; anchors.right: parent.right;
-            anchors.bottom: lower.top;
+            anchors.left: parent.left; anchors.right: parent.right;
+            anchors.top: parent.top; anchors.bottom: lower.top;
+
+            Item {
+                id: tracksView
+                anchors.left: parent.left; anchors.right: parent.right;
+                anchors.top: parent.top; anchors.bottom: rulerArea.top
+
+                ListView {
+                    anchors.fill: parent
+                    model: loadedSignals
+                    delegate: track
+                    // snapMode: ListView.SnapToItem
+                    interactive: loadedSignals.length > 6
+                }
+            }
+            
+            // Rectangle {
+            //     id: ruler
+            //     anchors.left: parent.left; anchors.right: parent.right;
+            //     anchors.bottom: parent.bottom
+            //     height: 60
+            //     color: "yellow"
+            // }
 
             Rectangle {
+                id:rulerArea
                 anchors.left: parent.left; anchors.right: parent.right;
-                height: 60
-                SignalTrack {
-                    id: strack
-                    source: csv.output
-                    viewChannel: 0
+                anchors.bottom: parent.bottom
+                anchors.leftMargin: tracksView.width * 0.15
+                height: 40
+                color: "gray"
+                clip: true
+
+                ListView {
+                    id: ruler
                     anchors.fill: parent
+                    
+                    orientation: ListView.Horizontal
+                    model: (csv.output.length / 3000).toFixed(0)
+                    contentX: (xAxis_.min / (3000 * 5)) * ruler.width
+                    interactive: false
+                    delegate: Item {
+                        width: ruler.width * 3000 / (xAxis_.max - xAxis_.min )
+                        height: ruler.height
+                        Rectangle {
+                            width: 1
+                            height: 10
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                        }
+                        Text {
+                            text: index
+                            anchors.left: parent.left
+                            anchors.bottom: parent.bottom
+                            color: "white"
+                        }
+                        
+                        onWidthChanged: { console.log(width)}
+                    }
+                }
+            }
 
-                    Component.onCompleted: this.signalFit()
+            ValueAxis {
+                id: xAxis_
+                min: 0
+                max: 1000
+                onMinChanged: if(min <=  0) min = 0
+                onMaxChanged: if(max >= csv.output.length) max = csv.output.length
+            }
 
-                    Connections {
-                        target: csv
-                        function onUpdate() {
-                            strack.signalFit()
+            ValueAxis {
+                id: yAxis_
+                min: 0
+                max: 0
+            }
+
+            Component {
+                id: track
+
+                Rectangle {
+                    anchors.left: parent.left; anchors.right: parent.right;
+                    height: upper.height * 0.15
+                    SignalTrack {
+                        id: strack
+                        source: csv.output
+                        viewChannel: plotChannel
+                        lineColor: plotColor
+                        anchors.fill: parent
+                        xValueAxis: xAxis_
+                        yValueAxis: yAxis_
+
+                        Component.onCompleted: {
+                            csv.refresh()
+                            this.signalFit()
                         }
                     }
                 }
             }
-            
         }
 
         Rectangle {
@@ -105,6 +200,19 @@ ApplicationWindow {
             anchors.bottom: parent.bottom; anchors.left: parent.left; anchors.right: parent.right;
             height: parent.height * 0.3
             color: "blue"
+
+            // GatheredSignalTrack {
+            //     id: gatherTrack
+            //     visible: loadedSignals.count > 0
+            //     anchors.fill: parent
+            //     input: csv.output
+            //     xValueAxis: xAxis_
+            //     yValueAxis: yAxis_
+
+            //     Component.onCompleted: {
+            //         console.log(csv.output.getChannelMax(0))
+            //     }
+            // }
 
             MouseArea {
                 anchors.top: parent.top; anchors.right: parent.right;
@@ -114,7 +222,11 @@ ApplicationWindow {
                 cursorShape: Qt.SizeVerCursor
                 enabled: lower.width > 0
 
-                onMouseXChanged: lower.height -=  mouseY - startY
+                onMouseYChanged: {
+                    lower.height -=  mouseY - startY
+                    if(lower.height < 10)
+                        lower.height = 10
+                }
                 onClicked: startY = mouseY
             }
         }
@@ -135,7 +247,11 @@ ApplicationWindow {
             cursorShape: Qt.SizeHorCursor
             enabled: rightView.width > 0
 
-            onMouseXChanged: rightView.width -=  mouseX - startX
+            onMouseXChanged: {
+                rightView.width -=  mouseX - startX
+                if(rightView.width < 10)
+                    rightView.width = 10
+            }
             onClicked: startX = mouseX
         }
     }
