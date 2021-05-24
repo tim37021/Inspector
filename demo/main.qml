@@ -43,7 +43,7 @@ ApplicationWindow {
 
     MidiOutputDevice {
         id:midiout
-        portName: midiP.find("LiCAP")
+        portName: midiP.find("LiCAP Midi Device")
     }
 
     SineSynth {
