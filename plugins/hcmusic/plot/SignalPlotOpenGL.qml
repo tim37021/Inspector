@@ -11,6 +11,7 @@ QQ2.Item {
     property color clearColor: "transparent"
     property int viewChannel: 0
     clip: true
+    signal plotReady
 
     Scene3D {
         anchors.fill: parent
@@ -81,9 +82,8 @@ QQ2.Item {
             if(x instanceof LineSeries) {
                 addObject(x, 'linestrip') 
             }
-
         }
-
+        root.plotReady()
     }
 
 }

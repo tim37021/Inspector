@@ -10,21 +10,60 @@ import hcmusic.dsp 1.0
 
 Item {
     id: root
-    property ListModel signalModel
-    property Signal1D input
-    property int samplerate: 3000
+    property Signal1D source
+    property ListModel model: ListModel {
+        ListElement {
+            plotColor: "red"
+            plotChannel: 10
+        }
+        ListElement {
+            plotColor: "blue"
+            plotChannel: 11
+        }
+        ListElement {
+            plotColor: "green"
+            plotChannel: 12
+        }
+        ListElement {
+            plotColor: "yellow"
+            plotChannel: 13
+        }
+        
+        ListElement {
+            plotColor: "gray"
+            plotChannel: 14
+        }
+        ListElement {
+            plotColor: "black"
+            plotChannel: 15
+        }
+        ListElement {
+            plotColor: "orange"
+            plotChannel: 16
+        }
+        ListElement {
+            plotColor: "darkgray"
+            plotChannel: 17
+        }
+    }
 
-    property ValueAxis xValueAxis: ValueAxis {}
+    property ValueAxis xValueAxis: ValueAxis {
+        min: 0
+        max: root.source.length 
+    }
 
-    property ValueAxis yValueAxis: ValueAxis {}
+    property ValueAxis yValueAxis: ValueAxis {
+        min: -16384
+        max: 16384
+    }
 
-    signal componentAdded
+    signal plotReady
 
     Item {
         id: infoSection
         anchors.top:parent.top; anchors.bottom: parent.bottom;
         anchors.left: parent.left;
-        width: parent.width * 0.15
+        width: Math.min(parent.width * 0.15, 80)
 
         Text {
             anchors.top:parent.top; anchors.right: parent.right
@@ -36,6 +75,7 @@ Item {
             text: (yValueAxis.min / 10).toFixed(0) * 10
             font.pixelSize: 12
         }
+
     }
     
     Rectangle {
@@ -46,47 +86,52 @@ Item {
         border.width: 1
 
         SignalPlotOpenGL {
-            id: canvas
             anchors.fill: parent
             focus: true
 
             Repeater {
-                model: signalModel
-                BufferLineSeries {
+                id: rep
+                model: root.model
+                delegate: BufferLineSeries {
+                    id: ls
+                    // xAxis: xAxis_
+                    // yAxis: yAxis_
                     xAxis: xValueAxis
                     yAxis: yValueAxis
                     color: plotColor
                     lineWidth: 2
-                    source: root.input
+                    source: root.source
                     viewChannel: plotChannel
                 }
             }
+
+            // BufferLineSeries {
+            //     id: ls
+            //     // xAxis: xAxis_
+            //     // yAxis: yAxis_
+            //     xAxis: xValueAxis
+            //     yAxis: yValueAxis
+            //     color: "orange"
+            //     lineWidth: 2
+            //     source: null
+            //     viewChannel: 0
+            // }
             
             SignalPlotControl {
                 id: spc
                 anchors.fill: parent
+                // xAxis: xAxis_
+                // yAxis: yAxis_
                 xAxis: xValueAxis
                 yAxis: yValueAxis
-                lockX: true
+                // lockX: true
                 lockY: true
                 lockScrollY: true
             }
 
+            onPlotReady: {
+                root.plotReady()
+            }
         }
     }
-
-    function signalFit() {
-        xValueAxis.min = 0
-        xValueAxis.max = samplerate * 5 // max for 5 seconds
-        let yA = 0
-        for(let i = 0; i < source.channels; i ++) {
-            yA = Math.max(Math.abs(source.getChannelMin(i)), Math.abs(source.getChannelMax(i)))
-        }
-        if(yValueAxis.min > ( - yA - 10))
-            yValueAxis.min =  - yA - 10
-
-        if(yValueAxis.max < (yA + 10))
-            yValueAxis.max = yA + 10
-    }
-
 }

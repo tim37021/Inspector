@@ -9,10 +9,11 @@ import hcmusic.plot 1.0
 import hcmusic.dsp 1.0
 
 Item {
+    id: root
     property alias viewChannel: ls.viewChannel
     property alias source: ls.source
     property alias lineColor: ls.color
-    property int samplerate: 3000
+    property string infoText 
 
     property ValueAxis xValueAxis: ValueAxis {
         min: 0
@@ -24,11 +25,20 @@ Item {
         max: 16384
     }
 
+    signal plotReady
+
     Item {
         id: infoSection
         anchors.top:parent.top; anchors.bottom: parent.bottom;
         anchors.left: parent.left;
-        width: parent.width * 0.15
+        width: Math.min(parent.width * 0.15, 80)
+
+        Text {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: 5
+            text: root.infoText
+        }
 
         Text {
             anchors.top:parent.top; anchors.right: parent.right
@@ -40,7 +50,6 @@ Item {
             text: (yValueAxis.min / 10).toFixed(0) * 10
             font.pixelSize: 12
         }
-
     }
     
     Rectangle {
@@ -56,8 +65,6 @@ Item {
 
             BufferLineSeries {
                 id: ls
-                // xAxis: xAxis_
-                // yAxis: yAxis_
                 xAxis: xValueAxis
                 yAxis: yValueAxis
                 color: "orange"
@@ -69,26 +76,15 @@ Item {
             SignalPlotControl {
                 id: spc
                 anchors.fill: parent
-                // xAxis: xAxis_
-                // yAxis: yAxis_
                 xAxis: xValueAxis
                 yAxis: yValueAxis
-                // lockX: true
                 lockY: true
                 lockScrollY: true
             }
+
+            onPlotReady: {
+                root.plotReady()
+            }
         }
-    }
-    
-
-    function signalFit() {
-        xValueAxis.min = 0
-        xValueAxis.max = samplerate * 5 // max for 5 seconds
-        let yA = Math.max(Math.abs(source.getChannelMin(viewChannel)), Math.abs(source.getChannelMax(viewChannel)))
-        if(yValueAxis.min > ( - yA - 10))
-            yValueAxis.min =  - yA - 10
-
-        if(yValueAxis.max < (yA + 10))
-            yValueAxis.max = yA + 10
     }
 }

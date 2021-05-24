@@ -62,7 +62,7 @@ Item {
                 // xAxis.min = (xAxis.min - mouseCoordX) * scale + mouseCoordX
                 // xAxis.max = (xAxis.max - mouseCoordX) * scale + mouseCoordX
                 // As scroll
-                if(!lockScrollX) { xAxis.min -= wheel.angleDelta.x; xAxis.max -= wheel.angleDelta.x; console.log(wheel.angleDelta.x)}
+                if(!lockScrollX) { xAxis.min -= wheel.angleDelta.x; xAxis.max -= wheel.angleDelta.x;}
             }
             if(!lockY) {
                 yAxis.min = (yAxis.min - mouseCoordY) * scale + mouseCoordY
