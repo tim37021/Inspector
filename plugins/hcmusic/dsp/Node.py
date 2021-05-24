@@ -4,6 +4,8 @@ from PySide2.QtCore import Property, Signal, Slot
 import numpy as np
 from math import ceil, log2
 
+from numpy.core.numeric import convolve
+
 
 class Signal1D(QtCore.QObject):
     """Signal1D for Property Object"""
@@ -60,8 +62,13 @@ class QtSignal1D(Signal1D):
     @Slot(int, int, int, result=QtCore.QByteArray)
     def sliceChannel(self, offset, length, channel):
         ret = QtCore.QByteArray(self._length * 1 * 4, 0)
-        np.frombuffer(ret, dtype=np.float32).reshape(self._length, 1)[...] = self.numpy_array[:, channel].reshape(self._length, 1)
+        np.frombuffer(ret, dtype=np.float32).reshape(self._length, 1)[:] = self.numpy_array[:, channel].reshape(self._length, 1)[:]
+        # print(self.numpy_array[:, channel].reshape(self._length, 1))
         return ret[offset * 4: (offset + length) * 4]
+    # @Slot(int, int, int, result=QtCore.QByteArray)
+    # def sliceChannel(self, offset, length, channel):
+    #     print(self._buf[offset * self._channels * 4 + channel * 4 : (offset+length) * self._channels * 4 + channel * 4: self._channels * 4].length())
+    #     return self._buf[offset * self._channels * 4 + channel * 4 : (offset+length) * self._channels * 4 + channel * 4: self._channels * 4]
 
     @Slot(int, result=float)
     def getChannelMax(self, channel):
@@ -371,6 +378,9 @@ class AutoCorrelation(ProcessorNode):
         self._minShift = 32
         self._maxShift = 500
         self._windowSize = 256
+        self._offset = 0
+        self._length = self._maxShift * 2
+        self._viewChannel = 0
 
     @Property(int, notify=minShiftChanged)
     def minShift(self):
@@ -424,13 +434,22 @@ class AutoCorrelation(ProcessorNode):
         if self._rate != val:
             self._rate = val
             self.rateChanged.emit()
+    
+    @Slot()
+    def refresh(self):
+        self._output.update.emit(self._minShift, self._maxShift - self._minShift + 1)
 
     def update(self, offset, length):
         from cInspector import auto_correlation
+        
         ll = self._maxShift - self._minShift + 1
-        ac = np.zeros(shape=self._maxShift+1, dtype=np.float32)
-        ac[self._minShift:] = auto_correlation(self._input.numpy_array.reshape(-1), self._minShift, self._maxShift, self._windowSize)
-        self._output.numpy_array[...] = ac.reshape(self._maxShift+1, 1)
+        if self._length < self._windowSize:
+            self._length = self._windowSize
+        ac = np.zeros(shape=(self._maxShift+1, self._input.channels), dtype=np.float32)
+        for i in range(self._input.channels):
+            ac[self._minShift:, i] = auto_correlation(self._input.numpy_array[self._offset: self._offset + self._length, i].reshape(-1), self._minShift, self._maxShift, self._windowSize)
+        
+        self._output.numpy_array[...] = ac.reshape(self._maxShift+1, self._input.channels)
         self._output.update.emit(self._minShift, ll)
         freq = self._rate / (ac[self._minShift:].argmin()+self._minShift)
         if freq != self._frequency:
@@ -438,4 +457,4 @@ class AutoCorrelation(ProcessorNode):
             self.frequencyChanged.emit()
 
     def initialize(self):
-        self._output.alloc(self._maxShift + 1, 1)
+        self._output.alloc(self._maxShift + 1, 6)

@@ -68,9 +68,13 @@ class QCsvLoader(Node):
     def getChannelHOffset(self, ch):
         return self._channelHOffset[ch]
 
-    @Slot(int, result=str)
-    def getChannelHUnit(self, ch):
-        return self._channelHUnits[ch]
+    @Slot(result="QVariantList")
+    def getChannelVUnits(self):
+        return self._channelVUnits
+
+    @Slot(result="QVariantList")
+    def getChannelHUnits(self):
+        return self._channelHUnits
 
     @Slot()
     def refresh(self):
@@ -113,5 +117,6 @@ class QCsvLoader(Node):
         length, _ = buf.shape
         self._output.resize(length)
         self._output.numpy_array[:, :] = buf[:, :]
+
         if length > 0:
             self._output.update.emit(0, length)
