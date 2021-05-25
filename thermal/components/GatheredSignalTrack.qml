@@ -10,6 +10,7 @@ import hcmusic.dsp 1.0
 
 Item {
     id: root
+     property Rectangle plotSection: plotSec
     property Signal1D source
     property ListModel model: ListModel {
         ListElement {
@@ -57,7 +58,12 @@ Item {
         max: 16384
     }
 
+    property alias mouseCoordX: spc.mouseCoordX
+    property alias mouseCoordY: spc.mouseCoordY
+
     signal plotReady
+    signal mouseEntered
+    signal mouseLeaved
 
     Item {
         id: infoSection
@@ -75,11 +81,11 @@ Item {
             text: (yValueAxis.min / 10).toFixed(0) * 10
             font.pixelSize: 12
         }
-
     }
     
     Rectangle {
-        anchors.top:parent.top; anchors.bottom: parent.bottom;
+        id: plotSec
+        anchors.top: parent.top; anchors.bottom: parent.bottom;
         anchors.left: infoSection.right; anchors.right: parent.right;
         color: "white"
         border.color: "gray"
@@ -94,8 +100,6 @@ Item {
                 model: root.model
                 delegate: BufferLineSeries {
                     id: ls
-                    // xAxis: xAxis_
-                    // yAxis: yAxis_
                     xAxis: xValueAxis
                     yAxis: yValueAxis
                     color: plotColor
@@ -104,29 +108,21 @@ Item {
                     viewChannel: plotChannel
                 }
             }
-
-            // BufferLineSeries {
-            //     id: ls
-            //     // xAxis: xAxis_
-            //     // yAxis: yAxis_
-            //     xAxis: xValueAxis
-            //     yAxis: yValueAxis
-            //     color: "orange"
-            //     lineWidth: 2
-            //     source: null
-            //     viewChannel: 0
-            // }
             
             SignalPlotControl {
                 id: spc
                 anchors.fill: parent
-                // xAxis: xAxis_
-                // yAxis: yAxis_
                 xAxis: xValueAxis
                 yAxis: yValueAxis
                 // lockX: true
                 lockY: true
                 lockScrollY: true
+                hoverEnabled: true
+
+                onContainsMouseChanged: {
+                    if(containsMouse) root.mouseEntered()
+                    else root.mouseLeaved()
+                }
             }
 
             onPlotReady: {

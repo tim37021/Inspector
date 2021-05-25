@@ -16,6 +16,7 @@ Item {
     property alias dragging: ma.containsPress
 
     property alias hoverEnabled: ma.hoverEnabled
+    property alias containsMouse: ma.containsMouse
 
     property bool lockView: false
     property bool lockX: false

@@ -737,10 +737,6 @@ class PhaseWireCalc(ProcessorNode):
         
         for i in range(len(self._channelName)):
             ret.append({"name": self._channelName[i], "v1": str(self._output.numpy_array[t1, i]), "v2": str(self._output.numpy_array[t2, i]), "v3": str(self._output.numpy_array[t2, i] - self._output.numpy_array[t1, i])})
-
-        print('\n\n')
-        for key in ret:
-            print(key)
         return ret
 
     def update(self, offset, length):

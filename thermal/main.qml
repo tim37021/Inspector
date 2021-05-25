@@ -43,7 +43,9 @@ ApplicationWindow {
         }
     }
 
-    PhaseWireCalc { id: c2cConv; input: csv.output; t1:0; t2: input.length; channels: [0, 1, 2, 3, 4, 5]//[0, 1, 2, 4, 5, 3]
+    PhaseWireCalc {
+        id: c2cConv; 
+        input: csv.output; t1:0; t2: input.length; channels: [0, 1, 2, 3, 4, 5]//[0, 1, 2, 4, 5, 3]
         onCalcFinished: {
             channelUnits = csv.getChannelVUnits()
             itTop.model = [
@@ -132,7 +134,7 @@ ApplicationWindow {
                 anchors.leftMargin: Math.min(tracksView.width * 0.15, 80)
                 height: 20
                 color: appStyle.ruler
-                clip: true
+                clip: false
 
                 TrackRuler {
                     anchors.fill: parent
@@ -147,6 +149,7 @@ ApplicationWindow {
                 id: lowerTrack
 
                 Rectangle {
+                    id: gatherRect
                     anchors.left: parent.left; anchors.right: parent.right;
                     height: lowerTracksView.height
 
@@ -177,6 +180,53 @@ ApplicationWindow {
 
                             if(yValueAxis.max < (yA + 10))
                                 yValueAxis.max = yA + 10
+                        }
+                        SectionIndicator {
+                            id: sIndicate
+                            anchors.fill: parent.plotSection
+                            axisX: xAxis_c2c
+                            opacity: 0.8
+                            onCoordinateMinChanged: {
+                                updateDelay.restart()
+                            }
+                            onCoordinateMaxChanged: {
+                                updateDelay.restart()
+                            }
+                            function updateReport() {
+                                itTop.model = [
+                                    {"name": "No.", "v1": coordinateMin.toFixed(0), "v2": coordinateMax.toFixed(0), "v3": coordinateMax.toFixed(0) - coordinateMin.toFixed(0)}
+                                ]
+                                itLow.model = c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
+                                xAxis_.min = coordinateMin.toFixed(0)
+                                xAxis_.max = coordinateMax.toFixed(0)
+                            }
+
+                            Timer {
+                                id: updateDelay
+                                interval: 1000
+                                repeat: false
+                                triggeredOnStart: false
+                                onTriggered: {
+                                    sIndicate.updateReport();
+                                }
+                            }
+
+                            Rectangle {
+                                visible: sIndicate.hoverOnDrag
+                                x: 10 + sIndicate.hoverMouseX
+                                y: 10 + sIndicate.hoverMouseY
+                                width: hoverText.width + 10
+                                height: hoverText.height + 10
+                                color: "black"
+                                z: 100
+
+                                Text {
+                                    id: hoverText
+                                    anchors.centerIn: parent
+                                    text: sIndicate.hoverOnMinDrag? "t1:" + sIndicate.coordinateMin.toFixed(0): "t2:" + sIndicate.coordinateMax.toFixed(0)
+                                    color: "white"
+                                }
+                            }
                         }
                     }
                 }
