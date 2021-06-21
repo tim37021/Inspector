@@ -191,7 +191,7 @@ class ProcessorNode(Node):
 
             self._input.update.connect(self._update)
             if self.completed:
-                self._update()
+                self._update(0, self._input.length)
 
     @Property(Signal1D, final=True, notify=outputChanged)
     def output(self):

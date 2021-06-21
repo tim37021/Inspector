@@ -27,7 +27,6 @@ Item {
         active: true
 
         sourceComponent: drawGrid? gridComp: null
-        
     }
 
     Repeater {

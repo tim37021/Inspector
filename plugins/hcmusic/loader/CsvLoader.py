@@ -18,6 +18,7 @@ class QCsvLoader(Node):
         self._channelTimes = []
         self._channelHResolution = []
         self._channelHOffset = []
+        self._channelNames = []
         self._channels = 0
         self._output = QtSignal1D()
         self._filename = ''
@@ -37,8 +38,16 @@ class QCsvLoader(Node):
         if self._filename == val:
             return
         self._filename = val
-        self._extractFile(self._filename.toLocalFile())
+        # self._extractFile(self._filename.toLocalFile())
         self.filenameChanged.emit()
+
+    @Slot()
+    def getHeader(self):
+        self._extractHeader(self._filename.toLocalFile())
+
+    @Slot()
+    def run(self):
+        self._extractFile(self._filename.toLocalFile())
 
     @Property(Signal1D, final=True, notify=outputChanged)
     def output(self):
@@ -75,6 +84,10 @@ class QCsvLoader(Node):
     @Slot(result="QVariantList")
     def getChannelHUnits(self):
         return self._channelHUnits
+    
+    @Slot(result="QVariantList")
+    def getChannelNames(self):
+        return self._channelNames
 
     @Slot()
     def refresh(self):
@@ -86,13 +99,14 @@ class QCsvLoader(Node):
     def initialize(self):
         self._output.alloc(0, 6)
 
-    def _extractFile(self, filename):
+    def _extractHeader(self, filename):
         header = np.genfromtxt(filename, delimiter = ',', skip_header = 2, max_rows = 8, dtype = str) 
         # Get channels count
         self._channels = 0
         for block in header[0]:
             if "CH" in block:
                 self._channels += 1
+                self._channelNames.append(block)
         self.channelsChanged.emit()
 
         # Clear channel info
@@ -111,6 +125,9 @@ class QCsvLoader(Node):
             self._channelHResolution.append(header[5][i])
             self._channelHOffset.append(header[6][i])
             self._channelHUnits.append(header[7][i])
+
+    def _extractFile(self, filename):
+        self._extractHeader(filename)
 
         # Load channel data
         buf =np.genfromtxt(filename, delimiter = ',', skip_header = 10, usecols = range(1, self._channels + 1))

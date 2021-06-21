@@ -15,6 +15,8 @@ Item {
     property alias lineColor: ls.color
     property string infoText 
 
+    property bool showHoverY: true
+
     property ValueAxis xValueAxis: ValueAxis {
         min: 0
         max: ls.source.length 
@@ -63,6 +65,11 @@ Item {
             anchors.fill: parent
             focus: true
 
+            ListModel {
+                id: pointModel
+                ListElement {px: 0; py: 0;}
+            }
+
             BufferLineSeries {
                 id: ls
                 xAxis: xValueAxis
@@ -84,7 +91,58 @@ Item {
 
             onPlotReady: {
                 root.plotReady()
+            } 
+        }
+
+        MouseArea {
+            id: ma
+            anchors.fill: parent
+            property real mouseCoordX: (mouseX / width) * (xValueAxis.max - xValueAxis.min) + xValueAxis.min
+            property real mouseCoordY: (mouseY / height) * (yValueAxis.max - yValueAxis.min) + yValueAxis.min
+
+            hoverEnabled: true
+        }
+
+        Rectangle {
+            id: horizontalCrossHair
+            anchors.left: parent.left; anchors.right: parent.right;
+            height: 1
+            color: "gray"
+            y: (yValueAxis.max - root.getNearestY(ma.mouseCoordX)) / (yValueAxis.max - yValueAxis.min) * ma.height
+            visible: ma.containsMouse
+        }
+
+        Rectangle {
+            id: verticalCrossHair
+            anchors.top: parent.top; anchors.bottom: parent.bottom;
+            width: 1
+            color: "gray"
+            x: ma.mouseX
+            visible: ma.containsMouse
+        }
+
+        Rectangle {
+            border.width: 2
+            border.color: "black"
+            color: "gray"
+            width: 60
+            height: 30
+            anchors.verticalCenter: horizontalCrossHair.verticalCenter
+            anchors.right: parent.left;
+            anchors.rightMargin: 2
+            visible: ma.containsMouse
+            clip: true
+
+            Text {
+                anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter;
+                anchors.leftMargin: 2
+                text: root.getNearestY(ma.mouseCoordX).toString()
+                color: "black"
             }
         }
+    }
+
+    function getNearestY(x) {
+        return ls.slice(x, 1)
     }
 }

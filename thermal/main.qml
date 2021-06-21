@@ -23,36 +23,27 @@ ApplicationWindow {
 
     CsvLoader { 
         id: csv
-        onChannelsChanged: {
-            loadedSignals.clear()
-            lowerLoadedSignals.clear()
-            let colors = [
-                'red',
-                'blue',
-                'green',
-                'purple',
-                'gray',
-                'black',
-                'yellow'
-            ]
-            let plotChannels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            for(let i = 0; i < plotChannels.length; i++) {
-                loadedSignals.append({"plotChannel": plotChannels[i], "plotColor": colors[i % colors.length]})
-            }
-            lowerLoadedSignals.append({"plotChannel": 0, "plotColor": "red"})
-        }
     }
 
     PhaseWireCalc {
         id: c2cConv; 
-        input: csv.output; t1:0; t2: input.length; channels: [0, 1, 2, 3, 4, 5]//[0, 1, 2, 4, 5, 3]
+        input: csv.output; 
+        // t1:0; t2: input.length;
+        // channels: [0, 1, 2, 3, 4, 5]//[0, 1, 2, 4, 5, 3]
         onCalcFinished: {
             channelUnits = csv.getChannelVUnits()
-            itTop.model = [
-                {"name": "No.", "v1": "1", "v2": "10001", "v3": "10000"}
-            ]
-            itLow.model = this.getReport(0, 10000)
+            let info = {
+                "date": csv.getChannelDate(0),
+                "time": csv.getChannelTime(0)
+            }
+            trn.setBaseInfo(info)
+            trn.calc()
         }
+    }
+
+    ThermalReportNode {
+        id: trn
+        input: c2cConv.output
     }
 
     ListModel { id: loadedSignals }
@@ -62,6 +53,8 @@ ApplicationWindow {
         nameFilters: [ "csv files (*.csv)" ]
         onAccepted: {
             csv.filename = fileUrl
+            csv.getHeader()
+            wsw.open()
         }
     }
 
@@ -203,7 +196,7 @@ ApplicationWindow {
 
                             Timer {
                                 id: updateDelay
-                                interval: 1000
+                                interval: 200
                                 repeat: false
                                 triggeredOnStart: false
                                 onTriggered: {
@@ -414,6 +407,38 @@ ApplicationWindow {
                     anchors.fill: parent
                 }
             }        
+        }
+    }
+
+    WireSettingWindow {
+        id: wsw
+        anchors.fill: parent
+        // visible: false
+        onAccepted: {
+            csv.run()
+            loadedSignals.clear()
+            lowerLoadedSignals.clear()
+            let colors = [
+                'red',
+                'blue',
+                'green',
+                'purple',
+                'gray',
+                'black',
+                'yellow'
+            ]
+            let plotChannels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            for(let i = 0; i < plotChannels.length; i++) {
+                loadedSignals.append({"plotChannel": plotChannels[i], "plotColor": colors[i % colors.length]})
+            }
+            lowerLoadedSignals.append({"plotChannel": 0, "plotColor": "red"})
+
+            c2cConv.t1= 0
+            c2cConv.t2= csv.output.length
+            c2cConv.channels = channels
+            c2cConv.inverse = inverses
+            csv.refresh()
+            
         }
     }
 

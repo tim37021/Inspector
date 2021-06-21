@@ -7,4 +7,6 @@ Item {
     readonly property string primaryTrack: "#585858"
     readonly property string track: "#B3B4BF"
     readonly property string ruler: "#464545"
+    readonly property string window: "#6E6E6E"
+    readonly property string wire: "#FF9110"
 }
