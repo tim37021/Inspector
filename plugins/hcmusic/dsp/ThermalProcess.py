@@ -44,7 +44,8 @@ class PhaseWireCalc(ProcessorNode):
             "IP+", "IQ+", "IP-", "IQ-", "IP0", "IQ0",
             "pf+", "pf-", "pf0",
             "U1", "U2", "U3", "I1", "I2", "I3",
-            "P1", "P2", "P3", "Q1", "Q2", "Q3"
+            "P1", "P2", "P3", "Q1", "Q2", "Q3",
+            "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig"
         ]
 
     @Property("QVariantList", notify=channelNameChanged)
@@ -383,6 +384,7 @@ class ReChannelNode(ProcessorNode):
 class ThermalReportNode(Node):
     inputChanged = Signal()
     templatePathChanged = Signal()
+    typeChanged = Signal()
 
     def __init__(self, parent=None):
         Node.__init__(self, parent)
@@ -410,7 +412,17 @@ class ThermalReportNode(Node):
         if self._input != val:
             self._input = val
             self.inputChanged.emit()
-            
+
+    @Property(str, notify=typeChanged)
+    def type(self):
+        return self._type
+    
+    @type.setter
+    def type(self, val):
+        if self._type != val:
+            self._type = val
+            self.typeChanged.emit()
+
     @Property(str, notify=templatePathChanged)
     def templatePath(self):
         return self._template_path
@@ -439,12 +451,32 @@ class ThermalReportNode(Node):
     def _getStable(self, channel):
         return np.median(self._input.numpy_array[..., channel])
 
-    def _getReactPower(self, t2, p = 1):
+    def _getActivePowerRisingTime(self, t2, p = 1):
         reactValue = self._getStable(0) * (p - 0.1)
         for i in range(t2, len(self._input.numpy_array[..., 0])):
             if self._input.numpy_array[..., 0][i] >= reactValue:
                 return i
-            
+        return None
+
+    def _getActiveCurrentRisingTime(self, t2, p = 1):
+        reactValue = self._getStable(9) * (p - 0.1)
+        for i in range(t2, len(self._input.numpy_array[..., 9])):
+            if self._input.numpy_array[..., 9][i] >= reactValue:
+                return i
+        return None
+
+    def _getReactPowerRisingTime(self, t2, q = 0):
+        reactDelta = np.max(self._input.numpy_array[..., 1]) - np.min(self._input.numpy_array[..., 1])
+        for i in range(t2, len(self._input.numpy_array[..., 1])):
+            if self._input.numpy_array[..., 1][i] <= reactDelta * 0.1 or self._input.numpy_array[..., 1][i] >= reactDelta * 0.1:
+                return i
+        return None
+
+    def _getReactCurrentRisingTime(self, t2, q = 0):
+        reactDelta = np.max(self._input.numpy_array[..., 10]) - np.min(self._input.numpy_array[..., 10])
+        for i in range(t2, len(self._input.numpy_array[..., 10])):
+            if self._input.numpy_array[..., 10][i] <= reactDelta * 0.1 or self._input.numpy_array[..., 10][i] >= reactDelta * 0.1:
+                return i
         return None
 
     def _vdeMergeCells(self, worksheet, data, merge_format):
@@ -474,6 +506,38 @@ class ThermalReportNode(Node):
             worksheet.write(j, len(keys) - 1, data[keys[len(keys) - 1]][j - 1], merge_format)
         
         worksheet.merge_range(32, 0, 39, 0, data[keys[0]][31], merge_format)
+        worksheet.merge_range(0, 6, 1, 6, "Measured value", merge_format)
+
+    def _bdewMergeCells(self, worksheet, data, merge_format):
+        keys = data.keys()
+        worksheet.merge_range(0, 0, 0, 5, keys[0])
+        
+        for i in range(data.shape[1]):
+            startRow = 2
+            check_for_nan = data[keys[i]].isnull()
+            try:
+                for j in range(3, data.shape[0] + 6 ):
+                    if not check_for_nan[j - 2]:
+                        if(j - 2 - startRow >= 0):
+                            worksheet.merge_range(startRow - 1, i, j - 2, i, data[keys[i]][startRow - 2], merge_format)
+                        else:
+                            worksheet.write(startRow - 1, i, data[keys[i]][startRow - 2], merge_format)
+                        startRow = j
+            except:
+                pass
+            worksheet.set_column(0, data.shape[1], 20)
+
+        worksheet.write(data.shape[0], 1, data[keys[1]][data.shape[0] - 1], merge_format)
+        worksheet.write(data.shape[0], 2, data[keys[2]][data.shape[0] - 1], merge_format)
+
+        for j in range(2, data.shape[0] + 1):
+            worksheet.write(j, len(keys) - 1, data[keys[len(keys) - 1]][j - 1], merge_format)
+
+        worksheet.merge_range(79, 3, 80, 3, data[keys[3]][78], merge_format)
+        worksheet.merge_range(79, 4, 80, 4, data[keys[4]][78], merge_format)
+        worksheet.merge_range(79, 5, 80, 5, data[keys[5]][78], merge_format)
+        worksheet.merge_range(76, 0, 80, 0, data[keys[0]][75], merge_format)
+        worksheet.merge_range(0, 6, 1, 6, "Measurement", merge_format)
 
     def _vdeReport(self):
         ret = {}
@@ -531,12 +595,135 @@ class ThermalReportNode(Node):
         ret["V31"] = np.average(self._input.numpy_array[..., 35][int(t2 + 3 * self._samplerate): int(t2 + 10 * self._samplerate)])
         ret["V32"] = np.average(self._input.numpy_array[..., 0] [int(t2 + 3 * self._samplerate): int(t2 + 10 * self._samplerate)])
 
-        ret["V33"] = (self._getReactPower(t2) - t2) / self._samplerate
+        ret["V33"] = (self._getActivePowerRisingTime(t2) - t2) / self._samplerate
         ret["V34"] = np.average(self._input.numpy_array[..., 36][int(t2 + 3 * self._samplerate): int(t2 + 10 * self._samplerate)])
         ret["V35"] = np.average(self._input.numpy_array[..., 1] [int(t2 + 3 * self._samplerate): int(t2 + 10 * self._samplerate)])
 
-        ret["V36"] = 0
+        ret["V36"] = (self._getReactPowerRisingTime(t2) - t2) / self._samplerate
         ret["V37"] = "Yes"
+
+        return ret
+
+    def _bdewReport(self):
+        ret = {}
+        # peaks = self._getTargetTime(self._input.numpy_array[..., 7])
+        peaks = self._getTargetTime2(self._input.numpy_array[..., 0])
+        if len(peaks) != 2:
+            return ret
+        t1 = peaks[0]
+        t2 = peaks[1]
+        ret["B1"] = self._baseInfo.get("date", "2021/6/18")
+        ret["B2"] = self._baseInfo.get("time", "00:00:00")
+        ret["B3"] = self._baseInfo.get("faultTime", "symmetry grid fault")
+        ret["B4"] = self._baseInfo.get("voltageDepth", "0.")
+        ret["B5"] = self._baseInfo.get("dipDuration", "1000")
+        ret["B6"]  = "N/A"
+        ret["B7"]  = "N/A"
+        ret["B8"]  = "N/A"
+        ret["B9"]  = "N/A"
+        ret["B10"] = "N/A"
+        ret["B11"] = t1
+        ret["B12"] = t2
+        ret["B13"] = "N/A"
+        ret["B14"] = t2 - t1
+        ret["B15"] = np.average(self._input.numpy_array[..., 33] [int(max(t1 - 60 * self._samplerate, 0)): int(t1)]) - np.average(self._input.numpy_array[..., 33] [int(max(t1 + 0.1 * self._samplerate, 0)): int(t2)])
+        ret["B16"] = np.average(self._input.numpy_array[..., 6] [int(max(t1 - 60 * self._samplerate, 0)): int(t1)]) - np.average(self._input.numpy_array[..., 6] [int(max(t1 + 0.1 * self._samplerate, 0)): int(t2)])
+        ret["B17"] = np.average(self._input.numpy_array[..., 7] [int(max(t1 - 60 * self._samplerate, 0)): int(t1)]) - np.average(self._input.numpy_array[..., 7] [int(max(t1 + 0.1 * self._samplerate, 0)): int(t2)])
+        
+        ret["B18"] = "N/A"
+        ret["B19"] = "N/A"
+        ret["B20"] = "N/A"
+        ret["B21"] = "N/A"
+        
+        ret["B22"] = np.average(self._input.numpy_array[..., 33] [int(200): int(t1)])
+        ret["B23"] = np.average(self._input.numpy_array[..., 6] [int(200): int(t1)])
+        ret["B24"] = np.average(self._input.numpy_array[..., 7] [int(200): int(t1)])
+        ret["B25"] = np.average(self._input.numpy_array[..., 6] [int(max(t1 - 0.5 * self._samplerate, 0)): int(max(t1 - 0.1 * self._samplerate, 0))])
+        ret["B26"] = np.average(self._input.numpy_array[..., 6] [int(max(t1 - 1 * self._samplerate, 0)): int(t1)])
+        ret["B27"] = np.average(self._input.numpy_array[..., 7] [int(max(t1 - 1 * self._samplerate, 0)): int(t1)])
+
+        ret["B28"] = np.average(self._input.numpy_array[..., 30][int(t1 - 0.5 * self._samplerate): int(t1 - 0.1 * self._samplerate)])
+        ret["B29"] = np.average(self._input.numpy_array[..., 10] [200: int(t1)])
+        ret["B30"] = np.average(self._input.numpy_array[..., 10][int(t1 - 1 * self._samplerate): int(t1)])
+        ret["B31"] = np.average(self._input.numpy_array[..., 12][int(t1 - 1 * self._samplerate): int(t1)])
+
+        ret["B32"] = np.average(self._input.numpy_array[..., 9] [int(t1 - 1 * self._samplerate): int(t1)])
+
+        ret["B33"] = np.average(self._input.numpy_array[..., 35][int(t1 - 10 * self._samplerate): int(t1)])
+        ret["B34"] = np.average(self._input.numpy_array[..., 35][int(t1 - 2 * self._samplerate): int(t1)])
+        ret["B35"] = np.average(self._input.numpy_array[..., 0] [int(t1 - 0.5 * self._samplerate): int(t1 - 0.1 * self._samplerate)])
+
+        ret["B36"] = np.average(self._input.numpy_array[..., 10] [int(t1 - 0.5 * self._samplerate): int(t1 - 0.1 * self._samplerate)])
+        ret["B37"] = "N/A"
+
+        ret["B38"] = "?"
+        ret["B39"] = "?"
+
+        ret["B40"] = "?"
+        ret["B41"] = "?"
+
+        ret["B42"] = "?"
+        ret["B43"] = "?"
+
+        ## Get U1 U2 U3 variation
+        u = []
+        u.append(self._input.numpy_array[..., 18][int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+        u.append(self._input.numpy_array[..., 19][int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+        u.append(self._input.numpy_array[..., 20][int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+
+        u1Diff = np.max(u[0]) - np.min(u[0])
+        u2Diff = np.max(u[1]) - np.min(u[1])
+        u3Diff = np.max(u[2]) - np.min(u[2])
+
+        max_diff = argmax([u1Diff, u2Diff, u3Diff])
+        ret["B44"] = np.average(u[max_diff])
+
+        ret["B45"] = np.average(self._input.numpy_array[..., 6] [int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+        ret["B46"] = np.average(self._input.numpy_array[..., 7] [int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+
+        ret["B47"] = np.average(self._input.numpy_array[..., 10] [int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+        ret["B48"] = np.average(self._input.numpy_array[..., 12] [int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+
+        ret["B49"] = np.average(self._input.numpy_array[..., 30] [int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+        ret["B50"] = np.average(self._input.numpy_array[..., 31] [int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+
+        ret["B51"] = np.average(self._input.numpy_array[..., 0] [int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+        ret["B52"] = np.average(self._input.numpy_array[..., 2] [int(t1 + 0.1 * self._samplerate): int(t2 - 0.02 * self._samplerate)])
+
+        ret["B53"] = np.average(self._input.numpy_array[..., 21] [int(t1): int(t1 + 0.02 * self._samplerate)])
+        ret["B54"] = np.average(self._input.numpy_array[..., 22] [int(t1): int(t1 + 0.02 * self._samplerate)])
+        ret["B55"] = np.average(self._input.numpy_array[..., 23] [int(t1): int(t1 + 0.02 * self._samplerate)])
+        
+        ret["B56"] = self._input.numpy_array[..., 21] [int(t1 + 0.02 * self._samplerate)]
+        ret["B57"] = self._input.numpy_array[..., 22] [int(t1 + 0.02 * self._samplerate)]
+        ret["B58"] = self._input.numpy_array[..., 23] [int(t1 + 0.02 * self._samplerate)]
+
+        ret["B59"] = self._input.numpy_array[..., 21] [int(t1 + 0.1 * self._samplerate)]
+        ret["B60"] = self._input.numpy_array[..., 22] [int(t1 + 0.1 * self._samplerate)]
+        ret["B61"] = self._input.numpy_array[..., 23] [int(t1 + 0.1 * self._samplerate)]
+
+        ret["B62"] = self._input.numpy_array[..., 21] [int(t1 + 0.15 * self._samplerate)]
+        ret["B63"] = self._input.numpy_array[..., 22] [int(t1 + 0.15 * self._samplerate)]
+        ret["B64"] = self._input.numpy_array[..., 23] [int(t1 + 0.15 * self._samplerate)]
+
+        ret["B65"] = self._input.numpy_array[..., 21] [int(t1 + 0.3 * self._samplerate)]
+        ret["B66"] = self._input.numpy_array[..., 22] [int(t1 + 0.3 * self._samplerate)]
+        ret["B67"] = self._input.numpy_array[..., 23] [int(t1 + 0.3 * self._samplerate)]
+
+        ret["B68"] = self._input.numpy_array[..., 21] [int(t1 + 0.5 * self._samplerate)]
+        ret["B69"] = self._input.numpy_array[..., 22] [int(t1 + 0.5 * self._samplerate)]
+        ret["B70"] = self._input.numpy_array[..., 23] [int(t1 + 0.5 * self._samplerate)]
+
+        ret["B71"] = self._input.numpy_array[..., 21] [int(t1 + 1 * self._samplerate)]
+        ret["B72"] = self._input.numpy_array[..., 22] [int(t1 + 1 * self._samplerate)]
+        ret["B73"] = self._input.numpy_array[..., 23] [int(t1 + 1 * self._samplerate)]
+
+        ret["B74"] = np.average(self._input.numpy_array[..., 6] [int(t2 + 1 * self._samplerate): int(t2 + 10 * self._samplerate)])
+        ret["B75"] = np.average(self._input.numpy_array[..., 35] [int(t2 + 1 * self._samplerate): int(t2 + 10 * self._samplerate)])
+        ret["B76"] = "N/A"
+
+        ret["B77"] = (self._getActiveCurrentRisingTime(t2) - t2) / self._samplerate
+        ret["B78"] = (self._getReactCurrentRisingTime(t2) - t2) / self._samplerate
 
         return ret
 
@@ -550,7 +737,6 @@ class ThermalReportNode(Node):
         from os.path import isfile, isdir, join
         import xlsxwriter
         templatePath = "./template"
-        
         report = {}
         rpExcel = None
         if self._type == "VDE":
@@ -567,6 +753,21 @@ class ThermalReportNode(Node):
             worksheet = writer.sheets["Sheet1"]
             merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
             self._vdeMergeCells(worksheet, rpExcel, merge_format)
+            writer.save()
+        elif self._type == "BDEW":
+            report = self._bdewReport()
+            rpExcel = pd.read_excel(join(templatePath, "BDEW.xlsx"))
+            writer = pd.ExcelWriter(outputFile, engine='xlsxwriter')
+
+            for i in range(len(rpExcel["Measurement"])):
+                if rpExcel["Measurement"][i] in report.keys():
+                    rpExcel["Measurement"][i] = report[rpExcel["Measurement"][i]]
+            
+            rpExcel.to_excel(writer, sheet_name="Sheet1", index=False, engine="xlsxwriter")
+            workbook = writer.book
+            worksheet = writer.sheets["Sheet1"]
+            merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
+            self._bdewMergeCells(worksheet, rpExcel, merge_format)
             writer.save()
 
 

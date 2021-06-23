@@ -9,11 +9,21 @@ import ".."
 Item {
     id: root
     property alias windowColor: window.color
+    property var channelNames
+
     signal accepted(var channels, var inverses)
     visible: root.opacity > 0.0
     opacity: 0.0
 
     Behavior on opacity { NumberAnimation { duration: 100 } }
+    ListModel { id: channelNameModel }
+
+    onChannelNamesChanged: {
+        channelNameModel.clear()
+        for(let i = 0; i< channelNames.length; i++) {
+            channelNameModel.append({"name": channelNames[i], "value": false})
+        }
+    }
 
     MouseArea {
         anchors.fill: parent
@@ -37,28 +47,72 @@ Item {
             preventStealing: true
         }
 
-        PWModeSelectView {
-            id: pwm
-            anchors.fill: parent
+        Item {
+            id: pwmSection
+            anchors.verticalCenter: parent.verticalCenter;
+            anchors.left: parent.left
+            width: parent.width * 0.8
+            height: parent.height
+
+            PWModeSelectView {
+                id: pwm
+                anchors.fill: parent
+            }
         }
 
-        // Rectangle {
-        //     anchors.right: parent.right; anchors.bottom: parent.bottom;
-        //     anchors.margins: 10
-        //     width : 100
-        //     height: 60
-        //     Text {
-        //         anchors.centerIn: parent
-        //         text: "確認"
-        //     }
-        //     MouseArea {
-        //         anchors.fill: parent
-        //         onClicked: {
-        //             root.accepted(pwm.getChannels(), pwm.getInverses())
-        //             root.close()
-        //         }
-        //     }
-        // }
+        Text {
+            anchors.bottom: showChannelSetting.top; anchors.left: showChannelSetting.left;
+            font.pixelSize: 18
+            text: "預覽訊號"
+            color: "white"
+        }
+
+        Rectangle {
+            id: showChannelSetting
+            anchors.left: pwmSection.right; anchors.right: parent.right;
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.margins: 10
+            height: parent.height * 0.7
+            color: "transparent"
+            border.color: "#E0E0E0"
+            border.width: 2
+            radius: 5
+            clip: true
+
+            ListView {
+                id: lv
+                anchors.fill: parent;
+
+                model: channelNameModel
+                delegate: selectChannelDelegate
+                ScrollBar.vertical: ScrollBar {}
+            }
+
+            Component {
+                id: selectChannelDelegate
+
+                Item {
+                    width: showChannelSetting.width * 0.9
+                    height: 50
+
+                    CheckBox {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        checked: value
+                        onCheckedChanged: {
+                            channelNameModel.setProperty(index, "value", checked)
+                        }
+                    }
+
+                    Text {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: "white"
+                        text: name
+                    }
+                }
+            }
+        }
 
         BaseTextButton {
             anchors.right: parent.right; anchors.bottom: parent.bottom;
@@ -102,5 +156,14 @@ Item {
     function close() {
         root.opacity = 0.0
     }
-    
+
+    function getSelectedChannel() {
+        let ret = []
+        for(let i = 0; i< channelNameModel.count; i++) {
+            if(channelNameModel.get(i)["value"]) {
+                ret.push(i)
+            }
+        }
+        return ret
+    }
 }

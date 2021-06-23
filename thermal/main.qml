@@ -28,8 +28,6 @@ ApplicationWindow {
     PhaseWireCalc {
         id: c2cConv; 
         input: csv.output; 
-        // t1:0; t2: input.length;
-        // channels: [0, 1, 2, 3, 4, 5]//[0, 1, 2, 4, 5, 3]
         onCalcFinished: {
             channelUnits = csv.getChannelVUnits()
             let info = {
@@ -44,6 +42,7 @@ ApplicationWindow {
     ThermalReportNode {
         id: trn
         input: c2cConv.output
+        type: "BDEW"
     }
 
     ListModel { id: loadedSignals }
@@ -81,7 +80,7 @@ ApplicationWindow {
             title: qsTr("&File")
             MenuItem { action: openAction }
             MenuItem { action: saveAction }
-            MenuItem { action: saveAsAction }
+            // MenuItem { action: saveAsAction }
             MenuSeparator { }
             Action { text: qsTr("&Quit") }
         }
@@ -108,13 +107,13 @@ ApplicationWindow {
             anchors.top: parent.top; anchors.bottom: lower.top;
 
             Item {
-                id: lowerTracksView
+                id: gatherTracksView
                 anchors.left: parent.left; anchors.right: parent.right;
                 anchors.top: parent.top; anchors.bottom: lowerRulerArea.top;
 
                 ListView {
                     anchors.fill: parent
-                    model: lowerLoadedSignals
+                    model: gatherSignals
                     delegate: lowerTrack
                     interactive: loadedSignals.length > 6
                 }
@@ -136,7 +135,7 @@ ApplicationWindow {
                 }
             }
 
-            ListModel { id: lowerLoadedSignals }
+            ListModel { id: gatherSignals }
 
             Component {
                 id: lowerTrack
@@ -144,7 +143,7 @@ ApplicationWindow {
                 Rectangle {
                     id: gatherRect
                     anchors.left: parent.left; anchors.right: parent.right;
-                    height: lowerTracksView.height
+                    height: gatherTracksView.height
 
                     GatheredSignalTrack {
                         id: strack
@@ -254,15 +253,33 @@ ApplicationWindow {
                 anchors.top: parent.top; anchors.bottom: rulerArea.top
 
                 ListView {
+                    id: tracksListView
                     anchors.fill: parent
                     model: loadedSignals
                     delegate: track
-                    interactive: false
+                    interactive: true
+                    property int readyCount: 0
+                    onModelChanged: readyCount = 0
+                    onReadyCountChanged: {
+                        if(readyCount == count){
+                            csv.refresh()
+                            delayUpdateTimer.restart()
+                        }
+                    }
+                }
+
+                Timer {
+                    id: delayUpdateTimer
+                    interval: 200
+                    onTriggered: {
+                        for(let i = 0; i<tracksListView.count; i++) {
+                            tracksListView.itemAtIndex(i).signalFit()
+                        }
+                    }
                 }
 
                 Component {
                     id: track
-
                     Rectangle {
                         anchors.left: parent.left; anchors.right: parent.right;
                         height: lower.height * 0.12
@@ -282,13 +299,11 @@ ApplicationWindow {
                             property int samplerate: 10000
 
                             onPlotReady: {
-                                csv.refresh()
-                                this.signalFit()
+                                tracksListView.readyCount += 1
                             }
 
                             function signalFit() {
                                 xValueAxis.min = 0
-                                // xValueAxis.max = samplerate * displayDuration // max for 5 seconds
                                 xValueAxis.max = source.length
                                 let yA = Math.max(
                                     Math.abs(source.getChannelMin(viewChannel)),
@@ -300,6 +315,10 @@ ApplicationWindow {
                                 if(yValueAxis.max < (yA + 10))
                                     yValueAxis.max = yA + 10
                             }
+                        }
+
+                        function signalFit() {
+                            strack.signalFit()
                         }
                     }
                 }
@@ -412,12 +431,13 @@ ApplicationWindow {
 
     WireSettingWindow {
         id: wsw
+        channelNames: c2cConv.channelName
         anchors.fill: parent
         // visible: false
         onAccepted: {
             csv.run()
             loadedSignals.clear()
-            lowerLoadedSignals.clear()
+            gatherSignals.clear()
             let colors = [
                 'red',
                 'blue',
@@ -427,18 +447,16 @@ ApplicationWindow {
                 'black',
                 'yellow'
             ]
-            let plotChannels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            let plotChannels = getSelectedChannel()
             for(let i = 0; i < plotChannels.length; i++) {
                 loadedSignals.append({"plotChannel": plotChannels[i], "plotColor": colors[i % colors.length]})
             }
-            lowerLoadedSignals.append({"plotChannel": 0, "plotColor": "red"})
+            gatherSignals.append({"plotChannel": 0, "plotColor": "red"})
 
             c2cConv.t1= 0
             c2cConv.t2= csv.output.length
             c2cConv.channels = channels
             c2cConv.inverse = inverses
-            csv.refresh()
-            
         }
     }
 
@@ -454,7 +472,7 @@ ApplicationWindow {
 
     Action { 
         id: saveAction
-        text: qsTr("&Save")
+        text: qsTr("&Export")
         shortcut: "Ctrl+S"
         onTriggered: {
             sfd.open()

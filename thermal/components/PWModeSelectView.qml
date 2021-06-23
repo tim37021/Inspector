@@ -34,7 +34,7 @@ Item {
         id: icon
         anchors.centerIn: parent
         color: "#FF9110"
-        width: Math.max(root.width * 0.2, 120)
+        width: Math.max(root.width * 0.2, 80)
         height: width
     }
 
