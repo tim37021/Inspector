@@ -2,7 +2,7 @@ from os import write
 import PySide2.QtCore as QtCore
 from PySide2.QtQml import VolatileBool
 import PySide2.QtQuick as QtQuick
-from PySide2.QtCore import Property, Signal, Slot
+from PySide2.QtCore import Property, Signal, Slot, QUrl
 import numpy as np
 import pandas as pd
 from numpy.core.fromnumeric import argmax
@@ -731,8 +731,8 @@ class ThermalReportNode(Node):
     def setBaseInfo(self, info):
         self._baseInfo = info
 
-    @Slot()
-    def calc(self, outputFile= "test.xlsx"):
+    @Slot(QUrl)
+    def calc(self, outputFile= "tests.xlsx"):
         from os import listdir
         from os.path import isfile, isdir, join
         import xlsxwriter
@@ -742,7 +742,7 @@ class ThermalReportNode(Node):
         if self._type == "VDE":
             report = self._vdeReport()
             rpExcel = pd.read_excel(join(templatePath, "VDE.xlsx"))
-            writer = pd.ExcelWriter(outputFile, engine='xlsxwriter')
+            writer = pd.ExcelWriter(outputFile.toLocalFile(), engine='xlsxwriter')
 
             for i in range(len(rpExcel["Measured value"])):
                 if rpExcel["Measured value"][i] in report.keys():
@@ -757,7 +757,7 @@ class ThermalReportNode(Node):
         elif self._type == "BDEW":
             report = self._bdewReport()
             rpExcel = pd.read_excel(join(templatePath, "BDEW.xlsx"))
-            writer = pd.ExcelWriter(outputFile, engine='xlsxwriter')
+            writer = pd.ExcelWriter(outputFile.toLocalFile(), engine='xlsxwriter')
 
             for i in range(len(rpExcel["Measurement"])):
                 if rpExcel["Measurement"][i] in report.keys():

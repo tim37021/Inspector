@@ -35,7 +35,7 @@ ApplicationWindow {
                 "time": csv.getChannelTime(0)
             }
             trn.setBaseInfo(info)
-            trn.calc()
+            // trn.calc()
         }
     }
 
@@ -54,15 +54,6 @@ ApplicationWindow {
             csv.filename = fileUrl
             csv.getHeader()
             wsw.open()
-        }
-    }
-
-    FileDialog {
-        id: sfd
-        nameFilters: [ "npz files (*.npz)" ]
-        selectExisting: false
-        onAccepted: {
-            windowing.focusedWindow.signalSource.saveToFile(fileUrl)
         }
     }
 
@@ -460,6 +451,12 @@ ApplicationWindow {
         }
     }
 
+    ReportSettingWindow {
+        id: reportSetting
+        anchors.fill: parent
+        reporter: trn
+    }
+
     // Actions 
     Action { 
         id: openAction
@@ -475,7 +472,8 @@ ApplicationWindow {
         text: qsTr("&Export")
         shortcut: "Ctrl+S"
         onTriggered: {
-            sfd.open()
+            // sfd.open()
+            reportSetting.open()
         }
     }
     Action { 
