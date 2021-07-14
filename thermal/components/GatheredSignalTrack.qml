@@ -10,8 +10,9 @@ import hcmusic.dsp 1.0
 
 Item {
     id: root
-     property Rectangle plotSection: plotSec
+    property Rectangle plotSection: plotSec
     property Signal1D source
+    property string textColor: "white"
     property ListModel model: ListModel {
         ListElement {
             plotColor: "red"
@@ -75,11 +76,13 @@ Item {
             anchors.top:parent.top; anchors.right: parent.right
             text: (yValueAxis.max / 10).toFixed(0) * 10
             font.pixelSize: 12
+            color: root.textColor
         }
         Text {
             anchors.bottom:parent.bottom; anchors.right: parent.right
             text: (yValueAxis.min / 10).toFixed(0) * 10
             font.pixelSize: 12
+            color: root.textColor
         }
     }
     

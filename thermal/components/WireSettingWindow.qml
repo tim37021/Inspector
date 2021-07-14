@@ -17,6 +17,7 @@ Item {
 
     Behavior on opacity { NumberAnimation { duration: 100 } }
     ListModel { id: channelNameModel }
+    AppMaterial { id: appMaterial }
 
     onChannelNamesChanged: {
         channelNameModel.clear()
@@ -39,7 +40,7 @@ Item {
         height: parent.height * 0.9
         radius: 10
 
-        color: "#6E6E6E"
+        color: appMaterial.surface4
 
         MouseArea {
             anchors.fill: parent
@@ -127,25 +128,15 @@ Item {
             }
         }
 
-        Rectangle {
+        BaseIconButton {
             anchors.right: parent.right; anchors.top: parent.top;
             anchors.margins: 10
             width : 30
             height: 30
-            radius: width / 2
-            color: "lightgray"
-            AppIcon {
-                anchors.fill: parent
-                anchors.margins: 2
-                color: "lightblack"
-                iconType: AppIcon.Clear
-            }
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    root.close()
-                }
-            }
+            backgroundColor: appMaterial.error
+            hoverColor: appMaterial.surface2
+            pressedColor: appMaterial.errorOn
+            onClicked: root.close()
         }
     }
 

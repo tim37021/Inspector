@@ -37,7 +37,6 @@ class PythonPluginLoader(PluginLoader):
 def scan_plugins(folder, prefix=''):
     import os
     from os import listdir
-
     ret = []
     for fn in listdir(folder):
         if os.path.isdir(os.path.join(folder, fn)):

@@ -7,7 +7,7 @@ import PluginLoader
 import os
 import sys
 sys.path.insert(0, 'plugins')
-from AlgorithmPool import AlgorithmPool     # noqa: E402
+# from AlgorithmPool import AlgorithmPool     # noqa: E402
 
 
 class MyCanvas(QQuickPaintedItem):
@@ -62,7 +62,7 @@ class App(object):
             print('Plugin %s loaded' % p.uri)
 
         qmlRegisterType(MyCanvas, 'MyCanvas', 1, 0, 'MyCanvas')
-        qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
+        # qmlRegisterType(AlgorithmPool, 'Algo', 1, 0, 'AlgorithmPool')
 
         engine.addImportPath('plugins')
         engine.addImportPath('imports')

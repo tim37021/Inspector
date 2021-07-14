@@ -11,8 +11,6 @@ from math import ceil, log2, nan, sqrt
 from statistics import mean
 
 from .Node import EstimateNode, ProcessorNode, QtSignal1D, Node, Signal1D
-# from .Utils import freq_to_note_noround
-from Algorithm.DoubleACProcessor import Smoother, freq_to_note_noround
 
 class PhaseWireCalc(ProcessorNode):
     windowSizeChanged = Signal()
@@ -549,7 +547,7 @@ class ThermalReportNode(Node):
         t2 = peaks[1]
         ret["V1"] = self._baseInfo.get("date", "2021/6/18")
         ret["V2"] = self._baseInfo.get("time", "00:00:00")
-        ret["V3"] = self._baseInfo.get("faultTime", "3 phase fault")
+        ret["V3"] = self._baseInfo.get("faultType", "3 phase fault")
         ret["V4"] = self._baseInfo.get("voltageDepth", "0.15")
         ret["V5"] = self._baseInfo.get("dipDuration", "1000")
         ret["V6"] = t1
@@ -614,7 +612,7 @@ class ThermalReportNode(Node):
         t2 = peaks[1]
         ret["B1"] = self._baseInfo.get("date", "2021/6/18")
         ret["B2"] = self._baseInfo.get("time", "00:00:00")
-        ret["B3"] = self._baseInfo.get("faultTime", "symmetry grid fault")
+        ret["B3"] = self._baseInfo.get("faultType", "symmetry grid fault")
         ret["B4"] = self._baseInfo.get("voltageDepth", "0.")
         ret["B5"] = self._baseInfo.get("dipDuration", "1000")
         ret["B6"]  = "N/A"
@@ -730,6 +728,10 @@ class ThermalReportNode(Node):
     @Slot("QVariantMap")
     def setBaseInfo(self, info):
         self._baseInfo = info
+
+    @Slot(result= "QVariantMap")
+    def getBaseInfo(self):
+        return self._baseInfo
 
     @Slot(QUrl)
     def calc(self, outputFile= "tests.xlsx"):

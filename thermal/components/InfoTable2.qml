@@ -1,12 +1,21 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 
+import ".."
+
 Item {
     id: root
     property alias model: ls.model
     property var headerNames: ["Trace", "Value(1)", "Value(2)", "Value Diff"]
     property var headerDisplay
     property string borderColor: "#1D1D1D"
+
+    property string fontColor: "white"
+    property string fontFamily: "Roboto"
+    property string headerColor: "#171717"
+    property string contentColor: "#1A1A1A"
+
+    AppMaterial { id: appMaterial }
 
     ListView {
         id: ls
@@ -23,7 +32,7 @@ Item {
         Rectangle {
             width: root.width
             height: 30
-            color: "#DDDDDD"
+            color: root.headerColor
             z: 2
 
             Row {
@@ -39,6 +48,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: root.headerNames[0]
+                        color: root.fontColor
+                        font.family: root.fontFamily
                     }
                 }
 
@@ -52,6 +63,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: root.headerNames[1]
+                        color: root.fontColor
+                        font.family: root.fontFamily
                     }
                 }
 
@@ -65,6 +78,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: root.headerNames[2]
+                        color: root.fontColor
+                        font.family: root.fontFamily
                     }
                 }
 
@@ -78,6 +93,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: root.headerNames[3]
+                        color: root.fontColor
+                        font.family: root.fontFamily
                     }
                 }
             }
@@ -103,6 +120,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: root.model[index]["name"]
+                        color: root.fontColor
+                        font.family: root.fontFamily
                     }
                 }
 
@@ -116,6 +135,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: root.model[index]["v1"]
+                        color: root.fontColor
+                        font.family: root.fontFamily
                     }
                 }
 
@@ -129,6 +150,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: root.model[index]["v2"]
+                        color: root.fontColor
+                        font.family: root.fontFamily
                     }
                 }
 
@@ -142,6 +165,8 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: root.model[index]["v3"]
+                        color: root.fontColor
+                        font.family: root.fontFamily
                     }
                 }
             }

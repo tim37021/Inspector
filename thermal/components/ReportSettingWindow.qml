@@ -9,13 +9,17 @@ import hcmusic.dsp 1.0
 
 import ".."
 
-Item {
+Rectangle {
     id: root
     property alias windowColor: window.color
     property ThermalReportNode reporter: ThermalReportNode{}
+    property string standard: "VDE"
+    color: "#A5222222"
     opacity: 0.0
     Behavior on opacity { NumberAnimation { duration: 100 } }
     visible: root.opacity > 0.0
+
+    AppMaterial { id: appMaterial }
 
     MouseArea {
         anchors.fill: parent
@@ -27,7 +31,7 @@ Item {
     Rectangle {
         id: window
         anchors.centerIn: parent
-        color: "#6E6E6E"
+        color: appMaterial.surface4
 
         width: parent.width * 0.9
         height: parent.height * 0.9
@@ -78,6 +82,7 @@ Item {
                                     id: vdeChecked
                                     checked: true
                                     ButtonGroup.group: standardRadioGroup
+                                    onCheckedChanged: root.standard = "VDE"
                                 }
 
                                 Text {
@@ -92,6 +97,7 @@ Item {
                                     id: enChecked
                                     checked: true
                                     ButtonGroup.group: standardRadioGroup
+                                    onCheckedChanged: root.standard = "VDE"
                                 }
 
                                 Text {
@@ -115,6 +121,7 @@ Item {
                                     id: bdewChecked
                                     checked: true
                                     ButtonGroup.group: standardRadioGroup
+                                    onCheckedChanged: root.standard = "BDEW"
                                 }
 
                                 Text {
@@ -129,6 +136,7 @@ Item {
                                     id: vde4110Checked
                                     checked: true
                                     ButtonGroup.group: standardRadioGroup
+                                    onCheckedChanged: root.standard = "BDEW"
                                 }
 
                                 Text {
@@ -144,6 +152,7 @@ Item {
                                     id: vde4120Checked
                                     checked: true
                                     ButtonGroup.group: standardRadioGroup
+                                    onCheckedChanged: root.standard = "BDEW"
                                 }
 
                                 Text {
@@ -570,10 +579,11 @@ Item {
         id: sfd
         // nameFilters: [ "excel files (*.xlsx)" ]
         fileMode: FileDialog.SaveFile
-        currentFile: Qt.resolvedUrl("../..") + "/BDEW"
+        currentFile: Qt.resolvedUrl("../..") + "/" + root.standard
         onAccepted: {
-            console.log(currentFile)
+            root.getSetting()
             reporter.calc(currentFile)
+            root.close()
         }
         defaultSuffix: "xlsx"
     }
@@ -584,5 +594,29 @@ Item {
 
     function close() {
         root.opacity = 0.0
+    }
+
+    function getSetting() {
+        let settings = reporter.getBaseInfo()
+
+        // Standard settings
+        if(vdeChecked.checked) {
+            reporter.type = "VDE"
+            settings["voltageDepth"] = 0.15
+        }
+        if(enChecked.checked) {
+            reporter.type = "VDE"
+            settings["voltageDepth"] = 0.05
+        }
+        if(bdewChecked.checked) {
+            reporter.type = "BDEW"
+        }
+        if(vde4110Checked.checked) {
+            reporter.type = "BDEW"
+        }
+        if(vde4120Checked.checked) {
+            reporter.type = "BDEW"
+        }
+        reporter.setBaseInfo(settings)
     }
 }

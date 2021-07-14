@@ -14,6 +14,7 @@ Item {
     property alias source: ls.source
     property alias lineColor: ls.color
     property string infoText 
+    property string textColor: "white"
 
     property bool showHoverY: true
 
@@ -40,17 +41,20 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: 5
             text: root.infoText
+            color: root.textColor
         }
 
         Text {
             anchors.top:parent.top; anchors.right: parent.right
             text: (yValueAxis.max / 10).toFixed(0) * 10
             font.pixelSize: 12
+            color: root.textColor
         }
         Text {
             anchors.bottom:parent.bottom; anchors.right: parent.right
             text: (yValueAxis.min / 10).toFixed(0) * 10
             font.pixelSize: 12
+            color: root.textColor
         }
     }
     
@@ -123,8 +127,8 @@ Item {
 
         Rectangle {
             border.width: 2
-            border.color: "black"
-            color: "gray"
+            border.color: "#222222"
+            color: "#2E2E2E"
             width: 60
             height: 30
             anchors.verticalCenter: horizontalCrossHair.verticalCenter
@@ -137,6 +141,23 @@ Item {
                 anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter;
                 anchors.leftMargin: 2
                 text: root.getNearestY(ma.mouseCoordX).toString()
+                color: "white"
+            }
+        }
+
+        Item {
+            width: 60
+            height: 30
+            anchors.left: verticalCrossHair.horizontalCenter
+            anchors.bottom: parent.bottom;
+            anchors.leftMargin: 2
+            visible: ma.containsMouse
+            clip: true
+
+            Text {
+                anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter;
+                anchors.leftMargin: 2
+                text: ma.mouseCoordX.toFixed(0).toString()
                 color: "black"
             }
         }

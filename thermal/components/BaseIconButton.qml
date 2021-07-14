@@ -8,29 +8,27 @@ import ".."
 
 Rectangle {
     id: root
-    width : 100
-    height: 60
-    radius: 10
+    width : 30
+    height: 30
+    radius: width / 2
     AppMaterial { id: appMaterial }
     color: {
         if(ma.pressed) return pressedColor;
         return ma.containsMouse? hoverColor: backgroundColor
     }
-    property string backgroundColor: appMaterial.secondary
-    property string hoverColor: appMaterial.surface2
-    property string pressedColor: appMaterial.surface1
-    property alias textColor: txt.color
-    property alias text: txt.text
+    property string backgroundColor: appMaterial.primary
+    property string hoverColor: appMaterial.primaryOn
+    property string pressedColor: appMaterial.primaryVariant
+    property alias iconType: icon.iconType
 
     signal clicked
     
-    Text {
-        id: txt
-        color: appMaterial.text
-        anchors.centerIn: parent
-        text: "確認"
-        font.family: appMaterial.fontFamily
-        font.bold: true
+    AppIcon {
+        id: icon
+        anchors.fill: parent
+        anchors.margins: 2
+        color: "white"
+        iconType: AppIcon.Clear
     }
     MouseArea {
         id: ma

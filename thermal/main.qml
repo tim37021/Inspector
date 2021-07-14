@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Dialogs 1.1
+import QtGraphicalEffects 1.0
 import App 1.0
 
 import Qt.labs.qmlmodels 1.0
@@ -17,9 +18,10 @@ ApplicationWindow {
     width: 1280
     height: 960
     visible: true
-    color: "black"
+    color: appMaterial.background
     // title: `${spc.mouseCoordX}${spc.mouseCoordY}`
-    AppStyle { id: appStyle }
+    AppStyle    { id: appStyle }
+    AppMaterial { id: appMaterial }
 
     CsvLoader { 
         id: csv
@@ -103,6 +105,7 @@ ApplicationWindow {
                 anchors.top: parent.top; anchors.bottom: lowerRulerArea.top;
 
                 ListView {
+                    id: gatherSignalView
                     anchors.fill: parent
                     model: gatherSignals
                     delegate: lowerTrack
@@ -116,7 +119,7 @@ ApplicationWindow {
                 anchors.bottom: parent.bottom
                 anchors.leftMargin: Math.min(tracksView.width * 0.15, 80)
                 height: 20
-                color: appStyle.ruler
+                color: appMaterial.surface2
                 clip: false
 
                 TrackRuler {
@@ -135,6 +138,7 @@ ApplicationWindow {
                     id: gatherRect
                     anchors.left: parent.left; anchors.right: parent.right;
                     height: gatherTracksView.height
+                    color: appMaterial.surface5
 
                     GatheredSignalTrack {
                         id: strack
@@ -145,11 +149,6 @@ ApplicationWindow {
                         yValueAxis: yAxis_c2c
                         property int samplerate: 3000
                         property real displayDuration: 1
-                        
-                        onPlotReady: {
-                            csv.refresh()
-                            this.signalFit()
-                        }
 
                         function signalFit() {
                             xValueAxis.min = 0
@@ -168,6 +167,7 @@ ApplicationWindow {
                             id: sIndicate
                             anchors.fill: parent.plotSection
                             axisX: xAxis_c2c
+                            borderColor: appMaterial.secondary
                             opacity: 0.8
                             onCoordinateMinChanged: {
                                 updateDelay.restart()
@@ -176,10 +176,10 @@ ApplicationWindow {
                                 updateDelay.restart()
                             }
                             function updateReport() {
-                                itTop.model = [
+                                previewBox.topModel = [
                                     {"name": "No.", "v1": coordinateMin.toFixed(0), "v2": coordinateMax.toFixed(0), "v3": coordinateMax.toFixed(0) - coordinateMin.toFixed(0)}
                                 ]
-                                itLow.model = c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
+                                previewBox.bottomModel = c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
                                 xAxis_.min = coordinateMin.toFixed(0)
                                 xAxis_.max = coordinateMax.toFixed(0)
                             }
@@ -200,17 +200,20 @@ ApplicationWindow {
                                 y: 10 + sIndicate.hoverMouseY
                                 width: hoverText.width + 10
                                 height: hoverText.height + 10
-                                color: "black"
+                                color: appMaterial.background
                                 z: 100
 
                                 Text {
                                     id: hoverText
                                     anchors.centerIn: parent
                                     text: sIndicate.hoverOnMinDrag? "t1:" + sIndicate.coordinateMin.toFixed(0): "t2:" + sIndicate.coordinateMax.toFixed(0)
-                                    color: "white"
+                                    color: appMaterial.text
                                 }
                             }
                         }
+                    }
+                    function signalFit() {
+                        strack.signalFit()
                     }
                 }
             }
@@ -236,12 +239,13 @@ ApplicationWindow {
             id: lower
             anchors.bottom: parent.bottom; anchors.left: parent.left; anchors.right: parent.right;
             height: parent.height * 0.8
-            color: appStyle.lowerSection
+            color: appMaterial.surface1
 
             Item {
                 id: tracksView
                 anchors.left: parent.left; anchors.right: parent.right;
                 anchors.top: parent.top; anchors.bottom: rulerArea.top
+                clip: true
 
                 ListView {
                     id: tracksListView
@@ -263,6 +267,7 @@ ApplicationWindow {
                     id: delayUpdateTimer
                     interval: 200
                     onTriggered: {
+                        gatherSignalView.itemAtIndex(0).signalFit()
                         for(let i = 0; i<tracksListView.count; i++) {
                             tracksListView.itemAtIndex(i).signalFit()
                         }
@@ -274,6 +279,7 @@ ApplicationWindow {
                     Rectangle {
                         anchors.left: parent.left; anchors.right: parent.right;
                         height: lower.height * 0.12
+                        color: appMaterial.surface6
                         ValueAxis {
                             id: yTrackComp_
                         }
@@ -300,11 +306,8 @@ ApplicationWindow {
                                     Math.abs(source.getChannelMin(viewChannel)),
                                     Math.abs(source.getChannelMax(viewChannel))
                                 )
-                                if(yValueAxis.min > ( - yA - 10))
-                                    yValueAxis.min =  - yA - 10
-
-                                if(yValueAxis.max < (yA + 10))
-                                    yValueAxis.max = yA + 10
+                                yValueAxis.min =  - yA * 1.2
+                                yValueAxis.max = yA * 1.2
                             }
                         }
 
@@ -321,7 +324,7 @@ ApplicationWindow {
                 anchors.bottom: parent.bottom
                 anchors.leftMargin: Math.min(tracksView.width * 0.15, 80)
                 height: 30
-                color: appStyle.ruler
+                color: appMaterial.surface2
                 clip: true
 
                 TrackRuler {
@@ -372,7 +375,8 @@ ApplicationWindow {
         anchors.top: parent.top; anchors.bottom: parent.bottom;
         anchors.right: parent.right; 
         width: app.width * 0.3
-        color: appStyle.rightSection
+        color: appMaterial.surface3
+        property int minWidth: 300;
 
         MouseArea {
             anchors.top: parent.top; anchors.bottom: parent.bottom;
@@ -384,39 +388,16 @@ ApplicationWindow {
 
             onMouseXChanged: {
                 rightView.width -=  mouseX - startX
-                if(rightView.width < 10)
-                    rightView.width = 10
+                if(rightView.width < parent.minWidth)
+                    rightView.width = parent.minWidth
             }
             onClicked: startX = mouseX
         }
 
-        Item {
+        EstimatePreviewBox {
+            id: previewBox
             anchors.fill: parent;
             anchors.margins: 10
-
-            Item {
-                id: itTopArea
-                anchors.top: parent.top; anchors.left: parent.left; anchors.right: parent.right;
-                // anchors.margins: 10
-                height: 60
-
-                InfoTable2 {
-                    id: itTop
-                    anchors.fill: parent
-                    headerNames: ["", "Cursor1", "Cursor2", "CursorDiff"]
-                }
-            }
-
-            Item {
-                id: itBottomArea
-                anchors.top: itTopArea.bottom; anchors.bottom: parent.bottom; 
-                anchors.left: parent.left; anchors.right: parent.right;
-
-                InfoTable2 {
-                    id: itLow
-                    anchors.fill: parent
-                }
-            }        
         }
     }
 
