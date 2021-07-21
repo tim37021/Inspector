@@ -19,23 +19,36 @@ ApplicationWindow {
         return n+(Math.floor(mid / 12)-1)
     }
 
-    Image {
-        anchors.centerIn: parent
-        source: 'logo.png'
-    }
-
-
+    // Image {
+    //     anchors.centerIn: parent
+    //     source: 'logo.png'
+    // }
     LiCAPv1 {
         id: lid
         active: true
-        port: 'COM4'
-        //  0-x 1-3s 2-6s 3-x 4-2s 5-1s
-        // channels: [5]
+        port: '/dev/cu.usbmodem317B396C32371'
         bufferLength: 1024
         onError: {
             console.log(message)
         }
     }
+
+    AmplitudeNode {
+        id: amplitudeNode
+        input: lid.output
+        channels: 6
+        length: 1024 * 10
+    }
+
+    // LiCAPv2 {
+    //     id: lid
+    //     active: true
+    //     port: '/dev/cu.usbmodem3254395330381'
+    //     bufferLength: 1024
+    //     onError: {
+    //         console.log(message)
+    //     }
+    // }
 
     MidiDiscoveryModelProvider{
         id: midiP
@@ -43,7 +56,7 @@ ApplicationWindow {
 
     MidiOutputDevice {
         id:midiout
-        portName: midiP.find("LiCAP")
+        portName: "LiCAP MIDI MPE"
     }
 
     SineSynth {
@@ -65,18 +78,27 @@ ApplicationWindow {
         input: lid.output
         rate: 32000
         channel: 5
+        debug: true
 
-        onOnset: midiout.note_on(1, note + tp1.value,  Math.min(127, Math.floor(127*ap1.amplitude/2000000)))
+        onOnset: {
+            midiout.note_on(1, note + tp1.value,  Math.min(127, Math.floor(127*ap1.amplitude/1000000)))
+        }
         onOffset: {
             midiout.note_off(1, noteOnset + tp1.value, 0)
         }
-        onSustain: midiout.aftertouch(1, Math.min(127, Math.floor(127*ap1.amplitude/2000000)))
+        onPitchbend: {
+            midiout.pitchwheel(1, pitchbend)
+        }
+        onSustain: midiout.aftertouch(1, Math.min(127, Math.floor(127*ap1.amplitude/1000000)))
 
         Amplitude {
             id: ap1
             input: lid.output
             offset: 128
             channel: 5
+            // onAmplitudeChanged: {
+            //     console.log(amplitude)
+            // }
         }
     }
 
@@ -86,11 +108,14 @@ ApplicationWindow {
         rate: 32000
         channel: 4
 
-        onOnset: midiout.note_on(2, note + tp2.value, Math.min(127, Math.floor(127*ap2.amplitude/1000000)))
+        onOnset: midiout.note_on(2, note + tp2.value, Math.min(127, Math.floor(127*ap2.amplitude/500000)))
         onOffset: {
             midiout.note_off(2, noteOnset + tp2.value, 0)
         }
-        onSustain: midiout.aftertouch(2, Math.min(127, Math.floor(127*ap2.amplitude/1000000)))
+        onPitchbend: {
+            midiout.pitchwheel(2, pitchbend)
+        }
+        onSustain: midiout.aftertouch(2, Math.min(127, Math.floor(127*ap2.amplitude/500000)))
 
         Amplitude {
             id: ap2
@@ -109,6 +134,9 @@ ApplicationWindow {
         onOnset: midiout.note_on(3, note + tp3.value, Math.min(127, Math.floor(127*ap3.amplitude/6000000)))
         onOffset: {
             midiout.note_off(3, noteOnset + tp3.value, 0)
+        }
+        onPitchbend: {
+            midiout.pitchwheel(3, pitchbend)
         }
         onSustain: midiout.aftertouch(3, Math.min(127, Math.floor(127*ap3.amplitude/6000000)))
 
@@ -129,6 +157,9 @@ ApplicationWindow {
         onOnset: midiout.note_on(6, note + tp6.value, Math.min(127, Math.floor(127*ap6.amplitude/6000000)))
         onOffset: {
             midiout.note_off(6, noteOnset + tp6.value, 0)
+        }
+        onPitchbend: {
+            midiout.pitchwheel(6, pitchbend)
         }
         onSustain: midiout.aftertouch(6, Math.min(127, Math.floor(127*ap6.amplitude/6000000)))
 
@@ -201,13 +232,12 @@ ApplicationWindow {
         rate: 32000
     }
     */
-    /*
     RingBuffer {
         id: rb
         input: lid.output
         length: 1024
-        channels: 1
-    }*/
+        channels: 6
+    }
 /*
     AutoCorrelation {
         id: ac
@@ -219,26 +249,36 @@ ApplicationWindow {
     SignalPlotOpenGL {
         anchors.fill: parent
         focus: true
-        // ValueAxis {
-        //     id: xAxis_
-        //     min: 0
-        //     max: ls.source.length 
-        // }
+        ValueAxis {
+            id: xAxis_
+            min: 0
+            max: ls.source.length 
+        }
 
-        // ValueAxis {
-        //     id: yAxis_
-        //     min: -16384
-        //     max: 16384
-        // }
+        ValueAxis {
+            id: yAxis_
+            min: -16384
+            max: 16384
+        }
 
-        // BufferLineSeries {
-        //     id: ls
-        //     xAxis: xAxis_
-        //     yAxis: yAxis_
-        //     color: "orange"
-        //     lineWidth: 2
-        //     source: rb.output
-        // }
+        BufferLineSeries {
+            id: ls
+            xAxis: xAxis_
+            yAxis: yAxis_
+            color: "orange"
+            lineWidth: 2
+            source: amplitudeNode.output
+            viewChannel: 3
+        }
+        BufferLineSeries {
+            id: ls2
+            xAxis: xAxis_
+            yAxis: yAxis_
+            color: "red"
+            lineWidth: 2
+            source: rb.output
+            viewChannel: 3
+        }
         
         SignalPlotControl {
             id: spc
@@ -254,7 +294,7 @@ ApplicationWindow {
                 synth.frequency *= Math.pow(2, 1/12)
             if(event.key == 32)
                 rb.running = !rb.running
-                rb2.running = !rb2.running
+                // rb2.running = !rb2.running
         }
     }
 }

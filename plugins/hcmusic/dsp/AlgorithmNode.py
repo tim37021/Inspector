@@ -1,13 +1,16 @@
+import math
 import PySide2.QtCore as QtCore
 import PySide2.QtQuick as QtQuick
 from PySide2.QtCore import Property, Signal, Slot
 import numpy as np
+from scipy.signal import hilbert
 from math import ceil, log2
 from statistics import mean
 
-from .Node import EstimateNode
+from .Node import EstimateNode, ProcessorNode, QtSignal1D
 # from .Utils import freq_to_note_noround
 from Algorithm.DoubleACProcessor import Smoother, freq_to_note_noround
+from cInspector import auto_correlation
 
 def best_lag_analyze(data, min_lag ,max_lag, threshold):
     from cInspector import hcpeakvalley
@@ -58,6 +61,9 @@ class PitchTracker(EstimateNode):
     onset = Signal()
     offset = Signal()
     sustain = Signal()
+    pitchbend = Signal(float, arguments=["pitchbend"])
+    debugChanged = Signal()
+    minNoteChanged = Signal()
 
     def __init__(self, parent=None):
         EstimateNode.__init__(self, parent)
@@ -66,15 +72,37 @@ class PitchTracker(EstimateNode):
         self._rate = 0
         self._min_lag = 32
         self._max_lag = 500
+        self._min_note = 40
         self._window = 256
-        self._threshold = 150000
+        self._threshold = 100000
         self._noteOnset = 0
+        self._debug = False
 
         # Temporary select channel in algorithm nodes
         self._channel = 0 
 
         self._curNote = None
         self._smoother = Smoother()
+
+    @Property(bool, notify=debugChanged)
+    def debug(self):
+        return self._debug
+    
+    @debug.setter
+    def debug(self, val):
+        if self._debug != val:
+            self._debug = val
+            self.debugChanged.emit()
+
+    @Property(float, notify=minNoteChanged)
+    def minNote(self):
+        return self._min_note
+    
+    @minNote.setter
+    def minNote(self, val):
+        if self._min_note != val:
+            self._min_note = val
+            self.minLagChanged.emit()
 
     @Property(float, final=True, notify=frequencyChanged)
     def frequency(self):
@@ -149,7 +177,6 @@ class PitchTracker(EstimateNode):
             self.thresholdChanged.emit()
 
     def update(self, offset, length):
-        from cInspector import auto_correlation
         ac = np.zeros(shape=self._max_lag +1, dtype=np.float32)
         # ac[self._min_lag:] = auto_correlation(self._input.numpy_array.reshape(-1), self._min_lag, self._max_lag, self._window)
         ac[self._min_lag:] = auto_correlation(self._input.numpy_array[..., self._channel].reshape(-1), self._min_lag, self._max_lag, self._window)
@@ -168,15 +195,21 @@ class PitchTracker(EstimateNode):
             note = None
         else:
             note = freq_to_note_noround(freq)
-
+            # print(freq)
+            if(note < self._min_note - 1):
+                note = None
+        # if self._debug:
+        #     print(note)
         event, smoothed_note = self._smoother.feed(note)
         self._note = round(smoothed_note)
     
         if event == 'onset':
             self.onset.emit()
             self._noteOnset = self._note
+            self.pitchbend.emit(smoothed_note - self._noteOnset)
         elif event == 'sustain':
             self.sustain.emit()
+            self.pitchbend.emit(smoothed_note - self._noteOnset)
         elif event == 'offset':
             self.offset.emit()
     
@@ -235,9 +268,11 @@ class Amplitude(EstimateNode):
         # ac[self._min_lag:] = auto_correlation(self._input.numpy_array.reshape(-1), self._min_lag, self._max_lag, self._window)
 
         # envelope = self.getEnvelope(self._input.numpy_array.reshape(-1), self._offset)
-        envelope = self.getEnvelope(self._input.numpy_array[..., self._channel].reshape(-1), self._offset)
+        # envelope = self.getEnvelope(self._input.numpy_array[..., self._channel].reshape(-1), self._offset)
+        analytic_signal = hilbert(self._input.numpy_array[..., self._channel].reshape(-1)) 
+        envelope = np.abs(analytic_signal)
         self._amplitude = mean(envelope)
-        self.amplitudeChanged
+        self.amplitudeChanged.emit()
         # self._amplitude = amplitude(ac, self._min_lag)
         # self.amplitudeChanged.emit()
 
@@ -257,3 +292,54 @@ class Amplitude(EstimateNode):
             outputSignal.append (maximum)
         
         return outputSignal
+
+
+class AmplitudeNode(ProcessorNode):
+    lengthChanged = Signal()
+    channelsChanged = Signal()
+
+    def __init__(self, parent=None):
+        ProcessorNode.__init__(self, QtSignal1D, parent)
+        self._channels = 0
+        self._offset = 50
+        self._length = 1024
+
+    @Property(int, notify=channelsChanged)
+    def channels(self):
+        return self._channels
+
+    @channels.setter
+    def channels(self, val):
+        if self._channels != val:
+            self._channels = val
+            self.channelsChanged.emit()
+
+            if self.completed:
+                self.initialize()
+
+    @Property(int, notify=lengthChanged)
+    def length(self):
+        return self._length
+
+    @length.setter
+    def length(self, val):
+        if self._length != val:
+            self._length = val
+            self.lengthChanged.emit()
+
+            if self.completed:
+                self.initialize()
+
+    def update(self, offset, length):
+        for i in range(self._channels):
+            arr = self._input.numpy_array[offset: offset+length, i]
+            oarr = self._output.numpy_array
+            oarr[:-length, i] = oarr[length:, i]
+            # analytic_signal = hilbert(arr) 
+            # envelope = np.abs(analytic_signal)
+            oarr[-length:, i] = np.linalg.norm(arr)
+        self._output.update.emit(0, oarr.shape[0])
+
+    def initialize(self):
+        self._output.alloc(self._length, self._channels)
+        self._output.update.emit(0, self._length)

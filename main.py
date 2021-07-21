@@ -6,6 +6,7 @@ from PySide2.QtQuick import QQuickPaintedItem
 import PluginLoader
 import os
 import sys
+from serial.tools import list_ports
 sys.path.insert(0, 'plugins')
 from AlgorithmPool import AlgorithmPool     # noqa: E402
 
@@ -56,6 +57,8 @@ class App(object):
         engine = QQmlApplicationEngine()
 
         plugins = PluginLoader.scan_plugins('plugins')
+        for port in list_ports.comports():
+            print(port.device)
         # install all
         for p in plugins:
             p.install()
@@ -69,7 +72,7 @@ class App(object):
 
         if len(self._argv) == 1:
             print('Use demo/main.qml')
-            engine.load('thermal/main.qml')
+            engine.load('demo/main.qml')
         else:
             # Load the qml file into the engine
             engine.load(self._argv[1])

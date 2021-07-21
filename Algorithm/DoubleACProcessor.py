@@ -38,7 +38,8 @@ class Smoother(object):
             self._chance = 0
             event = 'check'
             
-        elif note != None and Smoother.same_note(self._curNote, note):
+        # elif note != None and Smoother.same_note(self._curNote, note):
+        elif note != None:
             self._cntOff = 0
             self._cntOn+=1
             self._chance = 2
@@ -47,7 +48,8 @@ class Smoother(object):
                 event = 'onset'
             elif self._cntOn > 3:
                 event = 'sustain'
-        elif self._curNote !=None and not Smoother.same_note(note, self._curNote):
+        # elif self._curNote !=None and not Smoother.same_note(note, self._curNote):
+        elif self._curNote !=None:
             self._chance -= 1
             
             if self._chance < 0:

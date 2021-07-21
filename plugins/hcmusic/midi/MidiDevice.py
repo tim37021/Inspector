@@ -111,15 +111,16 @@ class MidiOutputDevice(QObject):
     @portName.setter
     def portName(self, val):
         if self._portName != val:
-            if val not in mido.get_output_names():
-                return
+            # print(mido.get_output_names())
+            # if val not in mido.get_output_names():
+            #     return
 
             if self.outport is not None:
                 self.outport.close()
                 self._opened = False
 
             self._portName = val
-            self.outport = mido.open_output(val)
+            self.outport = mido.open_output(val, virtual= True)
             self._opened = True
             self.portNameChanged.emit()
             self.openedChanged.emit()
@@ -133,6 +134,7 @@ class MidiOutputDevice(QObject):
     @Slot(int, int, int)
     def note_on(self, channel, note, velocity):
         if self.outport is not None and not self.outport.closed:
+            print("Note on, Channel: "+str(channel)+ ", Note: "+str(note))
             msg = mido.Message('note_on', channel=channel, note=note, velocity=velocity)
             self.outport.send(msg)
 

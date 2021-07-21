@@ -1,6 +1,7 @@
 import threading
 import serial
 import numpy as np
+from numpy.lib.stride_tricks import as_strided
 import time
 
 
@@ -72,6 +73,20 @@ class LiCAP_R_EVT(LiCAPv1):
         while not self.stopped:
             buf = np.frombuffer(self.read(3072), np.uint16).astype(np.int32) * 65536 / 256  # noqa E501
             buf = buf.reshape(-1, 8)[..., LiCAP_R_EVT.MAPPING]
+            self._callback(buf)
+
+        self._ser.close()
+
+class LiCAP_D_EVT(LiCAPv1):
+    MAPPING = list(range(8))
+
+    def run(self):
+        self._ser = serial.Serial(self._port)
+        self._ser.flushInput()
+
+        while not self._stopped:
+            buf = np.frombuffer(self.read(4096 * 4), 'i2').astype(np.int32)[::2] 
+            buf = buf.reshape(-1, 8)[..., LiCAP_D_EVT.MAPPING]
             self._callback(buf)
 
         self._ser.close()

@@ -201,7 +201,7 @@ class RingBuffer(ProcessorNode):
     def __init__(self, parent=None):
         ProcessorNode.__init__(self, QtSignal1D, parent)
         self._length = 0
-        self._channels = 1
+        self._channels = 6
 
     @Property(int, notify=lengthChanged)
     def length(self):
