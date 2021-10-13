@@ -108,7 +108,7 @@ ApplicationWindow {
                     id: gatherSignalView
                     anchors.fill: parent
                     model: gatherSignals
-                    delegate: lowerTrack
+                    delegate: gatherTrack
                     interactive: loadedSignals.length > 6
                 }
             }
@@ -132,7 +132,7 @@ ApplicationWindow {
             ListModel { id: gatherSignals }
 
             Component {
-                id: lowerTrack
+                id: gatherTrack
 
                 Rectangle {
                     id: gatherRect
@@ -254,11 +254,14 @@ ApplicationWindow {
                     delegate: track
                     interactive: true
                     property int readyCount: 0
-                    onModelChanged: readyCount = 0
+                    onModelChanged: {
+                        readyCount = 0
+                        console.log("On model changed")
+                    }
+                    
                     onReadyCountChanged: {
                         if(readyCount == count){
-                            csv.refresh()
-                            delayUpdateTimer.restart()
+                            app.refreshPlot()
                         }
                     }
                 }
@@ -297,6 +300,7 @@ ApplicationWindow {
 
                             onPlotReady: {
                                 tracksListView.readyCount += 1
+                                console.log("YOYUO")
                             }
 
                             function signalFit() {
@@ -410,6 +414,7 @@ ApplicationWindow {
             csv.run()
             loadedSignals.clear()
             gatherSignals.clear()
+            tracksListView.readyCount = 0
             let colors = [
                 'red',
                 'blue',
@@ -464,5 +469,11 @@ ApplicationWindow {
         onTriggered: {
             safd.open()
         }
+    }
+
+    function refreshPlot() {
+        csv.refresh()
+        delayUpdateTimer.restart()
+        console.log("Refreshed")
     }
 }
