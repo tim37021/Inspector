@@ -128,6 +128,7 @@ class MidiOutputDevice(QObject):
     @Slot(int, int, int)
     def note_off(self, channel, note, velocity):
         if self.outport is not None and not self.outport.closed:
+            print("Note off, Channel: "+str(channel))
             msg = mido.Message('note_off', channel=channel, note=note, velocity=velocity)
             self.outport.send(msg)
 
@@ -162,10 +163,12 @@ class MidiOutputDevice(QObject):
             msg = mido.Message('aftertouch', channel=channel, value=value)
             self.outport.send(msg)
 
-    @Slot(int, int)
+    @Slot(int, float)
     def pitchwheel(self, channel, pitch):
         if self.outport is not None and not self.outport.closed:
-            msg = mido.Message('pitchwheel', channel=channel, pitch=pitch)
+            pitchWheel = int(128/ 24 * pitch) + 64
+            msg = mido.Message('pitchwheel', channel=channel, pitch=pitchWheel)
+            # print("Pitch bend, Channel: "+str(channel)+ ", Note: "+str(pitch))
             self.outport.send(msg)
 
     @Slot(int)

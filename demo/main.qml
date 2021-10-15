@@ -12,7 +12,7 @@ ApplicationWindow {
     height: 600
     visible: true
     color: "black"
-    title: 'NegativeGrid' + `${spc.mouseCoordX}${spc.mouseCoordY}`
+    title: 'NegativeGrid' + `${spc.mouseCoordX}`+ '  ' +`${spc.mouseCoordY}`
 
     function midi_to_note(mid) {
         let n = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"][mid%12]
@@ -56,7 +56,7 @@ ApplicationWindow {
 
     MidiOutputDevice {
         id:midiout
-        portName: "LiCAP MIDI MPE"
+        portName: "LiCAP MIDI Device"
     }
 
     SineSynth {
@@ -235,7 +235,7 @@ ApplicationWindow {
     RingBuffer {
         id: rb
         input: lid.output
-        length: 1024
+        length: 8000
         channels: 6
     }
 /*
@@ -252,7 +252,7 @@ ApplicationWindow {
         ValueAxis {
             id: xAxis_
             min: 0
-            max: ls.source.length 
+            max: ls2.source.length 
         }
 
         ValueAxis {
@@ -261,15 +261,15 @@ ApplicationWindow {
             max: 16384
         }
 
-        BufferLineSeries {
-            id: ls
-            xAxis: xAxis_
-            yAxis: yAxis_
-            color: "orange"
-            lineWidth: 2
-            source: amplitudeNode.output
-            viewChannel: 3
-        }
+        // BufferLineSeries {
+        //     id: ls
+        //     xAxis: xAxis_
+        //     yAxis: yAxis_
+        //     color: "orange"
+        //     lineWidth: 2
+        //     source: amplitudeNode.output
+        //     viewChannel: 3
+        // }
         BufferLineSeries {
             id: ls2
             xAxis: xAxis_
@@ -277,7 +277,7 @@ ApplicationWindow {
             color: "red"
             lineWidth: 2
             source: rb.output
-            viewChannel: 3
+            viewChannel: 4
         }
         
         SignalPlotControl {

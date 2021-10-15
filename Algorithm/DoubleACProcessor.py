@@ -51,7 +51,6 @@ class Smoother(object):
         # elif self._curNote !=None and not Smoother.same_note(note, self._curNote):
         elif self._curNote !=None:
             self._chance -= 1
-            
             if self._chance < 0:
                 self._cntOff = 0
                 self._curNote = None
@@ -59,7 +58,6 @@ class Smoother(object):
                     event = 'offset'
             elif self._cntOn > 3:
                 event = 'sustain'
-
         return event, 0 if self._curNote==None else self._curNote
         
 
