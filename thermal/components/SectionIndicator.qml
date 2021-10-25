@@ -109,4 +109,12 @@ Item {
         if(root.endX >= root.width) root.endX = root.width
         if(root.endX - root.startX <= minDiffWidth) root.endX = root.startX + minDiffWidth
     }
+
+    function setStartTime(time) {
+        startX = (time - axisX.min) / (axisX.max - axisX.min) * width
+    }
+
+    function setEndTime(time) {
+        endX = (time - axisX.min) / (axisX.max - axisX.min) * width
+    }
 }

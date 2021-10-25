@@ -754,6 +754,16 @@ class ThermalReportNode(Node):
     def getBaseInfo(self):
         return self._baseInfo
 
+    @Slot(result=float)
+    def getT1(self):
+        peaks = self._getTargetTime2(self._input.numpy_array[..., 0])
+        return peaks[0]
+    
+    @Slot(result=float)
+    def getT2(self):
+        peaks = self._getTargetTime2(self._input.numpy_array[..., 0])
+        return peaks[1]
+
     @Slot(QUrl)
     def calc(self, outputFile= "tests.xlsx"):
         from os import listdir

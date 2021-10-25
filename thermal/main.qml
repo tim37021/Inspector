@@ -217,6 +217,10 @@ ApplicationWindow {
                         strack.signalFit()
                         updateDelay.restart()
                     }
+                    function setT1T2(t1, t2) {
+                        sIndicate.setStartTime(t1)
+                        sIndicate.setEndTime(t2)
+                    }
                 }
             }
 
@@ -276,6 +280,7 @@ ApplicationWindow {
                         for(let i = 0; i<tracksListView.count; i++) {
                             tracksListView.itemAtIndex(i).signalFit()
                         }
+                        gatherSignalView.itemAtIndex(0).setT1T2(trn.getT1(), trn.getT2())
                     }
                 }
 
