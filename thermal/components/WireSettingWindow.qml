@@ -11,7 +11,7 @@ Item {
     property alias windowColor: window.color
     property var channelNames
 
-    signal accepted(var channels, var inverses)
+    signal accepted(var channels, var inverses, var type)
     visible: root.opacity > 0.0
     opacity: 0.0
 
@@ -123,7 +123,7 @@ Item {
 
             text: "確認"
             onClicked: {
-                root.accepted(pwm.getChannels(), pwm.getInverses())
+                root.accepted(pwm.getChannels(), pwm.getInverses(), pwm.phaseWireType)
                 root.close()
             }
         }

@@ -23,6 +23,7 @@ class PhaseWireCalc(ProcessorNode):
     channelUnitsChanged = Signal()
     inverseChanged = Signal()
     channelNameChanged = Signal()
+    typeChanged = Signal()
 
     def __init__(self, parent=None):
         ProcessorNode.__init__(self, QtSignal1D, parent)
@@ -45,6 +46,17 @@ class PhaseWireCalc(ProcessorNode):
             "P1", "P2", "P3", "Q1", "Q2", "Q3",
             "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig"
         ]
+        self._type = "PW3P3W"
+
+    @Property(str, notify=typeChanged)
+    def type(self):
+        return self._type
+    
+    @type.setter
+    def type(self, val):
+        if self._type != val:
+            self._type = val
+            self.typeChanged.emit()
 
     @Property("QVariantList", notify=channelNameChanged)
     def channelName(self):
@@ -198,6 +210,15 @@ class PhaseWireCalc(ProcessorNode):
         u1 = np.sqrt((np.square(ucos[self._channels[0]]) + np.square(usin[self._channels[0]])) / 2)
         u2 = np.sqrt((np.square(ucos[self._channels[1]]) + np.square(usin[self._channels[1]])) / 2)
         u3 = np.sqrt((np.square(ucos[self._channels[2]]) + np.square(usin[self._channels[2]])) / 2)
+
+        if self._type == "PW3P3W":
+            print("In ph3p3w")
+            _u1 = (u1 - u3) / 3
+            _u2 = (u2 - u1) / 3
+            _u3 = (u3 - u2) / 3
+            u1 = _u1
+            u2 = _u2
+            u3 = _u3
 
         i1 = np.sqrt((np.square(ucos[self._channels[3]]) + np.square(usin[self._channels[3]])) / 2)
         i2 = np.sqrt((np.square(ucos[self._channels[4]]) + np.square(usin[self._channels[4]])) / 2)

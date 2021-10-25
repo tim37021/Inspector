@@ -12,8 +12,17 @@ import ".."
 Item {
     id: root
     property var selections: ["CH1", "CH2", "CH3", "CH4", "CH5", "CH6"]
+    property var phaseWireType: {
+        switch(cb.currentIndex) {
+            case 0:
+                return "PW3P3W";
+            case 1:
+                return "PW3P4W";
+        }
+    }
 
     ComboBox {
+        id: cb
         model: ["三項三線", "三項四線"]
         anchors.top: parent.top; anchors.left: parent.left;
         anchors.margins: 20

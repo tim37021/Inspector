@@ -15,8 +15,8 @@ import "components"
 
 ApplicationWindow {
     id: app
-    width: 1280
-    height: 960
+    width: 1920
+    height: 1080
     visible: true
     color: appMaterial.background
     // title: `${spc.mouseCoordX}${spc.mouseCoordY}`
@@ -136,7 +136,8 @@ ApplicationWindow {
 
                 Rectangle {
                     id: gatherRect
-                    anchors.left: parent.left; anchors.right: parent.right;
+                    // anchors.left: parent.left; anchors.right: parent.right;
+                    width: gatherTracksView.width
                     height: gatherTracksView.height
                     color: appMaterial.surface5
 
@@ -280,7 +281,8 @@ ApplicationWindow {
                 Component {
                     id: track
                     Rectangle {
-                        anchors.left: parent.left; anchors.right: parent.right;
+                        // anchors.left: tracksView.left; anchors.right: tracksView.right;
+                        width: tracksView.width
                         height: lower.height * 0.12
                         color: appMaterial.surface6
                         ValueAxis {
@@ -300,7 +302,6 @@ ApplicationWindow {
 
                             onPlotReady: {
                                 tracksListView.readyCount += 1
-                                console.log("YOYUO")
                             }
 
                             function signalFit() {
@@ -434,6 +435,7 @@ ApplicationWindow {
             c2cConv.t2= csv.output.length
             c2cConv.channels = channels
             c2cConv.inverse = inverses
+            c2cConv.type = type
         }
     }
 
@@ -474,6 +476,5 @@ ApplicationWindow {
     function refreshPlot() {
         csv.refresh()
         delayUpdateTimer.restart()
-        console.log("Refreshed")
     }
 }
