@@ -215,6 +215,7 @@ ApplicationWindow {
                     }
                     function signalFit() {
                         strack.signalFit()
+                        updateDelay.restart()
                     }
                 }
             }
@@ -307,12 +308,18 @@ ApplicationWindow {
                             function signalFit() {
                                 xValueAxis.min = 0
                                 xValueAxis.max = source.length
-                                let yA = Math.max(
-                                    Math.abs(source.getChannelMin(viewChannel)),
-                                    Math.abs(source.getChannelMax(viewChannel))
-                                )
-                                yValueAxis.min =  - yA * 1.2
-                                yValueAxis.max = yA * 1.2
+                                let minValue = source.getChannelMin(viewChannel)
+                                let maxValue = source.getChannelMax(viewChannel)
+                                let delta = maxValue - minValue
+
+                                // let yA = Math.max(
+                                //     Math.abs(source.getChannelMin(viewChannel)),
+                                //     Math.abs(source.getChannelMax(viewChannel))
+                                // )
+                                // yValueAxis.min =  - yA * 1.3
+                                // yValueAxis.max = yA * 1.3
+                                yValueAxis.min = minValue - delta / 6 * 2
+                                yValueAxis.max = maxValue + delta / 6 * 2
                             }
                         }
 
