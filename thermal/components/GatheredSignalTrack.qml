@@ -117,7 +117,7 @@ Item {
                 anchors.fill: parent
                 xAxis: xValueAxis
                 yAxis: yValueAxis
-                // lockX: true
+                lockX: true
                 lockY: true
                 lockScrollY: true
                 hoverEnabled: true

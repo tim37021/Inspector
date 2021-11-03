@@ -8,7 +8,11 @@ Image {
     enum IconType {
         PW3P3W,
         PW3P4W,
-        Clear
+        Clear,
+        Center,
+        ZoomIn,
+        ZoomIn,
+        ZoomOut
     }
 
     source: {
@@ -19,6 +23,13 @@ Image {
                 return "icons/3P4W.png";
             case AppIcon.Clear:
                 return "icons/clear.svg";
+            case AppIcon.Center:
+                return "icons/center_focus.svg";
+            case AppIcon.ZoomIn:
+                console.log("icons/zoom_in.svg")
+                return "icons/zoom_in.svg";
+            case AppIcon.ZoomOut:
+                return "icons/zoom_out.svg";
         }
     }
     fillMode: Image.Stretch

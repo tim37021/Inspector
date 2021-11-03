@@ -97,7 +97,7 @@ ApplicationWindow {
         Item {
             id: upper
             anchors.left: parent.left; anchors.right: parent.right;
-            anchors.top: parent.top; anchors.bottom: lower.top;
+            anchors.top: parent.top; anchors.bottom: middle.top;
 
             Item {
                 id: gatherTracksView
@@ -109,7 +109,7 @@ ApplicationWindow {
                     anchors.fill: parent
                     model: gatherSignals
                     delegate: gatherTrack
-                    interactive: loadedSignals.length > 6
+                    interactive: false
                 }
             }
 
@@ -122,11 +122,11 @@ ApplicationWindow {
                 color: appMaterial.surface2
                 clip: false
 
-                TrackRuler {
-                    anchors.fill: parent
-                    xValueAxis: xAxis_c2c
-                    source: c2cConv.output
-                }
+                // TrackRuler {
+                //     anchors.fill: parent
+                //     xValueAxis: xAxis_c2c
+                //     totalSamples: c2cConv.output.length
+                // }
             }
 
             ListModel { id: gatherSignals }
@@ -183,6 +183,7 @@ ApplicationWindow {
                                 previewBox.bottomModel = c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
                                 xAxis_.min = coordinateMin.toFixed(0)
                                 xAxis_.max = coordinateMax.toFixed(0)
+                                console.log("Min: " + xAxis_.min  + ", Max: " + xAxis_.max)
                             }
 
                             Timer {
@@ -242,6 +243,55 @@ ApplicationWindow {
         }
 
         Rectangle {
+            id: middle
+            anchors.bottom: lower.top; anchors.left: parent.left; anchors.right: parent.right;
+            height: 40
+            color: appMaterial.surface3
+
+            Row {
+                anchors.fill: parent
+                anchors.leftMargin: 10
+                spacing: 10
+
+                BaseIconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconType: AppIcon.Center
+                    backgroundColor: appMaterial.surface6
+                    hoverColor: appMaterial.surface2
+                    pressedColor: appMaterial.errorOn
+
+                    onClicked: {
+                        centerSignal.trigger()
+                    }
+                }
+
+                BaseIconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconType: AppIcon.ZoomIn
+                    backgroundColor: appMaterial.surface6
+                    hoverColor: appMaterial.surface2
+                    pressedColor: appMaterial.errorOn
+
+                    onClicked: {
+                        zoomIn.trigger()
+                    }
+                }
+
+                BaseIconButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconType: AppIcon.ZoomOut
+                    backgroundColor: appMaterial.surface6
+                    hoverColor: appMaterial.surface2
+                    pressedColor: appMaterial.errorOn
+
+                    onClicked: {
+                        zoomOut.trigger()
+                    }
+                }
+            }
+        }
+
+        Rectangle {
             id: lower
             anchors.bottom: parent.bottom; anchors.left: parent.left; anchors.right: parent.right;
             height: parent.height * 0.8
@@ -257,16 +307,55 @@ ApplicationWindow {
                     id: tracksListView
                     anchors.fill: parent
                     model: loadedSignals
-                    delegate: track
+                    delegate: Rectangle {
+                        // anchors.left: tracksView.left; anchors.right: tracksView.right;
+                        width: tracksView.width
+                        height: lower.height * 0.12
+                        color: appMaterial.surface6
+                        ValueAxis {
+                            id: yTrackComp_
+                        }
+                        SignalTrack {
+                            id: strack
+                            source: c2cConv.output
+                            infoText: c2cConv.channelName[plotChannel]
+                            viewChannel: plotChannel
+                            lineColor: plotColor
+                            anchors.fill: parent
+                            xValueAxis: xAxis_
+                            yValueAxis: yTrackComp_
+                            property int displayDuration: 1
+                            property int samplerate: 10000
+
+                            onPlotReady: {
+                                tracksListView.readyCount += 1
+                            }
+
+                            function signalFit() {
+                                xValueAxis.min = 0
+                                xValueAxis.max = source.length
+                                let minValue = source.getChannelMin(viewChannel)
+                                let maxValue = source.getChannelMax(viewChannel)
+                                let delta = maxValue - minValue
+
+                                yValueAxis.min = minValue - delta / 6 * 2
+                                yValueAxis.max = maxValue + delta / 6 * 2
+                            }
+                        }
+
+                        function signalFit() {
+                            strack.signalFit()
+                        }
+                    }
                     interactive: true
                     property int readyCount: 0
+                    ScrollBar.vertical: ScrollBar { }
                     onModelChanged: {
                         readyCount = 0
-                        console.log("On model changed")
                     }
                     
                     onReadyCountChanged: {
-                        if(readyCount == count){
+                        if(readyCount == count && count != 0){
                             app.refreshPlot()
                         }
                     }
@@ -274,13 +363,9 @@ ApplicationWindow {
 
                 Timer {
                     id: delayUpdateTimer
-                    interval: 200
+                    interval: 1000
                     onTriggered: {
-                        gatherSignalView.itemAtIndex(0).signalFit()
-                        for(let i = 0; i<tracksListView.count; i++) {
-                            tracksListView.itemAtIndex(i).signalFit()
-                        }
-                        gatherSignalView.itemAtIndex(0).setT1T2(trn.getT1(), trn.getT2())
+                        centerSignal.trigger()
                     }
                 }
 
@@ -344,11 +429,15 @@ ApplicationWindow {
                 color: appMaterial.surface2
                 clip: true
 
-                TrackRuler {
-                    anchors.fill: parent
-                    xValueAxis: xAxis_
-                    source: csv.output
-                }
+                // TrackRuler {
+                //     id: lowerRuler
+                //     anchors.fill: parent
+                //     xValueAxis: ValueAxis {
+                //         min: 0
+                //         max: 149584
+                //     }
+                //     totalSamples: c2cConv.output.length
+                // }
             }
 
             ValueAxis {
@@ -359,7 +448,7 @@ ApplicationWindow {
                     if(min <=  0) min = 0
                 }
                 onMaxChanged: {
-                    if(max >= csv.output.length) max = csv.output.length
+                    if(max >= c2cConv.output.length) max = c2cConv.output.length
                 }
             }
 
@@ -448,6 +537,7 @@ ApplicationWindow {
             c2cConv.channels = channels
             c2cConv.inverse = inverses
             c2cConv.type = type
+            tracksListView.readyCount = 0
         }
     }
 
@@ -482,6 +572,45 @@ ApplicationWindow {
         shortcut: "Ctrl+Shift+S"
         onTriggered: {
             safd.open()
+        }
+    }
+
+    Action {
+        id: centerSignal
+        text: qsTr("&Center Signal")
+        shortcut: "Alt+C"
+        onTriggered: {
+            gatherSignalView.itemAtIndex(0).signalFit()
+            for(let i = 0; i<tracksListView.count; i++) {
+                tracksListView.itemAtIndex(i).signalFit()
+            }
+            gatherSignalView.itemAtIndex(0).setT1T2(trn.getT1() - 100, trn.getT2() + 100)
+        }
+    }
+
+    Action {
+        id: zoomIn
+        text: qsTr("Zoom In")
+        shortcut: "Ctrl+Shift+A"
+        onTriggered: {
+            if(xAxis_.max - xAxis_.min < 200) return
+            xAxis_.min += 100
+            xAxis_.max -= 100
+
+            gatherSignalView.itemAtIndex(0).setT1T2(xAxis_.min, xAxis_.max)
+        }
+    }
+
+    Action {
+        id: zoomOut
+        text: qsTr("Zoom Out")
+        shortcut: "Ctrl+Shift+D"
+        onTriggered: {
+            if(xAxis_.max > c2cConv.output.length - 100 || xAxis_.min < 100) return
+            xAxis_.min -= 100
+            xAxis_.max += 100
+
+            gatherSignalView.itemAtIndex(0).setT1T2(xAxis_.min, xAxis_.max)
         }
     }
 

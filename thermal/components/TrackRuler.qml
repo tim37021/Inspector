@@ -8,12 +8,12 @@ ListView {
     id: ruler
 
     property ValueAxis xValueAxis: ValueAxis {}
-    property Signal1D source
+    property int totalSamples: 300300
     property int unitSamples: 3000
     property int viewSamples: 3000 * 5
     
     orientation: ListView.Horizontal
-    model: (source.length / unitSamples).toFixed(0)
+    model: (totalSamples / unitSamples).toFixed(0)
     contentX: (xValueAxis.min / viewSamples) * ruler.width
     interactive: false
     delegate: Item {

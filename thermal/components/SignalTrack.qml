@@ -105,6 +105,7 @@ Item {
             property real mouseCoordY: (mouseY / height) * (yValueAxis.max - yValueAxis.min) + yValueAxis.min
 
             hoverEnabled: true
+            propagateComposedEvents: true
         }
 
         Rectangle {
