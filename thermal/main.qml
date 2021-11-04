@@ -429,21 +429,23 @@ ApplicationWindow {
                 color: appMaterial.surface2
                 clip: true
 
-                // TrackRuler {
-                //     id: lowerRuler
-                //     anchors.fill: parent
-                //     xValueAxis: ValueAxis {
-                //         min: 0
-                //         max: 149584
-                //     }
-                //     totalSamples: c2cConv.output.length
-                // }
+                AxisRuler {
+                    id: lowerRuler
+                    anchors.fill: parent
+                    axis: xAxis_
+                    stride: Math.pow(10, getDigit(axis.max - axis.min) - 1)
+                    visible: tracksListView.model.count > 0
+
+                    function getDigit(value) {
+                        return value.toString().length
+                    }
+                }
             }
 
             ValueAxis {
                 id: xAxis_
                 min: 0
-                max: 1000
+                max: 300300
                 onMinChanged: {
                     if(min <=  0) min = 0
                 }

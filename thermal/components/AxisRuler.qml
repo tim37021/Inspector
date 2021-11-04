@@ -24,14 +24,14 @@ Item {
     property int orientation: AxisRuler.Horizontal
     property ValueAxis axis: ValueAxis {}
 
-    property real gridSize: 0.2
-    property real unit: 10
+    property real stride: 1
+    property real unit: 1
     property int fix: 0
     property string textColor: "#D3D3D3"
     property int fontPixelSize: 12
 
     Loader {
-        id: gridSize
+        id: grid
         anchors.fill: parent
         active: TrackRuler
         sourceComponent: plotUI.orientation === AxisRuler.Horizontal? horizontalComp: verticalComp
@@ -44,8 +44,8 @@ Item {
             Repeater {
                 id: rep
 
-                model: Math.max(Math.ceil((axis.max - axis.min).toFixed(3) / stride) + 1, 0)
-                property real stride: gridSize
+                model: Math.max(Math.ceil((axis.max - axis.min).toFixed(plotUI.fix) / stride) + 1, 0)
+                property real stride: plotUI.stride
                 property real startX: Math.floor(axis.min / stride) * stride
                 delegate: Item {
                     visible: x >= 0
@@ -72,7 +72,7 @@ Item {
                 id: repV
 
                 model: Math.ceil((axis.max - axis.min).toFixed(3) / stride) + 1
-                property real stride: gridSize
+                property real stride: plotUI.stride
                 property real startX: Math.floor(axis.min / stride) * stride
 
                 delegate: Item {
@@ -84,7 +84,7 @@ Item {
                     
                     Text {
                         anchors.right: parent.right
-                        text; (parent.coordinate * plotUI.unit).toFixed(plotUI.fix)
+                        text: (parent.coordinate * plotUI.unit).toFixed(plotUI.fix)
                         color: plotUI.textColor
                         font.pixelSize: plotUI.fontPixelSize
                     }
