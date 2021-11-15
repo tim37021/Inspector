@@ -1,6 +1,6 @@
 from PySide2.QtCore import Property, Signal, Slot, Qt, QModelIndex, QObject, QAbstractListModel
 import mido
-
+from sys import platform
 
 class MidiDeviceModel(QAbstractListModel):
     NameRole = Qt.UserRole + 1
@@ -120,7 +120,11 @@ class MidiOutputDevice(QObject):
                 self._opened = False
 
             self._portName = val
-            self.outport = mido.open_output(val, virtual= True)
+            if platform == "win32":
+                self.outport = mido.open_output(val, virtual= False)
+                print("In Windows")
+            else:
+                self.outport = mido.open_output(val, virtual= True)
             self._opened = True
             self.portNameChanged.emit()
             self.openedChanged.emit()

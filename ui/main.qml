@@ -31,9 +31,13 @@ ApplicationWindow {
         }
     }
 */
+    LiCAPFinder {
+        id: finder
+    }
 
     LiCAPDevice {
         id: licap
+        port: finder.comport
     }
 
     AudioDiscoveryModelProvider {
