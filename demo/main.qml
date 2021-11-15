@@ -1,7 +1,7 @@
 
 import QtQuick 2.12
 import QtQuick.Controls 2.12
-import hcmusic.audio 1.0
+// import hcmusic.audio 1.0
 import hcmusic.plot 1.0
 import hcmusic.dsp 1.0
 import hcmusic.licap 1.0
@@ -23,10 +23,14 @@ ApplicationWindow {
     //     anchors.centerIn: parent
     //     source: 'logo.png'
     // }
+    LiCAPFinder {
+        id: finder
+    }
+
     LiCAPv1 {
         id: lid
         active: true
-        port: '/dev/cu.usbmodem3254395330381'
+        port: finder.comport
         bufferLength: 1024
         onError: {
             console.log(message)
@@ -56,7 +60,8 @@ ApplicationWindow {
 
     MidiOutputDevice {
         id:midiout
-        portName: "LiCAP MIDI Device"
+        // portName: "LiCAP MIDI Device"
+        portName: midiP.find("LiCAP")
     }
 
     SineSynth {
@@ -81,7 +86,7 @@ ApplicationWindow {
         debug: true
 
         onOnset: {
-            midiout.note_on(1, note + tp1.value,  Math.min(127, Math.floor(127*ap1.amplitude/1000000)))
+            midiout.note_on(1, note + tp1.value,  Math.min(127, Math.floor(127*ap1.amplitude/2000000)))
         }
         onOffset: {
             midiout.note_off(1, noteOnset + tp1.value, 0)
@@ -89,7 +94,7 @@ ApplicationWindow {
         onPitchbend: {
             midiout.pitchwheel(1, pitchbend)
         }
-        onSustain: midiout.aftertouch(1, Math.min(127, Math.floor(127*ap1.amplitude/1000000)))
+        onSustain: midiout.aftertouch(1, Math.min(127, Math.floor(127*ap1.amplitude/2000000)))
 
         Amplitude {
             id: ap1
@@ -107,15 +112,16 @@ ApplicationWindow {
         input: lid.output
         rate: 32000
         channel: 4
+        threshold: 40000
 
-        onOnset: midiout.note_on(2, note + tp2.value, Math.min(127, Math.floor(127*ap2.amplitude/500000)))
+        onOnset: midiout.note_on(2, note + tp2.value, Math.min(127, Math.floor(127*ap2.amplitude/200000)))
         onOffset: {
             midiout.note_off(2, noteOnset + tp2.value, 0)
         }
         onPitchbend: {
             midiout.pitchwheel(2, pitchbend)
         }
-        onSustain: midiout.aftertouch(2, Math.min(127, Math.floor(127*ap2.amplitude/500000)))
+        onSustain: midiout.aftertouch(2, Math.min(127, Math.floor(127*ap2.amplitude/200000)))
 
         Amplitude {
             id: ap2
@@ -130,15 +136,16 @@ ApplicationWindow {
         input: lid.output
         rate: 32000
         channel: 1
+        threshold: 40000
 
-        onOnset: midiout.note_on(3, note + tp3.value, Math.min(127, Math.floor(127*ap3.amplitude/6000000)))
+        onOnset: midiout.note_on(3, note + tp3.value, Math.min(127, Math.floor(127*ap3.amplitude/200000)))
         onOffset: {
             midiout.note_off(3, noteOnset + tp3.value, 0)
         }
         onPitchbend: {
             midiout.pitchwheel(3, pitchbend)
         }
-        onSustain: midiout.aftertouch(3, Math.min(127, Math.floor(127*ap3.amplitude/6000000)))
+        onSustain: midiout.aftertouch(3, Math.min(127, Math.floor(127*ap3.amplitude/200000)))
 
         Amplitude {
             id: ap3
@@ -154,14 +161,14 @@ ApplicationWindow {
         rate: 32000
         channel: 2
 
-        onOnset: midiout.note_on(6, note + tp6.value, Math.min(127, Math.floor(127*ap6.amplitude/6000000)))
+        onOnset: midiout.note_on(6, note + tp6.value, Math.min(127, Math.floor(127*ap6.amplitude/200000)))
         onOffset: {
             midiout.note_off(6, noteOnset + tp6.value, 0)
         }
         onPitchbend: {
             midiout.pitchwheel(6, pitchbend)
         }
-        onSustain: midiout.aftertouch(6, Math.min(127, Math.floor(127*ap6.amplitude/6000000)))
+        onSustain: midiout.aftertouch(6, Math.min(127, Math.floor(127*ap6.amplitude/200000)))
 
         Amplitude {
             id: ap6

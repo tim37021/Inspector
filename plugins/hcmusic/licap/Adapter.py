@@ -2,6 +2,7 @@ from PySide2.QtCore import Signal, Property
 from PySide2.QtWidgets import QApplication
 from ..dsp.Node import QtSignal1D, Node, Signal1D
 from .LiCAPDevice import LiCAPv1, LiCAP_D_EVT
+from serial.tools import list_ports
 
 
 """
@@ -96,6 +97,26 @@ class LiCAPDevice(BufferedSource):
         buf = buf.transpose()
         self.consume(buf)
 """
+class QLiCAPFinder(Node):
+    deviceComportChanged = Signal()
+    def __init__(self, parent=None):
+        Node.__init__(self, parent)
+        self._comport = ""
+    
+    @Property(str, notify=deviceComportChanged)
+    def comport(self):
+        port = self.getLiCAPPort()
+        if port != self._comport:
+            self._comport = port
+            self.deviceComportChanged.emit()
+        return self._comport
+
+
+    def getLiCAPPort(self):
+        ports = list_ports.comports()
+        for port, desc, hwid in sorted(ports):
+            if "VID:PID=0483:5740" in hwid:
+                return port
 
 
 class QLiCAPv1(Node):
@@ -253,10 +274,12 @@ class QLiCAPv2(Node):
 
     @port.setter
     def port(self, val):
+        print("In LiCAP Module")
+        print(val)
         if self._port != val:
             self._port = val
             self.portChanged.emit()
-
+            
             if self.completed and self._active:
                 self.openDevice()
 
@@ -289,6 +312,7 @@ class QLiCAPv2(Node):
     def openDevice(self):
         self.closeDevice()
         self._device = LiCAP_D_EVT(self._port, self._update)
+        print("Try to open port: " + str(self._port))
         if not self._device.start():
             self._active = False
             self.activeChanged.emit()
@@ -308,5 +332,5 @@ class QLiCAPv2(Node):
 
     def initialize(self):
         self._output.alloc(self._bufferLength, len(self._channels))
-        if self._active:
-            self.openDevice()
+        # if self._active:
+        #     self.openDevice()
