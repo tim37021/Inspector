@@ -74,7 +74,8 @@ class PitchTracker(EstimateNode):
         self._max_lag = 500
         self._min_note = 40
         self._window = 256
-        self._threshold = 50000
+        # self._threshold = 50000
+        self._threshold = 1000
         self._noteOnset = 0
         self._debug = False
 

@@ -8,8 +8,8 @@ import hcmusic.licap 1.0
 import hcmusic.midi 1.0
 
 ApplicationWindow {
-    width: 800
-    height: 600
+    width: 1760
+    height: 1080
     visible: true
     color: "black"
     title: 'NegativeGrid' + `${spc.mouseCoordX}`+ '  ' +`${spc.mouseCoordY}`
@@ -26,7 +26,7 @@ ApplicationWindow {
     LiCAPv1 {
         id: lid
         active: true
-        port: '/dev/cu.usbmodem317B396C32371'
+        port: '/dev/cu.usbmodem3254395330381'
         bufferLength: 1024
         onError: {
             console.log(message)
@@ -196,6 +196,71 @@ ApplicationWindow {
         }
     }
 
+    Column {
+        anchors.fill: parent
+        
+        Item {
+            width: parent.width
+            height: parent.height / 6
+
+            SignalViewBox {
+                anchors.fill: parent
+                channel: 5
+                input: lid.output
+            }
+        }
+        Item {
+            width: parent.width
+            height: parent.height / 6
+
+            SignalViewBox {
+                anchors.fill: parent
+                channel: 4
+                input: lid.output
+            }
+        }
+        Item {
+            width: parent.width
+            height: parent.height / 6
+
+            SignalViewBox {
+                anchors.fill: parent
+                channel: 3
+                input: lid.output
+            }
+        }
+        Item {
+            width: parent.width
+            height: parent.height / 6
+
+            SignalViewBox {
+                anchors.fill: parent
+                channel: 2
+                input: lid.output
+            }
+        }
+        Item {
+            width: parent.width
+            height: parent.height / 6
+
+            SignalViewBox {
+                anchors.fill: parent
+                channel: 1
+                input: lid.output
+            }
+        }
+        Item {
+            width: parent.width
+            height: parent.height / 6
+
+            SignalViewBox {
+                anchors.fill: parent
+                channel: 0
+                input: lid.output
+            }
+        }
+    }
+    
     // PitchTracker {
     //     input: rb
     //     threshold: 15000
@@ -232,20 +297,16 @@ ApplicationWindow {
         rate: 32000
     }
     */
+
+/*
     RingBuffer {
         id: rb
         input: lid.output
-        length: 8000
-        channels: 6
+        length: 1024
+    
+        channels: 5
     }
-/*
-    AutoCorrelation {
-        id: ac
-        input: rb.output
-        rate: 32000
-        windowSize: 500
-    }
-*/
+
     SignalPlotOpenGL {
         anchors.fill: parent
         focus: true
@@ -261,15 +322,6 @@ ApplicationWindow {
             max: 16384
         }
 
-        // BufferLineSeries {
-        //     id: ls
-        //     xAxis: xAxis_
-        //     yAxis: yAxis_
-        //     color: "orange"
-        //     lineWidth: 2
-        //     source: amplitudeNode.output
-        //     viewChannel: 3
-        // }
         BufferLineSeries {
             id: ls2
             xAxis: xAxis_
@@ -297,4 +349,6 @@ ApplicationWindow {
                 // rb2.running = !rb2.running
         }
     }
+
+    */
 }
