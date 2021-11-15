@@ -1,6 +1,5 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
-import hcmusic.audio 1.0
 import hcmusic.plot 1.0
 import hcmusic.dsp 1.0
 import hcmusic.licap 1.0
