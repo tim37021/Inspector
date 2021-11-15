@@ -332,5 +332,5 @@ class QLiCAPv2(Node):
 
     def initialize(self):
         self._output.alloc(self._bufferLength, len(self._channels))
-        # if self._active:
-        #     self.openDevice()
+        if self._active:
+            self.openDevice()
