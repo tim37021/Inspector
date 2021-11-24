@@ -27,15 +27,15 @@ ApplicationWindow {
         id: finder
     }
 
-    // LiCAPv1 {
-    //     id: lid
-    //     active: true
-    //     port: finder.comport
-    //     bufferLength: 1024
-    //     onError: {
-    //         console.log(message)
-    //     }
-    // }
+    LiCAPv1 {
+        id: lid
+        active: true
+        port: finder.comport
+        bufferLength: 1024
+        onError: {
+            console.log(message)
+        }
+    }
 
     AmplitudeNode {
         id: amplitudeNode
@@ -44,15 +44,15 @@ ApplicationWindow {
         length: 1024 * 10
     }
 
-    LiCAPv2 {
-        id: lid
-        active: true
-        port: '/dev/cu.usbmodem3254395330381'
-        bufferLength: 1024
-        onError: {
-            console.log(message)
-        }
-    }
+    // LiCAPv2 {
+    //     id: lid
+    //     active: true
+    //     port: '/dev/cu.usbmodem3254395330381'
+    //     bufferLength: 1024
+    //     onError: {
+    //         console.log(message)
+    //     }
+    // }
 
     MidiDiscoveryModelProvider{
         id: midiP

@@ -16,8 +16,8 @@ Item {
         max: 1024
     }
     property ValueAxis yAxis: ValueAxis {
-        min: -16384
-        max: 16384
+        min: -1638400
+        max: 1638400
     }
     property int lineWidth: 2
 
