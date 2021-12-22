@@ -59,8 +59,6 @@ class Smoother(object):
             elif self._cntOn > 3:
                 event = 'sustain'
         return event, 0 if self._curNote==None else self._curNote
-        
-
 
 
 @Algorithm('DoubleAC')

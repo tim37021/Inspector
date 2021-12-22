@@ -219,12 +219,15 @@ class Amplitude(EstimateNode):
     offsetChanged = Signal()
     windowSizeChanged = Signal()
     channelChanged = Signal()
+    amplitudeDeltaChanged = Signal()
 
     def __init__(self, parent=None):
         EstimateNode.__init__(self, parent)
         self._offset = 50
         self._amplitude = 0
         self._windowSize = 256
+        self._amplitudeDelta = 0
+        self._lastAmplitude = 0
 
         # Temporary select channel in algorithm nodes
         self._channel = 0
@@ -236,6 +239,10 @@ class Amplitude(EstimateNode):
     @Property(int, notify=channelChanged)
     def channel(self):
         return self._channel
+
+    @Property(int, notify=amplitudeDeltaChanged)
+    def amplitudeDelta(self):
+        return self._amplitudeDelta
 
     @channel.setter
     def channel(self, val):
@@ -273,7 +280,10 @@ class Amplitude(EstimateNode):
         analytic_signal = hilbert(self._input.numpy_array[..., self._channel].reshape(-1)) 
         envelope = np.abs(analytic_signal)
         self._amplitude = mean(envelope)
+        self._amplitudeDelta = self._amplitude - self._lastAmplitude
+        self._lastAmplitude = self._amplitude
         self.amplitudeChanged.emit()
+        self.amplitudeDeltaChanged.emit()
         # self._amplitude = amplitude(ac, self._min_lag)
         # self.amplitudeChanged.emit()
 

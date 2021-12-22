@@ -29,8 +29,9 @@ ApplicationWindow {
 
     LiCAPv1 {
         id: lid
-        active: true
-        port: finder.comport
+        active: connectBtn.connect
+        // port: finder.comport
+        port: comportInput.text
         bufferLength: 1024
         onError: {
             console.log(message)
@@ -83,27 +84,38 @@ ApplicationWindow {
         input: lid.output
         rate: 32000
         channel: 5
+        threshold: 200000
         debug: true
+        // property int lastAmp: 0
 
         onOnset: {
-            midiout.note_on(1, note + tp1.value,  Math.min(127, Math.floor(127*ap1.amplitude/2000000)))
+            let amp = Math.min(127, Math.floor(127*ap1.amplitude/4000000))
+            midiout.note_on(1, note + tp1.value,  amp)
+            console.log("String 1  Onset: "+ note + " " + amp.toString())
+            // lastAmp = ampx
         }
         onOffset: {
             midiout.note_off(1, noteOnset + tp1.value, 0)
+            console.log("String 1  Offset: "+ (noteOnset + tp1.value).toString())
         }
         onPitchbend: {
             midiout.pitchwheel(1, pitchbend)
         }
-        onSustain: midiout.aftertouch(1, Math.min(127, Math.floor(127*ap1.amplitude/2000000)))
+        onSustain: {
+            let amp = Math.min(127, Math.floor(127*ap1.amplitude/4000000))
+            let ampDelta = Math.min(127, Math.floor(127*ap1.amplitudeDelta/4000000))
+            midiout.aftertouch(1, amp)
+            if(ampDelta > 20) {
+                offset()
+                onset()
+            }
+        }
 
         Amplitude {
             id: ap1
             input: lid.output
             offset: 128
             channel: 5
-            // onAmplitudeChanged: {
-            //     console.log(amplitude)
-            // }
         }
     }
 
@@ -114,14 +126,27 @@ ApplicationWindow {
         channel: 4
         threshold: 40000
 
-        onOnset: midiout.note_on(2, note + tp2.value, Math.min(127, Math.floor(127*ap2.amplitude/200000)))
+        onOnset: {
+            let amp = Math.min(127, Math.floor(127*ap2.amplitude/2500000))
+            midiout.note_on(2, note + tp2.value, amp)
+            console.log("String 2  Onset: "+ note + " " + amp.toString())
+        }
         onOffset: {
             midiout.note_off(2, noteOnset + tp2.value, 0)
+            console.log("String 2  Offset: "+ (noteOnset + tp2.value).toString())
         }
         onPitchbend: {
             midiout.pitchwheel(2, pitchbend)
         }
-        onSustain: midiout.aftertouch(2, Math.min(127, Math.floor(127*ap2.amplitude/200000)))
+        onSustain: {
+            let amp = Math.min(127, Math.floor(127*ap2.amplitude/2500000))
+            let ampDelta = Math.min(127, Math.floor(127*ap2.amplitudeDelta/2500000))
+            midiout.aftertouch(2, amp)
+            if(ampDelta > 20) {
+                offset()
+                onset()
+            }
+        }
 
         Amplitude {
             id: ap2
@@ -135,20 +160,107 @@ ApplicationWindow {
         id: pt3
         input: lid.output
         rate: 32000
-        channel: 1
+        channel: 3
         threshold: 40000
 
-        onOnset: midiout.note_on(3, note + tp3.value, Math.min(127, Math.floor(127*ap3.amplitude/200000)))
+        onOnset: {
+            let amp = Math.min(127, Math.floor(127*ap3.amplitude/1500000))
+            midiout.note_on(3, note + tp3.value, amp)
+            console.log("String 3  Onset: "+ note + " " + amp.toString())
+        }
         onOffset: {
             midiout.note_off(3, noteOnset + tp3.value, 0)
+            console.log("String 3  Offset: "+ (noteOnset + tp3.value).toString())
         }
         onPitchbend: {
             midiout.pitchwheel(3, pitchbend)
         }
-        onSustain: midiout.aftertouch(3, Math.min(127, Math.floor(127*ap3.amplitude/200000)))
+        onSustain: {
+            let amp = Math.min(127, Math.floor(127*ap3.amplitude/1500000))
+            let ampDelta = Math.min(127, Math.floor(127*ap3.amplitudeDelta/1500000))
+            midiout.aftertouch(3, amp)
+            if(ampDelta > 20) {
+                offset()
+                onset()
+            }
+        }
 
         Amplitude {
             id: ap3
+            input: lid.output
+            offset: 128
+            channel: 3
+        }
+    }
+
+    PitchTracker {
+        id: pt4
+        input: lid.output
+        rate: 32000
+        channel: 2
+        threshold: 40000
+
+        onOnset: {
+            let amp = Math.min(127, Math.floor(127*ap4.amplitude/1000000))
+            midiout.note_on(4, note + tp4.value, amp)
+            console.log("String 4  Onset: "+ note + " " + amp.toString())
+        }
+        onOffset: {
+            midiout.note_off(4, noteOnset + tp4.value, 0)
+            console.log("String 4  Offset: "+ (noteOnset + tp4.value).toString())
+        }
+        onPitchbend: {
+            midiout.pitchwheel(4, pitchbend)
+        }
+        onSustain: {
+            let amp = Math.min(127, Math.floor(127*ap4.amplitude/1000000))
+            let ampDelta = Math.min(127, Math.floor(127*ap4.amplitudeDelta/1000000))
+            midiout.aftertouch(4, amp)
+            if(ampDelta > 20) {
+                offset()
+                onset()
+            }
+        }
+
+        Amplitude {
+            id: ap4
+            input: lid.output
+            offset: 128
+            channel: 2
+        }
+    }
+
+    PitchTracker {
+        id: pt5
+        input: lid.output
+        rate: 32000
+        channel: 1
+        threshold: 40000
+
+        onOnset: {
+            let amp = Math.min(127, Math.floor(127*ap5.amplitude/500000))
+            midiout.note_on(5, note + tp5.value, amp)
+            console.log("String 5  Onset: "+ note + " " + amp.toString())
+        }
+        onOffset: {
+            midiout.note_off(5, noteOnset + tp5.value, 0)
+            console.log("String 5  Offset: "+ (noteOnset + tp5.value).toString())
+        }
+        onPitchbend: {
+            midiout.pitchwheel(5, pitchbend)
+        }
+        onSustain: {
+            let amp = Math.min(127, Math.floor(127*ap5.amplitude/500000))
+            let ampDelta = Math.min(127, Math.floor(127*ap5.amplitudeDelta/500000))
+            midiout.aftertouch(5, amp)
+            if(ampDelta > 20) {
+                offset()
+                onset()
+            }
+        }
+
+        Amplitude {
+            id: ap5
             input: lid.output
             offset: 128
             channel: 1
@@ -159,22 +271,36 @@ ApplicationWindow {
         id: pt6
         input: lid.output
         rate: 32000
-        channel: 2
+        channel: 0
+        threshold: 40000
 
-        onOnset: midiout.note_on(6, note + tp6.value, Math.min(127, Math.floor(127*ap6.amplitude/200000)))
+        onOnset: {
+            let amp = Math.min(127, Math.floor(127*ap6.amplitude/1000000))
+            midiout.note_on(6, note + tp6.value, amp)
+            console.log("String 6  Onset: "+ note + " " + amp.toString())
+        }
         onOffset: {
             midiout.note_off(6, noteOnset + tp6.value, 0)
+            console.log("String 6  Offset: "+ (noteOnset + tp6.value).toString())
         }
         onPitchbend: {
             midiout.pitchwheel(6, pitchbend)
         }
-        onSustain: midiout.aftertouch(6, Math.min(127, Math.floor(127*ap6.amplitude/200000)))
+        onSustain: {
+            let amp = Math.min(127, Math.floor(127*ap6.amplitude/1000000))
+            let ampDelta = Math.min(127, Math.floor(127*ap6.amplitudeDelta/1000000))
+            midiout.aftertouch(6, amp)
+            if(ampDelta > 20) {
+                offset()
+                onset()
+            }
+        }
 
         Amplitude {
             id: ap6
             input: lid.output
             offset: 128
-            channel: 2
+            channel: 0
         }
     }
 
@@ -198,8 +324,54 @@ ApplicationWindow {
             value: 0
         }
         SpinBox {
+            id: tp4
+            value: 0
+        }
+        SpinBox {
+            id: tp5
+            value: 0
+        }
+        SpinBox {
             id: tp6
             value: 0
+        }
+
+        Row {
+            Rectangle {
+                width:  100
+                height: 30
+                color: "white"
+                TextInput {
+                    id: comportInput
+                    anchors.fill: parent
+                    text: "COM3"
+                    Component.onCompleted: {
+                        text = finder.comport
+                    }
+                }
+            }
+
+            Rectangle {
+                id: connectBtn
+                width: 80
+                height: 30
+                radius: 10
+                anchors.verticalCenter: parent.verticalCenter
+                color: "gray"
+                property bool connect: false
+
+                Text {
+                    anchors.centerIn: parent
+                    text: connectBtn.connect? "Disconnect": "Connect"
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        connectBtn.connect = !connectBtn.connect
+                    }
+                }
+            }
         }
     }
 
