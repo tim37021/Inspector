@@ -23,7 +23,7 @@ Item {
 
     ComboBox {
         id: cb
-        model: ["三項三線", "三項四線"]
+        model: ["三相三線", "三相四線"]
         anchors.top: parent.top; anchors.left: parent.left;
         anchors.margins: 20
         currentIndex: 0
