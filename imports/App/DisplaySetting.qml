@@ -31,4 +31,7 @@ QtObject {
             return ret
         }
     }
+
+    property variant cursor
+    property variant previewData
 }

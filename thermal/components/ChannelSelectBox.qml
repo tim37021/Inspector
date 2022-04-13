@@ -24,7 +24,7 @@ Item {
         id: selectChannelDelegate
 
         Item {
-            width: showChannelSetting.width * 0.9
+            width: root.width * 0.5
             height: 50
 
             CheckBox {

@@ -26,11 +26,6 @@ ApplicationWindow {
     // Data
     ListModel { id: loadedSignals }
 
-    Item {
-        id: previewData
-        property variant cursor
-        property variant data
-    }
     FileDialog {
         id: ofd
         nameFilters: [ "csv files (*.csv)" ]
@@ -153,10 +148,10 @@ ApplicationWindow {
                                 updateDelay.restart()
                             }
                             function updateReport() {
-                                previewData.cursor = [
+                                DisplaySetting.cursor = [
                                     {"name": "No.", "v1": coordinateMin.toFixed(0), "v2": coordinateMax.toFixed(0), "v3": coordinateMax.toFixed(0) - coordinateMin.toFixed(0)}
                                 ]
-                                previewData.data = ProcessManager.c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
+                                DisplaySetting.previewData = ProcessManager.c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
                                 xAxis_.min = coordinateMin.toFixed(0)
                                 xAxis_.max = coordinateMax.toFixed(0)
                                 console.log("Min: " + xAxis_.min  + ", Max: " + xAxis_.max)
@@ -477,12 +472,11 @@ ApplicationWindow {
             onClicked: startX = mouseX
         }
 
-        EstimatePreviewBox {
-            id: previewBox
-            anchors.fill: parent;
-            anchors.margins: 10
-            topModel: previewData.cursor
-            bottomModel: previewData.data
+        RightSideTabView {
+            anchors.fill:parent
+            onChannelSelectChecked: {
+                app.reloadPlotTracks()
+            }
         }
     }
 

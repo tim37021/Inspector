@@ -17,7 +17,6 @@ QtObject {
                 "time": csv.getChannelTime(0)
             }
             trn.setBaseInfo(info)
-            // trn.calc()
         }
     }
 
