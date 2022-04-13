@@ -23,33 +23,6 @@ ApplicationWindow {
     AppStyle    { id: appStyle }
     AppMaterial { id: appMaterial }
 
-    CsvLoader { 
-        id: csv
-    }
-
-    PhaseWireCalc {
-        id: c2cConv; 
-        input: csv.output; 
-        onChannelNameChanged: {
-            DisplaySetting.channelModel.channelNames = channelName
-        }
-        onCalcFinished: {
-            channelUnits = csv.getChannelVUnits()
-            let info = {
-                "date": csv.getChannelDate(0),
-                "time": csv.getChannelTime(0)
-            }
-            trn.setBaseInfo(info)
-            // trn.calc()
-        }
-    }
-
-    ThermalReportNode {
-        id: trn
-        input: c2cConv.output
-        type: "BDEW"
-    }
-
     // Data
     ListModel { id: loadedSignals }
 
@@ -62,8 +35,8 @@ ApplicationWindow {
         id: ofd
         nameFilters: [ "csv files (*.csv)" ]
         onAccepted: {
-            csv.filename = fileUrl
-            csv.getHeader()
+            ProcessManager.csv.filename = fileUrl
+            ProcessManager.csv.getHeader()
             wsw.open()
         }
     }
@@ -146,7 +119,7 @@ ApplicationWindow {
 
                     GatheredSignalTrack {
                         id: strack
-                        source: c2cConv.output
+                        source: ProcessManager.c2cConv.output
                         anchors.fill: parent
                         model: loadedSignals
                         xValueAxis: xAxis_c2c
@@ -183,7 +156,7 @@ ApplicationWindow {
                                 previewData.cursor = [
                                     {"name": "No.", "v1": coordinateMin.toFixed(0), "v2": coordinateMax.toFixed(0), "v3": coordinateMax.toFixed(0) - coordinateMin.toFixed(0)}
                                 ]
-                                previewData.data = c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
+                                previewData.data = ProcessManager.c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
                                 xAxis_.min = coordinateMin.toFixed(0)
                                 xAxis_.max = coordinateMax.toFixed(0)
                                 console.log("Min: " + xAxis_.min  + ", Max: " + xAxis_.max)
@@ -231,13 +204,13 @@ ApplicationWindow {
             ValueAxis {
                 id: xAxis_c2c
                 min: 0
-                max: c2cConv.output.length
+                max: ProcessManager.c2cConv.output.length
 
                 onMinChanged: {
                     if(min <=  0) min = 0
                 }
                 onMaxChanged: {
-                    if(max >= c2cConv.output.length) max = c2cConv.output.length
+                    if(max >= ProcessManager.c2cConv.output.length) max = ProcessManager.c2cConv.output.length
                 }
             }
 
@@ -320,8 +293,8 @@ ApplicationWindow {
                         }
                         GatheredSignalTrack {
                             id: strack
-                            source: c2cConv.output
-                            infoText: c2cConv.channelName[plotChannel]
+                            source: ProcessManager.c2cConv.output
+                            infoText: ProcessManager.c2cConv.channelName[plotChannel]
                             model: {
                                 console.log(typeof tracksListView.model.get(index))
                                 if(typeof tracksListView.model.get(index) == "object") {
@@ -389,8 +362,8 @@ ApplicationWindow {
                         }
                         SignalTrack {
                             id: strack
-                            source: c2cConv.output
-                            infoText: c2cConv.channelName[plotChannel]
+                            source: ProcessManager.c2cConv.output
+                            infoText: ProcessManager.c2cConv.channelName[plotChannel]
                             viewChannel: plotChannel
                             lineColor: plotColor
                             anchors.fill: parent
@@ -452,7 +425,7 @@ ApplicationWindow {
                     if(min <=  0) min = 0
                 }
                 onMaxChanged: {
-                    if(max >= c2cConv.output.length) max = c2cConv.output.length
+                    if(max >= ProcessManager.c2cConv.output.length) max = ProcessManager.c2cConv.output.length
                 }
             }
 
@@ -519,14 +492,14 @@ ApplicationWindow {
         anchors.fill: parent
         // visible: false
         onAccepted: {
-            csv.run()
+            ProcessManager.csv.run()
             app.reloadPlotTracks()
 
-            c2cConv.t1= 0
-            c2cConv.t2= csv.output.length
-            c2cConv.channels = channels
-            c2cConv.inverse = inverses
-            c2cConv.type = type
+            ProcessManager.c2cConv.t1= 0
+            ProcessManager.c2cConv.t2= ProcessManager.csv.output.length
+            ProcessManager.c2cConv.channels = channels
+            ProcessManager.c2cConv.inverse = inverses
+            ProcessManager.c2cConv.type = type
             tracksListView.readyCount = 0
         }
     }
@@ -534,7 +507,7 @@ ApplicationWindow {
     ReportSettingWindow {
         id: reportSetting
         anchors.fill: parent
-        reporter: trn
+        reporter: ProcessManager.trn
     }
 
     // Actions 
@@ -574,7 +547,7 @@ ApplicationWindow {
             for(let i = 0; i<tracksListView.count; i++) {
                 tracksListView.itemAtIndex(i).signalFit()
             }
-            gatherSignalView.itemAtIndex(0).setT1T2(trn.getT1() - 100, trn.getT2() + 100)
+            gatherSignalView.itemAtIndex(0).setT1T2(ProcessManager.trn.getT1() - 100, ProcessManager.trn.getT2() + 100)
         }
     }
 
@@ -596,7 +569,7 @@ ApplicationWindow {
         text: qsTr("Zoom Out")
         shortcut: "Ctrl+Shift+D"
         onTriggered: {
-            if(xAxis_.max > c2cConv.output.length - 100 || xAxis_.min < 100) return
+            if(xAxis_.max > ProcessManager.c2cConv.output.length - 100 || xAxis_.min < 100) return
             xAxis_.min -= 100
             xAxis_.max += 100
 
@@ -605,7 +578,7 @@ ApplicationWindow {
     }
 
     function refreshPlot() {
-        csv.refresh()
+        ProcessManager.csv.refresh()
         delayUpdateTimer.restart()
     }
 
