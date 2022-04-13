@@ -53,27 +53,6 @@ ApplicationWindow {
     // Data
     ListModel { id: loadedSignals }
 
-    // ListModel {
-    //     id: channelModel
-    //     property var channelNames: c2cConv.channelName
-    //     onChannelNamesChanged: {
-    //         clear()
-    //         for(let i = 0; i< channelNames.length; i++) {
-    //             append({"name": channelNames[i], "value": false})
-    //         }
-    //     }
-
-    //     function getSelectedChannel() {
-    //         let ret = []
-    //         for(let i = 0; i< channelModel.count; i++) {
-    //             if(channelModel.get(i)["value"]) {
-    //                 ret.push(i)
-    //             }
-    //         }
-    //         return ret
-    //     }
-    // }
-
     Item {
         id: previewData
         property variant cursor
@@ -370,20 +349,6 @@ ApplicationWindow {
                                 yValueAxis.min = minValue - delta / 6 * 2
                                 yValueAxis.max = maxValue + delta / 6 * 2
                             }
-
-                            // function signalFit() {
-                            //     xValueAxis.min = 0
-                            //     xValueAxis.max = source.length // max for 5 seconds
-                            //     let yA = Math.max(
-                            //         Math.abs(source.getChannelMin(model[0]["plotChannel"])),
-                            //         Math.abs(source.getChannelMax(model[0]["plotChannel"]))
-                            //     )
-                            //     if(yValueAxis.min > ( - yA - 10))
-                            //         yValueAxis.min =  - yA - 10
-
-                            //     if(yValueAxis.max < (yA + 10))
-                            //         yValueAxis.max = yA + 10
-                            // }
                         }
 
                         function signalFit() {
@@ -445,12 +410,6 @@ ApplicationWindow {
                                 let maxValue = source.getChannelMax(viewChannel)
                                 let delta = maxValue - minValue
 
-                                // let yA = Math.max(
-                                //     Math.abs(source.getChannelMin(viewChannel)),
-                                //     Math.abs(source.getChannelMax(viewChannel))
-                                // )
-                                // yValueAxis.min =  - yA * 1.3
-                                // yValueAxis.max = yA * 1.3
                                 yValueAxis.min = minValue - delta / 6 * 2
                                 yValueAxis.max = maxValue + delta / 6 * 2
                             }
