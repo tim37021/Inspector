@@ -106,5 +106,85 @@ Item {
                 root.plotReady()
             }
         }
+
+        MouseArea {
+            id: ma
+            anchors.fill: parent
+            property real mouseCoordX: (mouseX / width) * (xValueAxis.max - xValueAxis.min) + xValueAxis.min
+            property real mouseCoordY: (mouseY / height) * (yValueAxis.max - yValueAxis.min) + yValueAxis.min
+
+            hoverEnabled: true
+            propagateComposedEvents: true
+        }
+
+        
+
+        Repeater {
+            id: horizontalRep
+            model: root.model
+            delegate: Item {
+                anchors.fill: parent
+                Rectangle {
+                    border.width: 2
+                    border.color: plotColor
+                    color: "#2E2E2E"
+                    width: 60
+                    height: 30
+                    anchors.verticalCenter: horizontalCrossHair.verticalCenter
+                    anchors.right: parent.left;
+                    anchors.rightMargin: 2
+                    visible: ma.containsMouse
+                    clip: true
+
+                    Text {
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter;
+                        anchors.leftMargin: 2
+                        text: root.getNearestY(ma.mouseCoordX, index).toString()
+                        color: "white"
+                    }
+                }
+
+                Rectangle {
+                    id: horizontalCrossHair
+                    anchors.left: parent.left; anchors.right: parent.right;
+                    height: 1
+                    color: "gray"
+                    y: (yValueAxis.max - root.getNearestY(ma.mouseCoordX, index)) / (yValueAxis.max - yValueAxis.min) * ma.height
+                    visible: ma.containsMouse
+                }
+            }
+        }
+
+        Rectangle {
+            id: verticalCrossHair
+            anchors.top: parent.top; anchors.bottom: parent.bottom;
+            width: 1
+            color: "gray"
+            x: ma.mouseX
+            visible: ma.containsMouse
+        }
+
+        
+
+        Item {
+            width: 60
+            height: 30
+            anchors.left: verticalCrossHair.horizontalCenter
+            anchors.bottom: parent.bottom;
+            anchors.leftMargin: 2
+            visible: ma.containsMouse
+            clip: true
+
+            Text {
+                anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter;
+                anchors.leftMargin: 2
+                text: ma.mouseCoordX.toFixed(0).toString()
+                color: "black"
+            }
+        }
+    }
+
+    function getNearestY(x, index) {
+        return rep.itemAt(index).slice(x, 1)
     }
 }
