@@ -9,22 +9,15 @@ import ".."
 Item {
     id: root
     property alias windowColor: window.color
-    property var channelNames
+    property alias channelModel: channelSelect.channelModel
 
     signal accepted(var channels, var inverses, var type)
     visible: root.opacity > 0.0
     opacity: 0.0
 
     Behavior on opacity { NumberAnimation { duration: 100 } }
-    ListModel { id: channelNameModel }
+    
     AppMaterial { id: appMaterial }
-
-    onChannelNamesChanged: {
-        channelNameModel.clear()
-        for(let i = 0; i< channelNames.length; i++) {
-            channelNameModel.append({"name": channelNames[i], "value": false})
-        }
-    }
 
     MouseArea {
         anchors.fill: parent
@@ -80,38 +73,9 @@ Item {
             radius: 5
             clip: true
 
-            ListView {
-                id: lv
-                anchors.fill: parent;
-
-                model: channelNameModel
-                delegate: selectChannelDelegate
-                ScrollBar.vertical: ScrollBar {}
-            }
-
-            Component {
-                id: selectChannelDelegate
-
-                Item {
-                    width: showChannelSetting.width * 0.9
-                    height: 50
-
-                    CheckBox {
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        checked: value
-                        onCheckedChanged: {
-                            channelNameModel.setProperty(index, "value", checked)
-                        }
-                    }
-
-                    Text {
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: "white"
-                        text: name
-                    }
-                }
+            ChannelSelectBox {
+                id: channelSelect
+                anchors.fill: parent
             }
         }
 
@@ -146,15 +110,5 @@ Item {
 
     function close() {
         root.opacity = 0.0
-    }
-
-    function getSelectedChannel() {
-        let ret = []
-        for(let i = 0; i< channelNameModel.count; i++) {
-            if(channelNameModel.get(i)["value"]) {
-                ret.push(i)
-            }
-        }
-        return ret
     }
 }

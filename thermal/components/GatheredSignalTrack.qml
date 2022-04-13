@@ -13,41 +13,8 @@ Item {
     property Rectangle plotSection: plotSec
     property Signal1D source
     property string textColor: "white"
-    property ListModel model: ListModel {
-        ListElement {
-            plotColor: "red"
-            plotChannel: 10
-        }
-        ListElement {
-            plotColor: "blue"
-            plotChannel: 11
-        }
-        ListElement {
-            plotColor: "green"
-            plotChannel: 12
-        }
-        ListElement {
-            plotColor: "yellow"
-            plotChannel: 13
-        }
-        
-        ListElement {
-            plotColor: "gray"
-            plotChannel: 14
-        }
-        ListElement {
-            plotColor: "black"
-            plotChannel: 15
-        }
-        ListElement {
-            plotColor: "orange"
-            plotChannel: 16
-        }
-        ListElement {
-            plotColor: "darkgray"
-            plotChannel: 17
-        }
-    }
+    property string infoText 
+    property var model
 
     property ValueAxis xValueAxis: ValueAxis {
         min: 0
@@ -72,6 +39,13 @@ Item {
         anchors.left: parent.left;
         width: Math.min(parent.width * 0.15, 80)
 
+        Text {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: 5
+            text: root.infoText
+            color: root.textColor
+        }
         Text {
             anchors.top:parent.top; anchors.right: parent.right
             text: (yValueAxis.max / 10).toFixed(0) * 10

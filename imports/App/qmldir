@@ -1,6 +1,7 @@
 module imports
 
 singleton Constants 1.0 Constants.qml
+singleton DisplaySetting 1.0 DisplaySetting.qml
 Kalman 1.0 KalmanJS.js
 SubWindow 1.0 SubWindow.qml
 Windowing 1.0 Windowing.qml

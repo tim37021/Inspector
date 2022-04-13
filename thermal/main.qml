@@ -30,6 +30,9 @@ ApplicationWindow {
     PhaseWireCalc {
         id: c2cConv; 
         input: csv.output; 
+        onChannelNameChanged: {
+            DisplaySetting.channelModel.channelNames = channelName
+        }
         onCalcFinished: {
             channelUnits = csv.getChannelVUnits()
             let info = {
@@ -47,8 +50,35 @@ ApplicationWindow {
         type: "BDEW"
     }
 
+    // Data
     ListModel { id: loadedSignals }
 
+    // ListModel {
+    //     id: channelModel
+    //     property var channelNames: c2cConv.channelName
+    //     onChannelNamesChanged: {
+    //         clear()
+    //         for(let i = 0; i< channelNames.length; i++) {
+    //             append({"name": channelNames[i], "value": false})
+    //         }
+    //     }
+
+    //     function getSelectedChannel() {
+    //         let ret = []
+    //         for(let i = 0; i< channelModel.count; i++) {
+    //             if(channelModel.get(i)["value"]) {
+    //                 ret.push(i)
+    //             }
+    //         }
+    //         return ret
+    //     }
+    // }
+
+    Item {
+        id: previewData
+        property variant cursor
+        property variant data
+    }
     FileDialog {
         id: ofd
         nameFilters: [ "csv files (*.csv)" ]
@@ -121,12 +151,6 @@ ApplicationWindow {
                 height: 20
                 color: appMaterial.surface2
                 clip: false
-
-                // TrackRuler {
-                //     anchors.fill: parent
-                //     xValueAxis: xAxis_c2c
-                //     totalSamples: c2cConv.output.length
-                // }
             }
 
             ListModel { id: gatherSignals }
@@ -177,10 +201,10 @@ ApplicationWindow {
                                 updateDelay.restart()
                             }
                             function updateReport() {
-                                previewBox.topModel = [
+                                previewData.cursor = [
                                     {"name": "No.", "v1": coordinateMin.toFixed(0), "v2": coordinateMax.toFixed(0), "v3": coordinateMax.toFixed(0) - coordinateMin.toFixed(0)}
                                 ]
-                                previewBox.bottomModel = c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
+                                previewData.data = c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
                                 xAxis_.min = coordinateMin.toFixed(0)
                                 xAxis_.max = coordinateMax.toFixed(0)
                                 console.log("Min: " + xAxis_.min  + ", Max: " + xAxis_.max)
@@ -315,12 +339,17 @@ ApplicationWindow {
                         ValueAxis {
                             id: yTrackComp_
                         }
-                        SignalTrack {
+                        GatheredSignalTrack {
                             id: strack
                             source: c2cConv.output
                             infoText: c2cConv.channelName[plotChannel]
-                            viewChannel: plotChannel
-                            lineColor: plotColor
+                            model: {
+                                console.log(typeof tracksListView.model.get(index))
+                                if(typeof tracksListView.model.get(index) == "object") {
+                                    return [tracksListView.model.get(index)]
+                                }
+                                return tracksListView.model.get(index)
+                            }
                             anchors.fill: parent
                             xValueAxis: xAxis_
                             yValueAxis: yTrackComp_
@@ -334,13 +363,27 @@ ApplicationWindow {
                             function signalFit() {
                                 xValueAxis.min = 0
                                 xValueAxis.max = source.length
-                                let minValue = source.getChannelMin(viewChannel)
-                                let maxValue = source.getChannelMax(viewChannel)
+                                let minValue = source.getChannelMin(model[0]["plotChannel"])
+                                let maxValue = source.getChannelMax(model[0]["plotChannel"])
                                 let delta = maxValue - minValue
 
                                 yValueAxis.min = minValue - delta / 6 * 2
                                 yValueAxis.max = maxValue + delta / 6 * 2
                             }
+
+                            // function signalFit() {
+                            //     xValueAxis.min = 0
+                            //     xValueAxis.max = source.length // max for 5 seconds
+                            //     let yA = Math.max(
+                            //         Math.abs(source.getChannelMin(model[0]["plotChannel"])),
+                            //         Math.abs(source.getChannelMax(model[0]["plotChannel"]))
+                            //     )
+                            //     if(yValueAxis.min > ( - yA - 10))
+                            //         yValueAxis.min =  - yA - 10
+
+                            //     if(yValueAxis.max < (yA + 10))
+                            //         yValueAxis.max = yA + 10
+                            // }
                         }
 
                         function signalFit() {
@@ -506,33 +549,19 @@ ApplicationWindow {
             id: previewBox
             anchors.fill: parent;
             anchors.margins: 10
+            topModel: previewData.cursor
+            bottomModel: previewData.data
         }
     }
 
     WireSettingWindow {
         id: wsw
-        channelNames: c2cConv.channelName
+        channelModel: DisplaySetting.channelModel
         anchors.fill: parent
         // visible: false
         onAccepted: {
             csv.run()
-            loadedSignals.clear()
-            gatherSignals.clear()
-            tracksListView.readyCount = 0
-            let colors = [
-                'red',
-                'blue',
-                'green',
-                'purple',
-                'gray',
-                'black',
-                'yellow'
-            ]
-            let plotChannels = getSelectedChannel()
-            for(let i = 0; i < plotChannels.length; i++) {
-                loadedSignals.append({"plotChannel": plotChannels[i], "plotColor": colors[i % colors.length]})
-            }
-            gatherSignals.append({"plotChannel": 0, "plotColor": "red"})
+            app.reloadPlotTracks()
 
             c2cConv.t1= 0
             c2cConv.t2= csv.output.length
@@ -619,5 +648,25 @@ ApplicationWindow {
     function refreshPlot() {
         csv.refresh()
         delayUpdateTimer.restart()
+    }
+
+    function reloadPlotTracks() {
+        loadedSignals.clear()
+        gatherSignals.clear()
+        tracksListView.readyCount = 0
+        let colors = [
+            'red',
+            'blue',
+            'green',
+            'purple',
+            'gray',
+            'black',
+            'yellow'
+        ]
+        let plotChannels = DisplaySetting.channelModel.getSelectedChannel()
+        for(let i = 0; i < plotChannels.length; i++) {
+            loadedSignals.append({"plotChannel": plotChannels[i], "plotColor": colors[i % colors.length]})
+        }
+        gatherSignals.append({"plotChannel": 0, "plotColor": "red"})
     }
 }
