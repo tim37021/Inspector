@@ -1,3 +1,4 @@
+import math
 from os import write
 import PySide2.QtCore as QtCore
 from PySide2.QtQml import VolatileBool
@@ -9,6 +10,7 @@ from numpy.core.fromnumeric import argmax
 from scipy.signal import find_peaks, find_peaks_cwt
 from math import ceil, log2, nan, sqrt
 from statistics import mean
+import copy
 
 from .Node import EstimateNode, ProcessorNode, QtSignal1D, Node, Signal1D
 
@@ -44,7 +46,8 @@ class PhaseWireCalc(ProcessorNode):
             "pf+", "pf-", "pf0",
             "U1", "U2", "U3", "I1", "I2", "I3",
             "P1", "P2", "P3", "Q1", "Q2", "Q3",
-            "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig"
+            "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
+            "CH1", "CH2", "CH3", "CH4", "CH5", "CH6"
         ]
         self._type = "PW3P3W"
 
@@ -249,9 +252,11 @@ class PhaseWireCalc(ProcessorNode):
 
         pPos = 3 / 2 * (uPosCos * iPosCos + uPosSin * iPosSin)
         qPos = 3 / 2 * (uPosCos * iPosSin - uPosSin * iPosCos)
+        sPos = np.sqrt(np.square(pPos) + np.square(qPos))
 
         pNeg = 3 / 2 * (uNegCos * iNegCos + uNegSin * iNegSin)
         qNeg = 3 / 2 * (uNegCos * iNegSin - uNegSin * iNegCos)
+        sNeg = np.sqrt(np.square(pNeg), np.square(qNeg))
 
         pZero = 3 * (uZeroCos * iZeroCos + uZeroSin * iZeroSin)
         qZero = 3 * (uZeroSin * iZeroCos - uZeroCos * iZeroSin)
@@ -328,6 +333,17 @@ class PhaseWireCalc(ProcessorNode):
         self._output.numpy_array [..., 35] = pSig
         self._output.numpy_array [..., 36] = qSig
 
+        self._output.numpy_array [..., 37] = sPos
+        self._output.numpy_array [..., 38] = sNeg
+
+        m = abs(self._t2 - self._t1)
+        n = self._windowSize
+        self._output.numpy_array [..., 39] = self._input.numpy_array[min(m, n) - 1: max(m, n), 0]
+        self._output.numpy_array [..., 40] = self._input.numpy_array[min(m, n) - 1: max(m, n), 1]
+        self._output.numpy_array [..., 41] = self._input.numpy_array[min(m, n) - 1: max(m, n), 2]
+        self._output.numpy_array [..., 42] = self._input.numpy_array[min(m, n) - 1: max(m, n), 3]
+        self._output.numpy_array [..., 43] = self._input.numpy_array[min(m, n) - 1: max(m, n), 4]
+        self._output.numpy_array [..., 44] = self._input.numpy_array[min(m, n) - 1: max(m, n), 5]
         self.calcFinished.emit()
 
         self._output.update.emit(min(self._t1, self._t2), max(self._t1, self._t2))
@@ -335,7 +351,7 @@ class PhaseWireCalc(ProcessorNode):
     def initialize(self):
         m = abs(self._t2 - self._t1)
         n = self._windowSize
-        self._output.alloc(max(m, n) - min(m, n) + 1, 37)
+        self._output.alloc(max(m, n) - min(m, n) + 1, 45)
 
     def _windowRMS(self, a, windowSize):
         a2 = np.power(a,2)

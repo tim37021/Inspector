@@ -25,6 +25,7 @@ ApplicationWindow {
 
     // Data
     ListModel { id: loadedSignals }
+    ListModel { id: gatherSignals }
 
     FileDialog {
         id: ofd
@@ -80,11 +81,14 @@ ApplicationWindow {
                 id: gatherTracksView
                 anchors.left: parent.left; anchors.right: parent.right;
                 anchors.top: parent.top; anchors.bottom: lowerRulerArea.top;
-
+                
+                ListModel {
+                    id: gatherModel
+                }
                 ListView {
                     id: gatherSignalView
                     anchors.fill: parent
-                    model: gatherSignals
+                    model: gatherModel
                     delegate: gatherTrack
                     interactive: false
                 }
@@ -100,8 +104,6 @@ ApplicationWindow {
                 clip: false
             }
 
-            ListModel { id: gatherSignals }
-
             Component {
                 id: gatherTrack
 
@@ -116,7 +118,7 @@ ApplicationWindow {
                         id: strack
                         source: ProcessManager.c2cConv.output
                         anchors.fill: parent
-                        model: loadedSignals
+                        model: gatherSignals
                         xValueAxis: xAxis_c2c
                         yValueAxis: yAxis_c2c
                         property int samplerate: 3000
@@ -154,7 +156,6 @@ ApplicationWindow {
                                 DisplaySetting.previewData = ProcessManager.c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
                                 xAxis_.min = coordinateMin.toFixed(0)
                                 xAxis_.max = coordinateMax.toFixed(0)
-                                console.log("Min: " + xAxis_.min  + ", Max: " + xAxis_.max)
                             }
 
                             Timer {
@@ -286,16 +287,23 @@ ApplicationWindow {
                         ValueAxis {
                             id: yTrackComp_
                         }
+                        ListModel {
+                            id: trackSignalModel
+                        }
                         GatheredSignalTrack {
                             id: strack
                             source: ProcessManager.c2cConv.output
-                            infoText: ProcessManager.c2cConv.channelName[plotChannel]
+                            // infoText: ProcessManager.c2cConv.channelName[plotChannel]
                             model: {
-                                console.log(typeof tracksListView.model.get(index))
-                                if(typeof tracksListView.model.get(index) == "object") {
-                                    return [tracksListView.model.get(index)]
+                                trackSignalModel.clear()
+                                let dict = JSON.parse(JSON.stringify(tracksListView.model.get(index)))
+                                let ret = []
+
+                                for (var key in dict) {
+                                    trackSignalModel.append(dict[key])
+                                    ret.push(dict[key])
                                 }
-                                return tracksListView.model.get(index)
+                                return trackSignalModel
                             }
                             anchors.fill: parent
                             xValueAxis: xAxis_
@@ -310,8 +318,9 @@ ApplicationWindow {
                             function signalFit() {
                                 xValueAxis.min = 0
                                 xValueAxis.max = source.length
-                                let minValue = source.getChannelMin(model[0]["plotChannel"])
-                                let maxValue = source.getChannelMax(model[0]["plotChannel"])
+
+                                let minValue = source.getChannelMin(trackSignalModel.get(0)["plotChannel"])
+                                let maxValue = source.getChannelMax(trackSignalModel.get(0)["plotChannel"])
                                 let delta = maxValue - minValue
 
                                 yValueAxis.min = minValue - delta / 6 * 2
@@ -342,50 +351,6 @@ ApplicationWindow {
                     interval: 1000
                     onTriggered: {
                         centerSignal.trigger()
-                    }
-                }
-
-                Component {
-                    id: track
-                    Rectangle {
-                        // anchors.left: tracksView.left; anchors.right: tracksView.right;
-                        width: tracksView.width
-                        height: lower.height * 0.12
-                        color: appMaterial.surface6
-                        ValueAxis {
-                            id: yTrackComp_
-                        }
-                        SignalTrack {
-                            id: strack
-                            source: ProcessManager.c2cConv.output
-                            infoText: ProcessManager.c2cConv.channelName[plotChannel]
-                            viewChannel: plotChannel
-                            lineColor: plotColor
-                            anchors.fill: parent
-                            xValueAxis: xAxis_
-                            yValueAxis: yTrackComp_
-                            property int displayDuration: 1
-                            property int samplerate: 10000
-
-                            onPlotReady: {
-                                tracksListView.readyCount += 1
-                            }
-
-                            function signalFit() {
-                                xValueAxis.min = 0
-                                xValueAxis.max = source.length
-                                let minValue = source.getChannelMin(viewChannel)
-                                let maxValue = source.getChannelMax(viewChannel)
-                                let delta = maxValue - minValue
-
-                                yValueAxis.min = minValue - delta / 6 * 2
-                                yValueAxis.max = maxValue + delta / 6 * 2
-                            }
-                        }
-
-                        function signalFit() {
-                            strack.signalFit()
-                        }
                     }
                 }
             }
@@ -537,10 +502,11 @@ ApplicationWindow {
         text: qsTr("&Center Signal")
         shortcut: "Alt+C"
         onTriggered: {
-            gatherSignalView.itemAtIndex(0).signalFit()
+            
             for(let i = 0; i<tracksListView.count; i++) {
                 tracksListView.itemAtIndex(i).signalFit()
             }
+            gatherSignalView.itemAtIndex(0).signalFit()
             gatherSignalView.itemAtIndex(0).setT1T2(ProcessManager.trn.getT1() - 100, ProcessManager.trn.getT2() + 100)
         }
     }
@@ -579,6 +545,7 @@ ApplicationWindow {
     function reloadPlotTracks() {
         loadedSignals.clear()
         gatherSignals.clear()
+        gatherModel.clear()
         tracksListView.readyCount = 0
         let colors = [
             'red',
@@ -591,8 +558,15 @@ ApplicationWindow {
         ]
         let plotChannels = DisplaySetting.channelModel.getSelectedChannel()
         for(let i = 0; i < plotChannels.length; i++) {
-            loadedSignals.append({"plotChannel": plotChannels[i], "plotColor": colors[i % colors.length]})
+            let ret = []
+            for (let j = 0; j < plotChannels[i].length; j++) {
+                ret.push({"plotChannel": plotChannels[i][j], "plotColor": colors[plotChannels[i][j] % colors.length]})
+                gatherSignals.append({"plotChannel": plotChannels[i][j], "plotColor": colors[plotChannels[i][j] % colors.length]})
+            }
+            loadedSignals.set(i, ret)
+            console.log(gatherSignals.count)
         }
-        gatherSignals.append({"plotChannel": 0, "plotColor": "red"})
+        gatherModel.append({})
+        refreshPlot()
     }
 }
