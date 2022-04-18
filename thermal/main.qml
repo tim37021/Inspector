@@ -294,6 +294,17 @@ ApplicationWindow {
                             id: strack
                             source: ProcessManager.c2cConv.output
                             // infoText: ProcessManager.c2cConv.channelName[plotChannel]
+                            infoText: {
+                                let ret = ""
+                                let dict = JSON.parse(JSON.stringify(tracksListView.model.get(index)))
+
+                                for (var key in dict) {
+                                    trackSignalModel.append(dict[key])
+                                    let channelName = ProcessManager.c2cConv.channelName[dict[key]["plotChannel"]]
+                                    ret = ret + channelName + " "
+                                }
+                                return ret
+                            }
                             model: {
                                 trackSignalModel.clear()
                                 let dict = JSON.parse(JSON.stringify(tracksListView.model.get(index)))
