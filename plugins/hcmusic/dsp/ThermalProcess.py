@@ -14,6 +14,31 @@ import copy
 
 from .Node import EstimateNode, ProcessorNode, QtSignal1D, Node, Signal1D
 
+PW3P3W_CHANNEL_NAME = [
+        "P+", "Q+", "P-", "Q-", "P0", "Q0",
+        "U+", "U-", "U0",
+        "IP+", "IQ+", "IP-", "IQ-", "IP0", "IQ0",
+        "pf+", "pf-", "pf0",
+        "U1", "U2", "U3", "I1", "I2", "I3",
+        "P1", "P2", "P3", "Q1", "Q2", "Q3",
+        "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
+        "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH12", "CH23", "CH31",
+        "CH45", "CH56", "CH64",
+    ]
+
+PW3P4W_CHANNEL_NAME = [
+        "P+", "Q+", "P-", "Q-", "P0", "Q0",
+        "U+", "U-", "U0",
+        "IP+", "IQ+", "IP-", "IQ-", "IP0", "IQ0",
+        "pf+", "pf-", "pf0",
+        "U1-N", "U2-N", "U3-N", "I1", "I2", "I3",
+        "P1", "P2", "P3", "Q1", "Q2", "Q3",
+        "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
+        "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH12", "CH23", "CH31",
+        "CH45", "CH56", "CH64",
+        "L1-L2", "L2-L3", "L3-L1"
+    ]
+
 class PhaseWireCalc(ProcessorNode):
     windowSizeChanged = Signal()
     t1Changed = Signal()
@@ -39,16 +64,7 @@ class PhaseWireCalc(ProcessorNode):
         self._channelUnits  = ["v", "v", "v", "a", "a", "a"]
         self._samplerate = 10000
         self._frequency = 50
-        self._channelName = [
-            "P+", "Q+", "P-", "Q-", "P0", "Q0",
-            "U+", "U-", "U0",
-            "IP+", "IQ+", "IP-", "IQ-", "IP0", "IQ0",
-            "pf+", "pf-", "pf0",
-            "U1", "U2", "U3", "I1", "I2", "I3",
-            "P1", "P2", "P3", "Q1", "Q2", "Q3",
-            "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
-            "CH1", "CH2", "CH3", "CH4", "CH5", "CH6"
-        ]
+        self._channelName = PW3P3W_CHANNEL_NAME
         self._type = "PW3P3W"
 
     @Property(str, notify=typeChanged)
@@ -60,6 +76,12 @@ class PhaseWireCalc(ProcessorNode):
         if self._type != val:
             self._type = val
             self.typeChanged.emit()
+            if self._type == "PW3P3W":
+                self._channelName = PW3P3W_CHANNEL_NAME
+                self.channelNameChanged.emit()
+            elif self._type == "PW3P4W":
+                self._channelName = PW3P4W_CHANNEL_NAME
+                self.channelNameChanged.emit()
 
     @Property("QVariantList", notify=channelNameChanged)
     def channelName(self):
@@ -214,6 +236,10 @@ class PhaseWireCalc(ProcessorNode):
         u2 = np.sqrt((np.square(ucos[self._channels[1]]) + np.square(usin[self._channels[1]])) / 2)
         u3 = np.sqrt((np.square(ucos[self._channels[2]]) + np.square(usin[self._channels[2]])) / 2)
 
+        l12 = None
+        l23 = None
+        l31 = None
+
         if self._type == "PW3P3W":
             print("In ph3p3w")
             _u1 = (u1 - u3) / 3
@@ -222,6 +248,11 @@ class PhaseWireCalc(ProcessorNode):
             u1 = _u1
             u2 = _u2
             u3 = _u3
+        else:
+            l12 = np.sqrt((np.square(ucos[self._channels[0]] - ucos[self._channels[1]]) + np.square(usin[self._channels[0]] - ucos[self._channels[1]])) / 2)
+            l23 = np.sqrt((np.square(ucos[self._channels[1]] - ucos[self._channels[2]]) + np.square(usin[self._channels[1]] - ucos[self._channels[2]])) / 2)
+            l31 = np.sqrt((np.square(ucos[self._channels[2]] - ucos[self._channels[0]]) + np.square(usin[self._channels[2]] - ucos[self._channels[0]])) / 2)
+        
 
         i1 = np.sqrt((np.square(ucos[self._channels[3]]) + np.square(usin[self._channels[3]])) / 2)
         i2 = np.sqrt((np.square(ucos[self._channels[4]]) + np.square(usin[self._channels[4]])) / 2)
@@ -344,6 +375,19 @@ class PhaseWireCalc(ProcessorNode):
         self._output.numpy_array [..., 42] = self._input.numpy_array[min(m, n) - 1: max(m, n), 3]
         self._output.numpy_array [..., 43] = self._input.numpy_array[min(m, n) - 1: max(m, n), 4]
         self._output.numpy_array [..., 44] = self._input.numpy_array[min(m, n) - 1: max(m, n), 5]
+
+        self._output.numpy_array [..., 45] = self._output.numpy_array [..., 39] - self._output.numpy_array [..., 40]
+        self._output.numpy_array [..., 46] = self._output.numpy_array [..., 40] - self._output.numpy_array [..., 41]
+        self._output.numpy_array [..., 47] = self._output.numpy_array [..., 41] - self._output.numpy_array [..., 39]
+
+        self._output.numpy_array [..., 48] = self._output.numpy_array [..., 42] - self._output.numpy_array [..., 43]
+        self._output.numpy_array [..., 49] = self._output.numpy_array [..., 43] - self._output.numpy_array [..., 44]
+        self._output.numpy_array [..., 50] = self._output.numpy_array [..., 44] - self._output.numpy_array [..., 42]
+
+        if self._type == "PW3P4W":
+            self._output.numpy_array [..., 51] = l12
+            self._output.numpy_array [..., 52] = l23
+            self._output.numpy_array [..., 53] = l31
         self.calcFinished.emit()
 
         self._output.update.emit(min(self._t1, self._t2), max(self._t1, self._t2))
@@ -351,7 +395,7 @@ class PhaseWireCalc(ProcessorNode):
     def initialize(self):
         m = abs(self._t2 - self._t1)
         n = self._windowSize
-        self._output.alloc(max(m, n) - min(m, n) + 1, 45)
+        self._output.alloc(max(m, n) - min(m, n) + 1, 54)
 
     def _windowRMS(self, a, windowSize):
         a2 = np.power(a,2)
@@ -773,13 +817,18 @@ class ThermalReportNode(Node):
     @Slot(result=float)
     def getT1(self):
         peaks = self._getTargetTime2(self._input.numpy_array[..., 0])
-        return peaks[0]
+        if len(peaks) > 1:
+            return peaks[0]
+        else:
+            return 0
     
     @Slot(result=float)
     def getT2(self):
         peaks = self._getTargetTime2(self._input.numpy_array[..., 0])
-        return peaks[1]
-
+        if len(peaks) > 1:
+            return peaks[1]
+        else:
+            return 200000
     @Slot(QUrl)
     def calc(self, outputFile= "tests.xlsx"):
         from os import listdir

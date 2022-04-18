@@ -3,6 +3,7 @@ import QtQuick.Controls 2.12
 
 import hcmusic.plot 1.0
 import hcmusic.dsp 1.0
+import App 1.0
 
 import ".."
 
@@ -51,6 +52,9 @@ Item {
             PWModeSelectView {
                 id: pwm
                 anchors.fill: parent
+                onPhaseWireTypeChanged: {
+                    DisplaySetting.channelModel.type = phaseWireType
+                }
             }
         }
 

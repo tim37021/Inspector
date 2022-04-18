@@ -4,17 +4,34 @@ import QtQuick 2.12
 QtObject {
     property ListModel channelModel: ListModel {
         id: channelModel
-        property var channelNames: [
-            "P+", "Q+", "P-", "Q-", "P0", "Q0",
-            "U+", "U-", "U0",
-            "IP+", "IQ+", "IP-", "IQ-", "IP0", "IQ0",
-            "pf+", "pf-", "pf0",
-            "U1", "U2", "U3", "I1", "I2", "I3",
-            "P1", "P2", "P3", "Q1", "Q2", "Q3",
-            "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
-            "CH1", "CH2", "CH3", "CH4", "CH5", "CH6",
-            "CH12", "CH23", "CH13", "CH45", "ch56", "CH46"
-        ]
+        property string type: "PW3P3W"
+        property var channelNames: {
+            if(type == "PW3P3W")
+                return [
+                    "P+", "Q+", "P-", "Q-", "P0", "Q0",
+                    "U+", "U-", "U0",
+                    "IP+", "IQ+", "IP-", "IQ-", "IP0", "IQ0",
+                    "pf+", "pf-", "pf0",
+                    "U1", "U2", "U3", "I1", "I2", "I3",
+                    "P1", "P2", "P3", "Q1", "Q2", "Q3",
+                    "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
+                    "CH1", "CH2", "CH3", "CH4", "CH5", "CH6",
+                    "CH12", "CH23", "CH31", "CH45", "CH56", "CH64"
+                ]
+            else 
+                return [
+                    "P+", "Q+", "P-", "Q-", "P0", "Q0",
+                    "U+", "U-", "U0",
+                    "IP+", "IQ+", "IP-", "IQ-", "IP0", "IQ0",
+                    "pf+", "pf-", "pf0",
+                    "U1-N", "U2-N", "U3-N", "I1", "I2", "I3",
+                    "P1", "P2", "P3", "Q1", "Q2", "Q3",
+                    "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
+                    "CH1", "CH2", "CH3", "CH4", "CH5", "CH6",
+                    "CH12", "CH23", "CH31", "CH45", "CH56", "CH64", 
+                    "L1-L2", "L2-L3", "L3-L1",
+                ]
+        }
         property var channel: {
             "P+": [0],
             "Q+": [1],
@@ -62,12 +79,18 @@ QtObject {
             "CH4": [42], 
             "CH5": [43], 
             "CH6": [44],
-            "CH12": [39, 40], 
-            "CH23": [40, 41], 
-            "CH13": [39, 41],
-            "CH45": [42, 43], 
-            "CH56": [43, 44], 
-            "CH46": [42, 44],
+            "CH12": [45], 
+            "CH23": [46], 
+            "CH31": [47],
+            "CH45": [48], 
+            "CH56": [49], 
+            "CH64": [50],
+            "L1-L2": [51],
+            "L2-L3": [52],
+            "L3-L1": [53],
+            "U1-N": [18],
+            "U2-N": [19],
+            "U3-N": [20],
         }
         onChannelNamesChanged: {
             clear()
