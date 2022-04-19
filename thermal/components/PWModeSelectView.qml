@@ -17,22 +17,27 @@ Item {
             case 0:
                 return "PW3P3W";
             case 1:
+                return "PW3P3W60Deg"
+            case 2:
                 return "PW3P4W";
         }
     }
 
     ComboBox {
         id: cb
-        model: ["三相三線", "三相四線"]
+        model: ["三相三線", "三相三線 60度", "三相四線"]
         anchors.top: parent.top; anchors.left: parent.left;
         anchors.margins: 20
         currentIndex: 0
         onCurrentIndexChanged: {
             switch(currentIndex) {
-                case AppIcon.PW3P3W:
+                case 0:
                     icon.iconType = AppIcon.PW3P3W;
                     break;
-                case AppIcon.PW3P4W:
+                case 1:
+                    icon.iconType = AppIcon.PW3P3W;
+                    break;
+                case 2:
                     icon.iconType = AppIcon.PW3P4W;
                     break;
             }

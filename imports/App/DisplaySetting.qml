@@ -6,7 +6,7 @@ QtObject {
         id: channelModel
         property string type: "PW3P3W"
         property var channelNames: {
-            if(type == "PW3P3W")
+            if(type.includes("PW3P3W"))
                 return [
                     "P+", "Q+", "P-", "Q-", "P0", "Q0",
                     "U+", "U-", "U0",

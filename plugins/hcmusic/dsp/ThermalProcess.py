@@ -218,12 +218,32 @@ class PhaseWireCalc(ProcessorNode):
         sins = np.sin(x)
         ucos = []
         usin = []
+        sigs = []
         for i in range(self.input.channels):
             sig = None
             if self._inverse[i]:
                 sig = -1 * self._input.numpy_array[min(self._t1, self._t2) : max(self._t1, self._t2), self._channels[i]]
             else:
                 sig = self._input.numpy_array[min(self._t1, self._t2) : max(self._t1, self._t2), self._channels[i]]
+            sigs.append(sig)
+
+        if self._type == "PW3P3W":
+            c1 = sigs[self._channels[0]] - (sigs[self._channels[0]] - sigs[self._channels[1]]) / 3
+            c2 = sigs[self._channels[1]] - (sigs[self._channels[1]] - sigs[self._channels[2]]) / 3
+            c3 = sigs[self._channels[3]] - (sigs[self._channels[3]] - sigs[self._channels[1]]) / 3
+            sigs[self._channels[0]] = c1
+            sigs[self._channels[1]] = c2
+            sigs[self._channels[2]] = c3
+
+        elif self._type == "PW3P3W60Deg":
+            c1 = sigs[self._channels[0]] - (sigs[self._channels[0]] + sigs[self._channels[1]]) / 3
+            c2 = sigs[self._channels[1]] - (sigs[self._channels[0]] - sigs[self._channels[1]]) / 3
+            c3 = - (sigs[self._channels[1]] - sigs[self._channels[2]]) / 3
+            sigs[self._channels[0]] = c1
+            sigs[self._channels[1]] = c2
+            sigs[self._channels[2]] = c3
+
+        for sig in sigs:
             cosArr = sig * cons 
             sinArr = sig * sins
 
@@ -240,19 +260,20 @@ class PhaseWireCalc(ProcessorNode):
         l23 = None
         l31 = None
 
-        if self._type == "PW3P3W":
-            print("In ph3p3w")
-            _u1 = (u1 - u3) / 3
-            _u2 = (u2 - u1) / 3
-            _u3 = (u3 - u2) / 3
-            u1 = _u1
-            u2 = _u2
-            u3 = _u3
-        else:
-            l12 = np.sqrt((np.square(ucos[self._channels[0]] - ucos[self._channels[1]]) + np.square(usin[self._channels[0]] - ucos[self._channels[1]])) / 2)
-            l23 = np.sqrt((np.square(ucos[self._channels[1]] - ucos[self._channels[2]]) + np.square(usin[self._channels[1]] - ucos[self._channels[2]])) / 2)
-            l31 = np.sqrt((np.square(ucos[self._channels[2]] - ucos[self._channels[0]]) + np.square(usin[self._channels[2]] - ucos[self._channels[0]])) / 2)
-        
+        if self._type == "PW3P4W":
+            ch12 = sigs[self._channels[0]] - sigs[self._channels[1]]
+            ch23 = sigs[self._channels[1]] - sigs[self._channels[2]]
+            ch31 = sigs[self._channels[2]] - sigs[self._channels[0]]
+            window = np.ones(self._windowSize) / float(self._windowSize)
+            ch12cos = np.convolve(ch12 * cons, window, 'valid') * 2
+            ch23cos = np.convolve(ch23 * cons, window, 'valid') * 2
+            ch31cos = np.convolve(ch31 * cons, window, 'valid') * 2
+            ch12sin = np.convolve(ch12 * sins, window, 'valid') * 2
+            ch23sin = np.convolve(ch23 * sins, window, 'valid') * 2
+            ch31sin = np.convolve(ch31 * sins, window, 'valid') * 2
+            l12 = np.sqrt((np.square(ch12cos) + np.square(ch12sin)) / 2)
+            l23 = np.sqrt((np.square(ch23cos) + np.square(ch23sin)) / 2)
+            l31 = np.sqrt((np.square(ch31cos) + np.square(ch31sin)) / 2)
 
         i1 = np.sqrt((np.square(ucos[self._channels[3]]) + np.square(usin[self._channels[3]])) / 2)
         i2 = np.sqrt((np.square(ucos[self._channels[4]]) + np.square(usin[self._channels[4]])) / 2)
