@@ -46,6 +46,26 @@ ApplicationWindow {
         }
     }
 
+    ValueAxis {
+        id: sectionAxis
+        min: 0
+        max: ProcessManager.c2cConv.output.length
+
+        onMinChanged: {
+            if(min <=  0) min = 0
+        }
+        onMaxChanged: {
+            if(max >= ProcessManager.c2cConv.output.length) max = ProcessManager.c2cConv.output.length
+        }
+
+        function updateReport() {
+            DisplaySetting.cursor = [
+                {"name": "No.", "v1": min.toFixed(0), "v2": max.toFixed(0), "v3": max.toFixed(0) - min.toFixed(0)}
+            ]
+            DisplaySetting.previewData = ProcessManager.c2cConv.getReport(min.toFixed(0), max.toFixed(0))
+        }
+    }
+
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
@@ -144,28 +164,10 @@ ApplicationWindow {
                             borderColor: appMaterial.secondary
                             opacity: 0.8
                             onCoordinateMinChanged: {
-                                updateDelay.restart()
+                                xAxis_.min = parseFloat(coordinateMin.toFixed(0))
                             }
                             onCoordinateMaxChanged: {
-                                updateDelay.restart()
-                            }
-                            function updateReport() {
-                                DisplaySetting.cursor = [
-                                    {"name": "No.", "v1": coordinateMin.toFixed(0), "v2": coordinateMax.toFixed(0), "v3": coordinateMax.toFixed(0) - coordinateMin.toFixed(0)}
-                                ]
-                                DisplaySetting.previewData = ProcessManager.c2cConv.getReport(coordinateMin.toFixed(0), coordinateMax.toFixed(0))
-                                xAxis_.min = coordinateMin.toFixed(0)
-                                xAxis_.max = coordinateMax.toFixed(0)
-                            }
-
-                            Timer {
-                                id: updateDelay
-                                interval: 200
-                                repeat: false
-                                triggeredOnStart: false
-                                onTriggered: {
-                                    sIndicate.updateReport();
-                                }
+                                xAxis_.max = parseFloat(coordinateMax.toFixed(0))
                             }
 
                             Rectangle {
@@ -180,7 +182,7 @@ ApplicationWindow {
                                 Text {
                                     id: hoverText
                                     anchors.centerIn: parent
-                                    text: sIndicate.hoverOnMinDrag? "t1:" + sIndicate.coordinateMin.toFixed(0): "t2:" + sIndicate.coordinateMax.toFixed(0)
+                                    text: sIndicate.hoverOnMinDrag? "t1:" + sIndicate.coordinateMin.toFixed(0).toString(): "t2:" + sIndicate.coordinateMax.toFixed(0).toString()
                                     color: appMaterial.text
                                 }
                             }
@@ -188,7 +190,6 @@ ApplicationWindow {
                     }
                     function signalFit() {
                         strack.signalFit()
-                        updateDelay.restart()
                     }
                     function setT1T2(t1, t2) {
                         sIndicate.setStartTime(t1)
