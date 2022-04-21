@@ -46,26 +46,7 @@ ApplicationWindow {
         }
     }
 
-    ValueAxis {
-        id: sectionAxis
-        min: 0
-        max: ProcessManager.c2cConv.output.length
-
-        onMinChanged: {
-            if(min <=  0) min = 0
-        }
-        onMaxChanged: {
-            if(max >= ProcessManager.c2cConv.output.length) max = ProcessManager.c2cConv.output.length
-        }
-
-        function updateReport() {
-            DisplaySetting.cursor = [
-                {"name": "No.", "v1": min.toFixed(0), "v2": max.toFixed(0), "v3": max.toFixed(0) - min.toFixed(0)}
-            ]
-            DisplaySetting.previewData = ProcessManager.c2cConv.getReport(min.toFixed(0), max.toFixed(0))
-        }
-    }
-
+    
     menuBar: MenuBar {
         Menu {
             title: qsTr("&File")
@@ -85,6 +66,37 @@ ApplicationWindow {
             title: qsTr("&Help")
             Action { text: qsTr("&About") }
         }
+    }
+
+    ValueAxis {
+        id: sectionAxis
+        min: 0
+        max: ProcessManager.c2cConv.output.length
+
+        onMinChanged: {
+            if(min <=  0) min = 0
+            // app.setT1(min)
+            reportDelay.restart()
+        }
+        onMaxChanged: {
+            if(max >= ProcessManager.c2cConv.output.length) max = ProcessManager.c2cConv.output.length
+            // app.setT2(max)
+            reportDelay.restart()
+        }
+
+        function updateReport() {
+            if (gatherModel.count < 1) return 
+            DisplaySetting.cursor = [
+                {"name": "No.", "v1": min.toFixed(0), "v2": max.toFixed(0), "v3": max.toFixed(0) - min.toFixed(0)}
+            ]
+            DisplaySetting.previewData = ProcessManager.c2cConv.getReport(min.toFixed(0), max.toFixed(0))
+        }
+    }
+
+    Timer{
+        id: reportDelay
+        interval: 100
+        onTriggered: sectionAxis.updateReport()
     }
 
     Item {
@@ -112,6 +124,75 @@ ApplicationWindow {
                     delegate: gatherTrack
                     interactive: false
                 }
+
+                ZoomIndicator {
+                    id: zIndicate
+                    visible: gatherModel.count > 0
+                    anchors.fill: parent
+                    anchors.leftMargin: Math.min(parent.width * 0.15, 80)
+                    axisX: xAxis_c2c
+                    borderColor: appMaterial.secondary
+                    opacity: 0.8
+                    onCoordinateMinChanged: {
+                        xAxis_.min = parseFloat(coordinateMin.toFixed(0))
+                        xAxis_.max = parseFloat(coordinateMax.toFixed(0))
+                        // if(!(hoverOnDrag || zIndicate.hoverOnDrag)) return
+                        if(sectionAxis.min !== parseFloat(sIndicate.coordinateMin.toFixed(0)))
+                            sectionAxis.min = parseFloat(sIndicate.coordinateMin.toFixed(0))
+                        if(sectionAxis.max !== parseFloat(sIndicate.coordinateMax.toFixed(0)))
+                            sectionAxis.max = parseFloat(sIndicate.coordinateMax.toFixed(0))
+                        lsIndicate.setStartTime(sectionAxis.min)
+                        lsIndicate.setEndTime(sectionAxis.max)
+                    }
+                    onCoordinateMaxChanged: {
+                        xAxis_.min = parseFloat(coordinateMin.toFixed(0))
+                        xAxis_.max = parseFloat(coordinateMax.toFixed(0))
+                        // if(!(hoverOnDrag || zIndicate.hoverOnDrag)) return
+                        if(sectionAxis.min !== parseFloat(sIndicate.coordinateMin.toFixed(0)))
+                            sectionAxis.min = parseFloat(sIndicate.coordinateMin.toFixed(0))
+                        if(sectionAxis.max !== parseFloat(sIndicate.coordinateMax.toFixed(0)))
+                            sectionAxis.max = parseFloat(sIndicate.coordinateMax.toFixed(0))
+                        lsIndicate.setStartTime(sectionAxis.min)
+                        lsIndicate.setEndTime(sectionAxis.max)
+                    }
+
+                    Rectangle {
+                        visible: zIndicate.hoverOnDrag
+                        x: 10 + zIndicate.hoverMouseX
+                        y: 10 + zIndicate.hoverMouseY
+                        width: hoverText.width + 10
+                        height: hoverText.height + 10
+                        color: appMaterial.background
+                        z: 100
+
+                        Text {
+                            id: hoverText
+                            anchors.centerIn: parent
+                            text: zIndicate.hoverOnMinDrag? "t1:" + zIndicate.coordinateMin.toFixed(0).toString(): "t2:" + zIndicate.coordinateMax.toFixed(0).toString()
+                            color: appMaterial.text
+                        }
+                    }
+                }
+
+                SectionIndicator {
+                    id: sIndicate
+                    visible: gatherModel.count > 0
+                    anchors.fill: parent
+                    anchors.leftMargin: Math.min(parent.width * 0.15, 80)
+                    axisX: xAxis_c2c
+                    onCoordinateMinChanged: {
+                        if(!(hoverOnDrag || zIndicate.hoverOnDrag)) return
+                        if(sectionAxis.min !== parseFloat(coordinateMin.toFixed(0)))
+                            sectionAxis.min = parseFloat(coordinateMin.toFixed(0))
+                        lsIndicate.setStartTime(sectionAxis.min)
+                    }
+                    onCoordinateMaxChanged: {
+                        if(!(hoverOnDrag || zIndicate.hoverOnDrag)) return
+                        if(sectionAxis.max !== parseFloat(coordinateMax.toFixed(0)))
+                            sectionAxis.max = parseFloat(coordinateMax.toFixed(0))
+                        lsIndicate.setEndTime(sectionAxis.max)
+                    }
+                }
             }
 
             Rectangle {
@@ -129,6 +210,7 @@ ApplicationWindow {
 
                 Rectangle {
                     id: gatherRect
+                    property alias plotSection: strack.plotSection
                     // anchors.left: parent.left; anchors.right: parent.right;
                     width: gatherTracksView.width
                     height: gatherTracksView.height
@@ -157,44 +239,12 @@ ApplicationWindow {
                             if(yValueAxis.max < (yA + 10))
                                 yValueAxis.max = yA + 10
                         }
-                        SectionIndicator {
-                            id: sIndicate
-                            anchors.fill: parent.plotSection
-                            axisX: xAxis_c2c
-                            borderColor: appMaterial.secondary
-                            opacity: 0.8
-                            onCoordinateMinChanged: {
-                                xAxis_.min = parseFloat(coordinateMin.toFixed(0))
-                            }
-                            onCoordinateMaxChanged: {
-                                xAxis_.max = parseFloat(coordinateMax.toFixed(0))
-                            }
-
-                            Rectangle {
-                                visible: sIndicate.hoverOnDrag
-                                x: 10 + sIndicate.hoverMouseX
-                                y: 10 + sIndicate.hoverMouseY
-                                width: hoverText.width + 10
-                                height: hoverText.height + 10
-                                color: appMaterial.background
-                                z: 100
-
-                                Text {
-                                    id: hoverText
-                                    anchors.centerIn: parent
-                                    text: sIndicate.hoverOnMinDrag? "t1:" + sIndicate.coordinateMin.toFixed(0).toString(): "t2:" + sIndicate.coordinateMax.toFixed(0).toString()
-                                    color: appMaterial.text
-                                }
-                            }
-                        }
+                        
                     }
                     function signalFit() {
                         strack.signalFit()
                     }
-                    function setT1T2(t1, t2) {
-                        sIndicate.setStartTime(t1)
-                        sIndicate.setEndTime(t2)
-                    }
+                    
                 }
             }
 
@@ -358,6 +408,34 @@ ApplicationWindow {
                     }
                 }
 
+                Item {
+                    visible: loadedSignals.count > 0
+                    anchors.fill: parent
+                    anchors.leftMargin: Math.min(parent.width * 0.15, 80)
+                    clip: true
+
+                    SectionIndicator {
+                        id: lsIndicate
+                        anchors.fill: parent
+                        axisX: xAxis_
+                        textColor: "white"
+                        onCoordinateMinChanged: {
+                            if(!hoverOnDrag) return
+                            if(sectionAxis.min !== parseFloat(coordinateMin.toFixed(0)))
+                                sectionAxis.min = parseFloat(coordinateMin.toFixed(0))
+                            sIndicate.setStartTime(sectionAxis.min)
+                        }
+                        onCoordinateMaxChanged: {
+                            if(!hoverOnDrag) return
+                            if(sectionAxis.max !== parseFloat(coordinateMax.toFixed(0)))
+                                sectionAxis.max = parseFloat(coordinateMax.toFixed(0))
+                            sIndicate.setEndTime(sectionAxis.max)
+                        }
+                    }
+                }
+
+                
+
                 Timer {
                     id: delayUpdateTimer
                     interval: 1000
@@ -514,12 +592,11 @@ ApplicationWindow {
         text: qsTr("&Center Signal")
         shortcut: "Alt+C"
         onTriggered: {
-            
             for(let i = 0; i<tracksListView.count; i++) {
                 tracksListView.itemAtIndex(i).signalFit()
             }
             gatherSignalView.itemAtIndex(0).signalFit()
-            gatherSignalView.itemAtIndex(0).setT1T2(ProcessManager.trn.getT1() - 100, ProcessManager.trn.getT2() + 100)
+            app.setT1T2(ProcessManager.trn.getT1() - 100, ProcessManager.trn.getT2() + 100)
         }
     }
 
@@ -532,7 +609,7 @@ ApplicationWindow {
             xAxis_.min += 100
             xAxis_.max -= 100
 
-            gatherSignalView.itemAtIndex(0).setT1T2(xAxis_.min, xAxis_.max)
+            // gatherSignalView.itemAtIndex(0).setT1T2(xAxis_.min, xAxis_.max)
         }
     }
 
@@ -545,7 +622,7 @@ ApplicationWindow {
             xAxis_.min -= 100
             xAxis_.max += 100
 
-            gatherSignalView.itemAtIndex(0).setT1T2(xAxis_.min, xAxis_.max)
+            // gatherSignalView.itemAtIndex(0).setT1T2(xAxis_.min, xAxis_.max)
         }
     }
 
@@ -580,5 +657,31 @@ ApplicationWindow {
         }
         gatherModel.append({})
         refreshPlot()
+    }
+    function setT1T2(t1, t2) {
+        if(sectionAxis.min != t1) 
+            sectionAxis.min = t1
+        if(sectionAxis.max != t2)
+            sectionAxis.max = t2
+        if(sIndicate.startTime != t1)
+            sIndicate.setStartTime(t1)
+        if(sIndicate.endTime != t2)
+            sIndicate.setEndTime(t2)
+        if(lsIndicate.startTime != t1)
+            lsIndicate.setStartTime(t1)
+        if(lsIndicate.endTime != t2)
+            lsIndicate.setEndTime(t2)
+    }
+    function setT1(t1) {
+        if(sIndicate.startTime != t1)
+            sIndicate.setStartTime(t1)
+        if(lsIndicate.startTime != t1)
+            lsIndicate.setStartTime(t1)
+    }
+    function setT2(t2) {
+        if(sIndicate.endTime != t2)
+            sIndicate.setEndTime(t2)
+        if(lsIndicate.endTime != t2)
+            lsIndicate.setEndTime(t2)
     }
 }

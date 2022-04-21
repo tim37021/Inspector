@@ -14,8 +14,8 @@ Item {
     property real endX: 200
     property real coordinateMin: (startX / width) * (axisX.max - axisX.min) + axisX.min
     property real coordinateMax: (endX / width) * (axisX.max - axisX.min) + axisX.min
+    property string borderColor: "orange"
     property real minDiff: 1000
-    property string textColor: "black"
 
     property real hoverMouseX
     property real hoverMouseY
@@ -37,14 +37,12 @@ Item {
         anchors.top: section.top; anchors.bottom: section.bottom;
         anchors.right: section.left;
         radius: 4;
-        width: 2
-        color: "blue"
+        width: 20
+        color: root.borderColor
 
         MouseArea {
             id: leftMa
-            anchors.centerIn: parent
-            width: parent.width + 10
-            height: parent.height
+            anchors.fill: parent
             drag.target: parent
             hoverEnabled: true
             property real dragStartX: 0.0
@@ -62,14 +60,12 @@ Item {
         anchors.top: section.top; anchors.bottom: section.bottom;
         anchors.left: section.right;
         radius: 4;
-        width: 2
-        color: "orange"
+        width: 20
+        color: root.borderColor
 
         MouseArea {
             id: rightMa
-            anchors.centerIn: parent
-            width: parent.width + 10
-            height: parent.height
+            anchors.fill: parent
             drag.target: parent
             hoverEnabled: true
             property real dragStartX: 0.0
@@ -82,37 +78,22 @@ Item {
         }
     }
 
-    Item {
-        width: 60
-        height: 30
-        anchors.left: leftSection.horizontalCenter
-        anchors.bottom: parent.bottom;
-        anchors.leftMargin: 2
-        visible: leftMa.containsMouse
-        clip: true
-
-        Text {
-            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter;
-            text: coordinateMin.toFixed(0).toString()
-            color: root.textColor
-        }
+    Rectangle {
+        id: topRect
+        height: 4
+        anchors.left: section.left; anchors.right: section.right;
+        anchors.top: section.top;
+        anchors.leftMargin: -4; anchors.rightMargin: -4; 
+        color: root.borderColor
     }
 
-    Item {
-        width: 60
-        height: 30
-        anchors.left: rightSection.horizontalCenter
-        anchors.bottom: parent.bottom;
-        anchors.leftMargin: 2
-        visible: rightMa.containsMouse
-        clip: true
-
-        Text {
-            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter;
-            anchors.leftMargin: 2
-            text: coordinateMax.toFixed(0).toString()
-            color: root.textColor
-        }
+    Rectangle {
+        id: bottomRect
+        height: 4
+        anchors.left: section.left; anchors.right: section.right;
+        anchors.bottom: section.bottom;
+        anchors.leftMargin: -4; anchors.rightMargin: -4; 
+        color: root.borderColor
     }
 
     function dragResizeLeft(mouseX) {
