@@ -435,6 +435,8 @@ class ReChannelNode(ProcessorNode):
         self._channel = [0, 1, 2, 3, 4, 5]
         self._inverse = [False, False, False, False, False, False]
         self._updated = False
+        self._t1 = 0
+        self._t2 = 10000
 
     @Property("QVariantList", notify=inverseChanged)
     def inverse(self):
@@ -642,11 +644,8 @@ class ThermalReportNode(Node):
     def _vdeReport(self):
         ret = {}
         # peaks = self._getTargetTime(self._input.numpy_array[..., 7])
-        peaks = self._getTargetTime2(self._input.numpy_array[..., 0])
-        if len(peaks) != 2:
-            return ret
-        t1 = peaks[0]
-        t2 = peaks[1]
+        t1 = self._t1
+        t2 = self._t2
         ret["V1"] = self._baseInfo.get("date", "2021/6/18")
         ret["V2"] = self._baseInfo.get("time", "00:00:00")
         ret["V3"] = self._baseInfo.get("faultType", "3 phase fault")
@@ -707,11 +706,8 @@ class ThermalReportNode(Node):
     def _bdewReport(self):
         ret = {}
         # peaks = self._getTargetTime(self._input.numpy_array[..., 7])
-        peaks = self._getTargetTime2(self._input.numpy_array[..., 0])
-        if len(peaks) != 2:
-            return ret
-        t1 = peaks[0]
-        t2 = peaks[1]
+        t1 = self._t1
+        t2 = self._t2
         ret["B1"] = self._baseInfo.get("date", "2021/6/18")
         ret["B2"] = self._baseInfo.get("time", "00:00:00")
         ret["B3"] = self._baseInfo.get("faultType", "symmetry grid fault")
@@ -850,14 +846,16 @@ class ThermalReportNode(Node):
             return peaks[1]
         else:
             return 200000
-    @Slot(QUrl)
-    def calc(self, outputFile= "tests.xlsx"):
+    @Slot(QUrl, int, int)
+    def calc(self,  outputFile= "tests.xlsx", t1 = 0, t2 = 10000):
         from os import listdir
         from os.path import isfile, isdir, join
         import xlsxwriter
         templatePath = "./template"
         report = {}
         rpExcel = None
+        self._t1 = t1
+        self._t2 = t2
         if self._type == "VDE":
             report = self._vdeReport()
             rpExcel = pd.read_excel(join(templatePath, "VDE.xlsx"))

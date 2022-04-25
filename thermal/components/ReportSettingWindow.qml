@@ -14,6 +14,7 @@ Rectangle {
     property alias windowColor: window.color
     property ThermalReportNode reporter: ThermalReportNode{}
     property string standard: "VDE"
+
     color: "#A5222222"
     opacity: 0.0
     Behavior on opacity { NumberAnimation { duration: 100 } }
@@ -582,7 +583,7 @@ Rectangle {
         currentFile: Qt.resolvedUrl("../..") + "/" + root.standard
         onAccepted: {
             root.getSetting()
-            reporter.calc(currentFile)
+            reporter.calc(currentFile, ProcessManager.sectionAxis.min, ProcessManager.sectionAxis.max)
             root.close()
         }
         defaultSuffix: "xlsx"
