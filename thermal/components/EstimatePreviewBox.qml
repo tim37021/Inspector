@@ -6,11 +6,14 @@ import ".."
 
 
 Item {
+    id: root
     anchors.fill: parent;
     anchors.margins: 10
 
     property alias topModel: itTop.model
     property alias bottomModel: itLow.model
+
+    signal topEdited
 
     Item {
         id: itTopArea
@@ -26,6 +29,17 @@ Item {
             borderColor:appMaterial.surface2
             fontColor: appMaterial.text
             fontFamily: appMaterial.fontFamily
+            readOnly: false
+            onEdited: {
+                if(column === 1) {
+                    ProcessManager.sectionAxis.edited = true
+                    ProcessManager.sectionAxis.min = parseFloat(value)
+                }
+                if(column === 2) {
+                    ProcessManager.sectionAxis.edited = true
+                    ProcessManager.sectionAxis.max = parseFloat(value)
+                }
+            }
         }
     }
 

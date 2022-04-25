@@ -68,37 +68,6 @@ ApplicationWindow {
         }
     }
 
-    ValueAxis {
-        id: sectionAxis
-        min: 0
-        max: ProcessManager.c2cConv.output.length
-
-        onMinChanged: {
-            if(min <=  0) min = 0
-            // app.setT1(min)
-            reportDelay.restart()
-        }
-        onMaxChanged: {
-            if(max >= ProcessManager.c2cConv.output.length) max = ProcessManager.c2cConv.output.length
-            // app.setT2(max)
-            reportDelay.restart()
-        }
-
-        function updateReport() {
-            if (gatherModel.count < 1) return 
-            DisplaySetting.cursor = [
-                {"name": "No.", "v1": min.toFixed(0), "v2": max.toFixed(0), "v3": max.toFixed(0) - min.toFixed(0)}
-            ]
-            DisplaySetting.previewData = ProcessManager.c2cConv.getReport(min.toFixed(0), max.toFixed(0))
-        }
-    }
-
-    Timer{
-        id: reportDelay
-        interval: 100
-        onTriggered: sectionAxis.updateReport()
-    }
-
     Item {
         id: mainView
         anchors.top: parent.top; anchors.left: parent.left;
@@ -114,20 +83,17 @@ ApplicationWindow {
                 anchors.left: parent.left; anchors.right: parent.right;
                 anchors.top: parent.top; anchors.bottom: lowerRulerArea.top;
                 
-                ListModel {
-                    id: gatherModel
-                }
                 ListView {
                     id: gatherSignalView
                     anchors.fill: parent
-                    model: gatherModel
+                    model: ProcessManager.gatherModel
                     delegate: gatherTrack
                     interactive: false
                 }
 
                 ZoomIndicator {
                     id: zIndicate
-                    visible: gatherModel.count > 0
+                    visible: ProcessManager.gatherModel.count > 0
                     anchors.fill: parent
                     anchors.leftMargin: Math.min(parent.width * 0.15, 80)
                     axisX: xAxis_c2c
@@ -137,23 +103,23 @@ ApplicationWindow {
                         xAxis_.min = parseFloat(coordinateMin.toFixed(0))
                         xAxis_.max = parseFloat(coordinateMax.toFixed(0))
                         // if(!(hoverOnDrag || zIndicate.hoverOnDrag)) return
-                        if(sectionAxis.min !== parseFloat(sIndicate.coordinateMin.toFixed(0)))
-                            sectionAxis.min = parseFloat(sIndicate.coordinateMin.toFixed(0))
-                        if(sectionAxis.max !== parseFloat(sIndicate.coordinateMax.toFixed(0)))
-                            sectionAxis.max = parseFloat(sIndicate.coordinateMax.toFixed(0))
-                        lsIndicate.setStartTime(sectionAxis.min)
-                        lsIndicate.setEndTime(sectionAxis.max)
+                        if(ProcessManager.sectionAxis.min !== parseFloat(sIndicate.coordinateMin.toFixed(0)))
+                            ProcessManager.sectionAxis.min = parseFloat(sIndicate.coordinateMin.toFixed(0))
+                        if(ProcessManager.sectionAxis.max !== parseFloat(sIndicate.coordinateMax.toFixed(0)))
+                            ProcessManager.sectionAxis.max = parseFloat(sIndicate.coordinateMax.toFixed(0))
+                        lsIndicate.setStartTime(ProcessManager.sectionAxis.min)
+                        lsIndicate.setEndTime(ProcessManager.sectionAxis.max)
                     }
                     onCoordinateMaxChanged: {
                         xAxis_.min = parseFloat(coordinateMin.toFixed(0))
                         xAxis_.max = parseFloat(coordinateMax.toFixed(0))
                         // if(!(hoverOnDrag || zIndicate.hoverOnDrag)) return
-                        if(sectionAxis.min !== parseFloat(sIndicate.coordinateMin.toFixed(0)))
-                            sectionAxis.min = parseFloat(sIndicate.coordinateMin.toFixed(0))
-                        if(sectionAxis.max !== parseFloat(sIndicate.coordinateMax.toFixed(0)))
-                            sectionAxis.max = parseFloat(sIndicate.coordinateMax.toFixed(0))
-                        lsIndicate.setStartTime(sectionAxis.min)
-                        lsIndicate.setEndTime(sectionAxis.max)
+                        if(ProcessManager.sectionAxis.min !== parseFloat(sIndicate.coordinateMin.toFixed(0)))
+                            ProcessManager.sectionAxis.min = parseFloat(sIndicate.coordinateMin.toFixed(0))
+                        if(ProcessManager.sectionAxis.max !== parseFloat(sIndicate.coordinateMax.toFixed(0)))
+                            ProcessManager.sectionAxis.max = parseFloat(sIndicate.coordinateMax.toFixed(0))
+                        lsIndicate.setStartTime(ProcessManager.sectionAxis.min)
+                        lsIndicate.setEndTime(ProcessManager.sectionAxis.max)
                     }
 
                     Rectangle {
@@ -176,21 +142,21 @@ ApplicationWindow {
 
                 SectionIndicator {
                     id: sIndicate
-                    visible: gatherModel.count > 0
+                    visible: ProcessManager.gatherModel.count > 0
                     anchors.fill: parent
                     anchors.leftMargin: Math.min(parent.width * 0.15, 80)
                     axisX: xAxis_c2c
                     onCoordinateMinChanged: {
                         if(!(hoverOnDrag || zIndicate.hoverOnDrag)) return
-                        if(sectionAxis.min !== parseFloat(coordinateMin.toFixed(0)))
-                            sectionAxis.min = parseFloat(coordinateMin.toFixed(0))
-                        lsIndicate.setStartTime(sectionAxis.min)
+                        if(ProcessManager.sectionAxis.min !== parseFloat(coordinateMin.toFixed(0)))
+                            ProcessManager.sectionAxis.min = parseFloat(coordinateMin.toFixed(0))
+                        lsIndicate.setStartTime(ProcessManager.sectionAxis.min)
                     }
                     onCoordinateMaxChanged: {
                         if(!(hoverOnDrag || zIndicate.hoverOnDrag)) return
-                        if(sectionAxis.max !== parseFloat(coordinateMax.toFixed(0)))
-                            sectionAxis.max = parseFloat(coordinateMax.toFixed(0))
-                        lsIndicate.setEndTime(sectionAxis.max)
+                        if(ProcessManager.sectionAxis.max !== parseFloat(coordinateMax.toFixed(0)))
+                            ProcessManager.sectionAxis.max = parseFloat(coordinateMax.toFixed(0))
+                        lsIndicate.setEndTime(ProcessManager.sectionAxis.max)
                     }
                 }
             }
@@ -421,15 +387,15 @@ ApplicationWindow {
                         textColor: "white"
                         onCoordinateMinChanged: {
                             if(!hoverOnDrag) return
-                            if(sectionAxis.min !== parseFloat(coordinateMin.toFixed(0)))
-                                sectionAxis.min = parseFloat(coordinateMin.toFixed(0))
-                            sIndicate.setStartTime(sectionAxis.min)
+                            if(ProcessManager.sectionAxis.min !== parseFloat(coordinateMin.toFixed(0)))
+                                ProcessManager.sectionAxis.min = parseFloat(coordinateMin.toFixed(0))
+                            sIndicate.setStartTime(ProcessManager.sectionAxis.min)
                         }
                         onCoordinateMaxChanged: {
                             if(!hoverOnDrag) return
-                            if(sectionAxis.max !== parseFloat(coordinateMax.toFixed(0)))
-                                sectionAxis.max = parseFloat(coordinateMax.toFixed(0))
-                            sIndicate.setEndTime(sectionAxis.max)
+                            if(ProcessManager.sectionAxis.max !== parseFloat(coordinateMax.toFixed(0)))
+                                ProcessManager.sectionAxis.max = parseFloat(coordinateMax.toFixed(0))
+                            sIndicate.setEndTime(ProcessManager.sectionAxis.max)
                         }
                     }
                 }
@@ -634,7 +600,7 @@ ApplicationWindow {
     function reloadPlotTracks() {
         loadedSignals.clear()
         gatherSignals.clear()
-        gatherModel.clear()
+        ProcessManager.gatherModel.clear()
         tracksListView.readyCount = 0
         let colors = [
             'red',
@@ -655,14 +621,14 @@ ApplicationWindow {
             loadedSignals.set(i, ret)
             console.log(gatherSignals.count)
         }
-        gatherModel.append({})
+        ProcessManager.gatherModel.append({})
         refreshPlot()
     }
     function setT1T2(t1, t2) {
-        if(sectionAxis.min != t1) 
-            sectionAxis.min = t1
-        if(sectionAxis.max != t2)
-            sectionAxis.max = t2
+        if(ProcessManager.sectionAxis.min != t1) 
+            ProcessManager.sectionAxis.min = t1
+        if(ProcessManager.sectionAxis.max != t2)
+            ProcessManager.sectionAxis.max = t2
         if(sIndicate.startTime != t1)
             sIndicate.setStartTime(t1)
         if(sIndicate.endTime != t2)
@@ -683,5 +649,22 @@ ApplicationWindow {
             sIndicate.setEndTime(t2)
         if(lsIndicate.endTime != t2)
             lsIndicate.setEndTime(t2)
+    }
+
+    Connections {
+        target: ProcessManager.sectionAxis
+        function onMinChanged() {
+            if(ProcessManager.sectionAxis.edited) {
+                app.setT1T2(ProcessManager.sectionAxis.min, ProcessManager.sectionAxis.max)
+                ProcessManager.sectionAxis.edited = false
+            }
+        }
+
+        function onMaxChanged() {
+            if(ProcessManager.sectionAxis.edited) {
+                app.setT1T2(ProcessManager.sectionAxis.min, ProcessManager.sectionAxis.max)
+                ProcessManager.sectionAxis.edited = false
+            }
+        }
     }
 }

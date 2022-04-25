@@ -14,6 +14,9 @@ Item {
     property string fontFamily: "Roboto"
     property string headerColor: "#171717"
     property string contentColor: "#1A1A1A"
+    property bool readOnly: true
+
+    signal edited(int index, int column, var value)
 
     AppMaterial { id: appMaterial }
 
@@ -117,11 +120,14 @@ Item {
                     border.color: root.borderColor
                     border.width: 1
 
-                    Text {
+                    TextInput {
                         anchors.centerIn: parent
                         text: root.model[index]["name"]
                         color: root.fontColor
                         font.family: root.fontFamily
+                        readOnly: true
+                        selectByMouse: true
+                        onEditingFinished: root.edited()
                     }
                 }
 
@@ -132,11 +138,14 @@ Item {
                     border.color: root.borderColor
                     border.width: 1
 
-                    Text {
+                    TextInput {
                         anchors.centerIn: parent
                         text: root.model[index]["v1"]
                         color: root.fontColor
                         font.family: root.fontFamily
+                        readOnly: root.readOnly
+                        selectByMouse: true
+                        onEditingFinished: root.edited(index, 1, text)
                     }
                 }
 
@@ -147,11 +156,14 @@ Item {
                     border.color: root.borderColor
                     border.width: 1
 
-                    Text {
+                    TextInput {
                         anchors.centerIn: parent
                         text: root.model[index]["v2"]
                         color: root.fontColor
                         font.family: root.fontFamily
+                        readOnly: root.readOnly
+                        selectByMouse: true
+                        onEditingFinished: root.edited(index, 2, text)
                     }
                 }
 
@@ -162,11 +174,14 @@ Item {
                     border.color: root.borderColor
                     border.width: 1
 
-                    Text {
+                    TextInput {
                         anchors.centerIn: parent
                         text: root.model[index]["v3"]
                         color: root.fontColor
                         font.family: root.fontFamily
+                        readOnly: true
+                        selectByMouse: true
+                        onEditingFinished: root.edited()
                     }
                 }
             }
