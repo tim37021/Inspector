@@ -28,6 +28,8 @@ Item {
 
         headerPositioning: ListView.OverlayHeader
         clip: true
+
+        ScrollBar.vertical: ScrollBar { id: scrollBar }
     }
 
     Component {
