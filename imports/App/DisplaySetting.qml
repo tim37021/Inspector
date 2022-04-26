@@ -16,7 +16,7 @@ QtObject {
                     "P1", "P2", "P3", "Q1", "Q2", "Q3",
                     "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
                     "CH1", "CH2", "CH3", "CH4", "CH5", "CH6",
-                    "CH12", "CH23", "CH31", "CH45", "CH56", "CH64"
+                    "CH12", "CH23", "CH31", "CH45", "CH56", "CH64", "IP1", "IP2", "IP3", "IQ1", "IQ2", "IQ3",
                 ]
             else 
                 return [
@@ -29,7 +29,7 @@ QtObject {
                     "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
                     "CH1", "CH2", "CH3", "CH4", "CH5", "CH6",
                     "CH12", "CH23", "CH31", "CH45", "CH56", "CH64", 
-                    "L1-L2", "L2-L3", "L3-L1",
+                    "L1-L2", "L2-L3", "L3-L1", "IP1", "IP2", "IP3", "IQ1", "IQ2", "IQ3",
                 ]
         }
         property var channel: {
@@ -85,12 +85,18 @@ QtObject {
             "CH45": [48], 
             "CH56": [49], 
             "CH64": [50],
-            "L1-L2": [51],
-            "L2-L3": [52],
-            "L3-L1": [53],
+            "L1-L2": [57],
+            "L2-L3": [58],
+            "L3-L1": [59],
             "U1-N": [18],
             "U2-N": [19],
             "U3-N": [20],
+            "IP1": [51],
+            "IP2": [52],
+            "IP3": [53],
+            "IQ1": [53],
+            "IQ2": [55],
+            "IQ3": [56],
         }
         onChannelNamesChanged: {
             clear()

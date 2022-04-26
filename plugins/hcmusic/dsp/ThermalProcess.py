@@ -23,7 +23,7 @@ PW3P3W_CHANNEL_NAME = [
         "P1", "P2", "P3", "Q1", "Q2", "Q3",
         "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
         "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH12", "CH23", "CH31",
-        "CH45", "CH56", "CH64",
+        "CH45", "CH56", "CH64", "IP1", "IP2", "IP3", "IQ1", "IQ2", "IQ3",
     ]
 
 PW3P4W_CHANNEL_NAME = [
@@ -35,8 +35,8 @@ PW3P4W_CHANNEL_NAME = [
         "P1", "P2", "P3", "Q1", "Q2", "Q3",
         "I+", "I-", "I0", "U-sig", "I-sig", "P-sig", "Q-sig", "S+", "S-",
         "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH12", "CH23", "CH31",
-        "CH45", "CH56", "CH64",
-        "L1-L2", "L2-L3", "L3-L1"
+        "CH45", "CH56", "CH64", "IP1", "IP2", "IP3", "IQ1", "IQ2", "IQ3",
+        "L1-L2", "L2-L3", "L3-L1", 
     ]
 
 class PhaseWireCalc(ProcessorNode):
@@ -338,6 +338,14 @@ class PhaseWireCalc(ProcessorNode):
         pSig = (p1 + p2 + p3) / 3
         qSig = (q1 + q2 + q3) / 3
 
+        iP1 = p1 / (sqrt(3) * u1)
+        iP2 = p2 / (sqrt(3) * u2)
+        iP3 = p3 / (sqrt(3) * u3)
+
+        iQ1 = q1 / (sqrt(3) * u1)
+        iQ2 = q2 / (sqrt(3) * u2)
+        iQ3 = q3 / (sqrt(3) * u3)
+
         self._output.numpy_array[..., 0] = pPos
         self._output.numpy_array[..., 1] = qPos
         self._output.numpy_array[..., 2] = pNeg
@@ -406,9 +414,17 @@ class PhaseWireCalc(ProcessorNode):
         self._output.numpy_array [..., 50] = self._output.numpy_array [..., 44] - self._output.numpy_array [..., 42]
 
         if self._type == "PW3P4W":
-            self._output.numpy_array [..., 51] = l12
-            self._output.numpy_array [..., 52] = l23
-            self._output.numpy_array [..., 53] = l31
+            self._output.numpy_array [..., 57] = l12
+            self._output.numpy_array [..., 58] = l23
+            self._output.numpy_array [..., 59] = l31
+        
+        self._output.numpy_array [..., 51] = iP1
+        self._output.numpy_array [..., 52] = iP2
+        self._output.numpy_array [..., 53] = iP3
+        self._output.numpy_array [..., 54] = iQ1
+        self._output.numpy_array [..., 55] = iQ2
+        self._output.numpy_array [..., 56] = iQ3
+
         self.calcFinished.emit()
 
         self._output.update.emit(min(self._t1, self._t2), max(self._t1, self._t2))
@@ -416,7 +432,7 @@ class PhaseWireCalc(ProcessorNode):
     def initialize(self):
         m = abs(self._t2 - self._t1)
         n = self._windowSize
-        self._output.alloc(max(m, n) - min(m, n) + 1, 54)
+        self._output.alloc(max(m, n) - min(m, n) + 1, 60)
 
     def _windowRMS(self, a, windowSize):
         a2 = np.power(a,2)

@@ -26,7 +26,7 @@ QtObject {
     }
 
     property ValueAxis sectionAxis: ValueAxis {
-        min: 0
+        min: 1000
         max: c2cConv.output.length
         property bool edited: false
 

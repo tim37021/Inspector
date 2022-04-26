@@ -562,7 +562,13 @@ ApplicationWindow {
                 tracksListView.itemAtIndex(i).signalFit()
             }
             gatherSignalView.itemAtIndex(0).signalFit()
-            app.setT1T2(ProcessManager.trn.getT1() - 100, ProcessManager.trn.getT2() + 100)
+            let t1 = 10000
+            let t2 = 15000
+            if(t1 < ProcessManager.trn.getT1() - 100)
+                t1 = ProcessManager.trn.getT1() - 100
+            if (t2 < ProcessManager.trn.getT2() + 100)
+                t2 = ProcessManager.trn.getT2() + 100
+            app.setT1T2(t1, t2)
         }
     }
 
