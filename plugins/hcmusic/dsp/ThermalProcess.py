@@ -10,7 +10,7 @@ from numpy.core.fromnumeric import argmax
 from scipy.signal import find_peaks, find_peaks_cwt
 from math import ceil, log2, nan, sqrt
 from statistics import mean
-import copy
+import matplotlib.pyplot as plt
 
 from .Node import EstimateNode, ProcessorNode, QtSignal1D, Node, Signal1D
 
@@ -520,6 +520,16 @@ class ThermalReportNode(Node):
             "voltageDepth": "0.15",
             "dipDuration": "1000"
         }
+        self._pt1CurveSettings = {
+            "Qstart": 0,
+            "Qsoll": 100,
+            "KRR": 4.92,
+            "Pn": 100,
+            "Sn": 100,
+            "ThreeTau": 10,
+            "DelayTime": 0.6,
+            "ToleranceQ": 0.04
+        }
 
     @Property(Signal1D, notify=inputChanged)
     def input(self):
@@ -847,6 +857,10 @@ class ThermalReportNode(Node):
     def getBaseInfo(self):
         return self._baseInfo
 
+    @Slot("QVariantMap")
+    def setPt1Curve(self, settings):
+        self._pt1CurveSettings = settings
+
     @Slot(result=float)
     def getT1(self):
         peaks = self._getTargetTime2(self._input.numpy_array[..., 0])
@@ -862,6 +876,60 @@ class ThermalReportNode(Node):
             return peaks[1]
         else:
             return 200000
+
+    def drawPTCurve(self, t1, t2):
+        print(self._pt1CurveSettings)
+        q_start = self._pt1CurveSettings["Qstart"]
+        q_soll = self._pt1CurveSettings["Qsoll"]
+        
+        p_emax = self._pt1CurveSettings["Pn"]
+        s_emax = self._pt1CurveSettings["Sn"]
+        k = q_soll/s_emax - q_start/s_emax
+        krr = self._pt1CurveSettings["KRR"]
+        three_tau = self._pt1CurveSettings["ThreeTau"]
+        t_d = self._pt1CurveSettings["DelayTime"] # In tau
+        q_tol = self._pt1CurveSettings["ToleranceQ"] # In percent
+        x_upper = np.linspace(-5 * self._samplerate, three_tau * 3 * self._samplerate, 1000)
+        y_upper = []
+        for x in x_upper:
+            if x < 0:
+                x = 0
+            if q_soll < 0:
+                value = q_start + k*(1.0 - math.pow(math.e, -krr*x/self._samplerate*3.0/float(three_tau))) - q_tol
+            else:
+                value = q_start + k*(1.0 - math.pow(math.e, -krr*x/self._samplerate*3.0/float(three_tau))) + q_tol
+            
+            y_upper.append(value)
+        y_upper = np.array(y_upper)
+
+        y_lower = []
+        for x in x_upper:
+            value = 0
+            if x/self._samplerate <= t_d * three_tau / 3:
+
+                if q_soll < 0:
+                    value = q_start + q_tol
+                else:
+                    value = q_start - q_tol
+            else:
+                # print(x/self._samplerate - t_d)
+                if q_soll < 0:
+                    value = q_start + k*(1.0 - math.pow(math.e, -krr*(x/float(self._samplerate) - t_d)*3.0/float(three_tau))) + q_tol
+                else:
+                    value = q_start + k*(1.0 - math.pow(math.e, -krr*(x/float(self._samplerate) - t_d)*3.0/float(three_tau))) - q_tol
+            y_lower.append(value)
+        y_lower = np.array(y_lower)
+        q = self._input.numpy_array[..., 36] [int(t2 -5 * self._samplerate):int(t2+three_tau * 3 * self._samplerate)]
+        q_plot = [q[int(x)] if int(x) < len(q) else None for x in x_upper]
+        # plot
+        fig, ax = plt.subplots()
+        ax.plot(x_upper, y_upper, '--', linewidth=1.0)
+        ax.plot(x_upper, y_lower, '--', linewidth=1.0)
+        ax.plot(x_upper, q_plot, linewidth=2.0)
+        ax.set(xlim=(x_upper[0], x_upper[-1]), ylim=(y_lower.min() - (y_upper.max() - y_lower.min()) / 10, y_upper.max() + (y_upper.max() - y_lower.min()) / 10))    
+        plt.show()
+
+    
     @Slot(QUrl, int, int)
     def calc(self,  outputFile= "tests.xlsx", t1 = 0, t2 = 10000):
         from os import listdir
@@ -887,6 +955,7 @@ class ThermalReportNode(Node):
             merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
             self._vdeMergeCells(worksheet, rpExcel, merge_format)
             writer.save()
+            self.drawPTCurve(t1, t2)
         elif self._type == "BDEW":
             report = self._bdewReport()
             rpExcel = pd.read_excel(join(templatePath, "BDEW.xlsx"))
@@ -902,6 +971,10 @@ class ThermalReportNode(Node):
             merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
             self._bdewMergeCells(worksheet, rpExcel, merge_format)
             writer.save()
+            self.drawPTCurve(t1, t2)
+
+    
+
 
 
         

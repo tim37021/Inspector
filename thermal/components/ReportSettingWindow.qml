@@ -8,6 +8,7 @@ import hcmusic.plot 1.0
 import hcmusic.dsp 1.0
 
 import ".."
+import "inputBox"
 
 Rectangle {
     id: root
@@ -171,6 +172,7 @@ Rectangle {
                     height: childrenRect.height + 20
                     spacing: 20
                     Text {
+                        width: 100
                         text: "Test Information"
                         font.pixelSize: 18
                         color: "white"
@@ -202,6 +204,7 @@ Rectangle {
                     Column {
                         spacing: 20
                         Text {
+                            width: 100
                             text: "Test Condition"
                             color: "white"
                             font.pixelSize: 16
@@ -210,358 +213,214 @@ Rectangle {
                         Row {
                             spacing: 20
                             Text {
+                                width: 100
                                 anchors.verticalCenter: parent.verticalCenter;
-                                text: "P"
+                                text: "Qstart"
                                 color: "white"
                             }
 
-                            Rectangle {
-                                width: 80
+                            IntInputBox {
+                                id: qstartValue
+                                width: 150
                                 height: 30
                                 anchors.verticalCenter: parent.verticalCenter;
-                                color: "white"
-
-                                TextInput {
-                                    id: pValue
-                                    text: "100"
-                                    anchors.verticalCenter: parent.verticalCenter;
-                                    anchors.left: parent.left;anchors.right: parent.right;
-                                    anchors.margins: 5
-                                }
+                                
+                                from: -100
+                                to: 200000
+                                value: 0
                             }
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter;
-                                text: "%Pn"
+                                text: "p.u."
                                 color: "white"
                             }
                         }
 
-                        Row  {
-                            width: parent.width
-                            height: 100
+                        Row {
                             spacing: 20
+                            Text {
+                                width: 100
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "Qsoll"
+                                color: "white"
+                            }
+
+                            IntInputBox {
+                                id: qsollValue
+                                width: 150
+                                height: 30
+                                anchors.verticalCenter: parent.verticalCenter;
+                                
+                                from: -100
+                                to: 200000
+                                value: 100
+                            }
 
                             Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: "Q Function"
-                                width: 120
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "p.u."
                                 color: "white"
-                            }
-
-                            Rectangle {
-                                height: parent.height
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: 1
-                                color: "#F0F0F0"
-                            }
-
-                            Column {
-                                anchors.verticalCenter: parent.verticalCenter
-                                
-                                ButtonGroup { id: qRadioGroup }
-                                Row {
-                                    spacing: 20
-                                    RadioButton {
-                                        id: qChecked
-                                        checked: true
-                                        ButtonGroup.group: qRadioGroup
-                                    }
-
-                                    Text {
-                                        text: "Fixed Q: "
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: qChecked.checked? "white": "#8E8E8E"
-                                    }
-
-                                    Rectangle {
-                                        width: 100
-                                        height: 30
-                                        color: qChecked.checked? "white": "#8E8E8E"
-                                        anchors.verticalCenter: parent.verticalCenter;
-
-                                        TextInput {
-                                            id: qInput
-                                            text: "0"
-                                            anchors.verticalCenter: parent.verticalCenter;
-                                            anchors.left: parent.left;anchors.right: parent.right;
-                                            anchors.margins: 5
-                                            readOnly: !qChecked.checked
-                                        }
-                                    }
-
-                                    Text {
-                                        text: "% Pn"
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: qChecked.checked? "white": "#8E8E8E"
-                                    }
-                                }
-
-                                Row {
-                                    spacing: 20
-                                    RadioButton {
-                                        id: cosChecked
-                                        checked: true
-                                        ButtonGroup.group: qRadioGroup
-                                    }
-
-                                    Text {
-                                        text: "Fixed cosφ: "
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: cosChecked.checked? "white": "#8E8E8E"
-                                    }
-
-                                    Rectangle {
-                                        width: 100
-                                        height: 30
-                                        color: cosChecked.checked? "white": "#8E8E8E"
-                                        anchors.verticalCenter: parent.verticalCenter;
-
-                                        TextInput {
-                                            id: cosInput
-                                            text: "0"
-                                            anchors.verticalCenter: parent.verticalCenter;
-                                            anchors.left: parent.left;anchors.right: parent.right;
-                                            anchors.margins: 5
-                                            readOnly: !cosChecked.checked
-                                        }
-                                    }
-
-                                    Text {
-                                        text: "% Pn"
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: cosChecked.checked? "white": "#8E8E8E"
-                                    }
-                                }
                             }
                         }
 
-                        Row  {
-                            width: parent.width
-                            height: 100
+                        Row {
                             spacing: 20
+                            Text {
+                                width: 100
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "KRR"
+                                color: "white"
+                            }
+
+                            FloatInputBox {
+                                id: krrValue
+                                width: 150
+                                height: 30
+                                anchors.verticalCenter: parent.verticalCenter;
+                                
+                                from: 1
+                                to: 5
+                                value: 4.92
+                                stepSize: 0.01
+                            }
+                        }
+
+                        Row {
+                            spacing: 20
+                            Text {
+                                width: 100
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "Pn"
+                                color: "white"
+                            }
+
+                            IntInputBox {
+                                id: pnValue
+                                width: 150
+                                height: 30
+                                anchors.verticalCenter: parent.verticalCenter;
+                                
+                                from: -200000
+                                to: 200000
+                                value: 100
+                            }
 
                             Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: "K factor"
-                                width: 120
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "W"
                                 color: "white"
-                            }
-
-                            Rectangle {
-                                height: parent.height
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: 1
-                                color: "#F0F0F0"
-                            }
-
-                            Column {
-                                anchors.verticalCenter: parent.verticalCenter
-                                
-                                ButtonGroup { id: kRadioGroup }
-                                Row {
-                                    spacing: 20
-                                    RadioButton {
-                                        id: k1Checked
-                                        checked: true
-                                        ButtonGroup.group: kRadioGroup
-                                    }
-
-                                    Text {
-                                        text: ""
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: k1Checked.checked? "white": "#8E8E8E"
-                                    }
-
-                                    Rectangle {
-                                        width: 100
-                                        height: 30
-                                        color: k1Checked.checked? "white": "#8E8E8E"
-                                        anchors.verticalCenter: parent.verticalCenter;
-
-                                        TextInput {
-                                            id: k1Input
-                                            text: "0"
-                                            anchors.verticalCenter: parent.verticalCenter;
-                                            anchors.left: parent.left;anchors.right: parent.right;
-                                            anchors.margins: 5
-                                            readOnly: !k1Checked.checked
-                                        }
-                                    }
-
-                                    Text {
-                                        text: ""
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: k1Checked.checked? "white": "#8E8E8E"
-                                    }
-                                }
-
-                                Row {
-                                    spacing: 20
-                                    RadioButton {
-                                        id: zeroChecked
-                                        checked: true
-                                        ButtonGroup.group: kRadioGroup
-                                    }
-
-                                    Text {
-                                        text: "Zero current"
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: "white"
-                                    }
-                                }
                             }
                         }
 
-                        Row  {
-                            width: parent.width
-                            height: 100
+                        Row {
                             spacing: 20
+                            Text {
+                                width: 100
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "Sn"
+                                color: "white"
+                            }
+
+                            IntInputBox {
+                                id: snValue
+                                width: 150
+                                height: 30
+                                anchors.verticalCenter: parent.verticalCenter;
+                                
+                                from: -200000
+                                to: 200000
+                                value: 100
+                            }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "VA"
+                                color: "white"
+                            }
+                        }
+
+                        Row {
+                            spacing: 20
+                            Text {
+                                width: 100
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "3 Tau"
+                                color: "white"
+                            }
+
+                            IntInputBox {
+                                id: threeTauValue
+                                width: 150
+                                height: 30
+                                anchors.verticalCenter: parent.verticalCenter;
+                                
+                                from: 6
+                                to: 60
+                                value: 10
+                            }
 
                             Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: "Recover Q"
-                                width: 120
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "s"
+                                color: "white"
+                            }
+                        }
+                        Row {
+                            spacing: 20
+                            Text {
+                                width: 100
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "Delay time"
+                                color: "white"
+                            }
+                            FloatInputBox {
+                                id: delayTimeValue
+                                width: 150
+                                height: 30
+                                anchors.verticalCenter: parent.verticalCenter;
+                                
+                                from: 0.1
+                                to: 2
+                                value: 0.6
+                                stepSize: 0.01
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "tau"
+                                color: "white"
+                            }
+                        }
+
+                        Row {
+                            spacing: 20
+                            Text {
+                                width: 100
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "Tolerance Q"
                                 color: "white"
                             }
 
-                            Rectangle {
-                                height: parent.height
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: 1
-                                color: "#F0F0F0"
+                            FloatInputBox {
+                                id: tolQValue
+                                width: 150
+                                height: 30
+                                anchors.verticalCenter: parent.verticalCenter;
+                                from: 0.025
+                                to: 0.1
+                                value: 0.04
+                                decimals: 3
+                                stepSize: 0.001
                             }
 
-                            Column {
-                                anchors.verticalCenter: parent.verticalCenter
-                                
-                                ButtonGroup { id: recoverQRadioGroup }
-                                Row {
-                                    spacing: 20
-                                    RadioButton {
-                                        id: ptChecked
-                                        checked: true
-                                        ButtonGroup.group: recoverQRadioGroup
-                                    }
-
-                                    Text {
-                                        text: "PT1 curve"
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: "white"
-                                    }
-                                }
-
-                                Row {
-                                    spacing: 20
-                                    RadioButton {
-                                        id: fastChecked
-                                        checked: true
-                                        ButtonGroup.group: recoverQRadioGroup
-                                    }
-
-                                    Text {
-                                        text: "Fast"
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: "white"
-                                    }
-                                }
-                            }
-                        }
-                        
-                    }
-
-                    Row {
-                        id: timeSelect
-                        width: parent.width
-                        height: 100
-                        spacing: 20
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Fault time (sample)"
-                            width: 120
-                            color: "white"
-                        }
-
-                        Rectangle {
-                            height: parent.height
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 1
-                            color: "#F0F0F0"
-                        }
-
-                        Column {
-                            anchors.verticalCenter: parent.verticalCenter
-                            
-                            ButtonGroup { id: radioGroup }
-                            Row {
-                                RadioButton {
-                                    id: autoChecked
-                                    checked: true
-                                    ButtonGroup.group: radioGroup
-                                }
-
-                                Text {
-                                    text: "Auto"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    color: autoChecked.checked? "white": "#8E8E8E"
-                                }
-                            }
-
-                            Row {
-                                spacing: 20
-                                RadioButton {
-                                    id: manualChecked
-                                    checked: true
-                                    ButtonGroup.group: radioGroup
-                                }
-
-                                Text {
-                                    text: "T1"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    color: manualChecked.checked? "white": "#8E8E8E"
-                                }
-
-                                Rectangle {
-                                    width: 100
-                                    height: 30
-                                    color: manualChecked.checked? "white": "#8E8E8E"
-                                    anchors.verticalCenter: parent.verticalCenter;
-
-                                    TextInput {
-                                        id: t1Input
-                                        text: "0"
-                                        anchors.verticalCenter: parent.verticalCenter;
-                                        anchors.left: parent.left;anchors.right: parent.right;
-                                        anchors.margins: 5
-                                        readOnly: !manualChecked.checked
-                                    }
-                                }
-
-                                Text {
-                                    text: "T2"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    color: manualChecked.checked? "white": "#8E8E8E"
-                                }
-
-                                Rectangle {
-                                    width: 100
-                                    height: 30
-                                    color: manualChecked.checked? "white": "#8E8E8E"
-                                    anchors.verticalCenter: parent.verticalCenter;
-
-                                    TextInput {
-                                        id: t2Input
-                                        text: "2000"
-                                        anchors.verticalCenter: parent.verticalCenter;
-                                        anchors.left: parent.left; anchors.right: parent.right;
-                                        anchors.margins: 5
-                                        readOnly: !manualChecked.checked
-                                    }
-                                }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter;
+                                text: "p.u."
+                                color: "white"
                             }
                         }
                     }
+
                 }
             }
         }
@@ -619,5 +478,16 @@ Rectangle {
             reporter.type = "BDEW"
         }
         reporter.setBaseInfo(settings)
+
+        let pt1Settings = {}
+        pt1Settings["Qstart"] = qstartValue.value
+        pt1Settings["Qsoll"] = qsollValue.value
+        pt1Settings["KRR"] = krrValue.value
+        pt1Settings["Pn"] = pnValue.value
+        pt1Settings["Sn"] = snValue.value
+        pt1Settings["ThreeTau"] = threeTauValue.value
+        pt1Settings["DelayTime"] = delayTimeValue.value
+        pt1Settings["ToleranceQ"] = tolQValue.value
+        reporter.setPt1Curve(pt1Settings)
     }
 }
