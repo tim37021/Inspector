@@ -887,7 +887,9 @@ class ThermalReportNode(Node):
         k = q_soll/s_emax - q_start/s_emax
         krr = self._pt1CurveSettings["KRR"]
         three_tau = self._pt1CurveSettings["ThreeTau"]
-        t_d = self._pt1CurveSettings["DelayTime"] # In tau
+        tau = float(three_tau) / 3.0
+        t_d = self._pt1CurveSettings["DelayTime"]  # In tau
+        t_d = t_d *(float(three_tau) / 3.0)
         q_tol = self._pt1CurveSettings["ToleranceQ"] # In percent
         x_upper = np.linspace(-5 * self._samplerate, three_tau * 3 * self._samplerate, 1000)
         y_upper = []
@@ -895,9 +897,9 @@ class ThermalReportNode(Node):
             if x < 0:
                 x = 0
             if q_soll < 0:
-                value = q_start + k*(1.0 - math.pow(math.e, -krr*x/self._samplerate*3.0/float(three_tau))) - q_tol
+                value = q_start + k*(1.0 - math.pow(math.e, -krr*x/self._samplerate/ tau)) - q_tol
             else:
-                value = q_start + k*(1.0 - math.pow(math.e, -krr*x/self._samplerate*3.0/float(three_tau))) + q_tol
+                value = q_start + k*(1.0 - math.pow(math.e, -krr*x/self._samplerate/ tau)) + q_tol
             
             y_upper.append(value)
         y_upper = np.array(y_upper)
@@ -905,7 +907,7 @@ class ThermalReportNode(Node):
         y_lower = []
         for x in x_upper:
             value = 0
-            if x/self._samplerate <= t_d * three_tau / 3:
+            if x/self._samplerate <= t_d:
 
                 if q_soll < 0:
                     value = q_start + q_tol
@@ -913,19 +915,22 @@ class ThermalReportNode(Node):
                     value = q_start - q_tol
             else:
                 # print(x/self._samplerate - t_d)
+                print(x/float(self._samplerate))
+                print(t_d)
+                print(x/float(self._samplerate) - t_d)
                 if q_soll < 0:
-                    value = q_start + k*(1.0 - math.pow(math.e, -krr*(x/float(self._samplerate) - t_d)*3.0/float(three_tau))) + q_tol
+                    value = q_start + k*(1.0 - math.pow(math.e, -krr*(x/float(self._samplerate) - t_d)/ tau)) + q_tol
                 else:
-                    value = q_start + k*(1.0 - math.pow(math.e, -krr*(x/float(self._samplerate) - t_d)*3.0/float(three_tau))) - q_tol
+                    value = q_start + k*(1.0 - math.pow(math.e, -krr*(x/float(self._samplerate) - t_d)/ tau)) - q_tol
             y_lower.append(value)
         y_lower = np.array(y_lower)
         q = self._input.numpy_array[..., 36] [int(t2 -5 * self._samplerate):int(t2+three_tau * 3 * self._samplerate)]
-        q_plot = [q[int(x)] if int(x) < len(q) else None for x in x_upper]
+        q_plot = [q[int(x)] / s_emax  if int(x) < len(q) else None for x in x_upper]
         # plot
         fig, ax = plt.subplots()
         ax.plot(x_upper, y_upper, '--', linewidth=1.0)
         ax.plot(x_upper, y_lower, '--', linewidth=1.0)
-        ax.plot(x_upper, q_plot, linewidth=2.0)
+        # ax.plot(x_upper, q_plot, linewidth=2.0)
         ax.set(xlim=(x_upper[0], x_upper[-1]), ylim=(y_lower.min() - (y_upper.max() - y_lower.min()) / 10, y_upper.max() + (y_upper.max() - y_lower.min()) / 10))    
         plt.show()
 
